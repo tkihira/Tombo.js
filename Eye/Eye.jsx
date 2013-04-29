@@ -63,6 +63,7 @@ class Eye {
 	function render(): void {
 		// todo: render only if any layer is dirty
 		
+		// todo: check background-color
 		this.ctx.clearRect(0, 0, this.width, this.height);
 		
 		for(var i = 0; i < this.layerList.length; i++) {

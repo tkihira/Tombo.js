@@ -60,7 +60,7 @@ class Layer {
 		for(var i = 0; i < this.displayList.length; i++) {
 			// TODO: set proper matrix
 			var node = this.displayList[i];
-			node.render();
+			node.render(this.ctx);
 		}
 	}
 }
