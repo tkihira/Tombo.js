@@ -2,6 +2,7 @@ import "js/web.jsx";
 import "js.jsx";
 
 import "Shape.jsx";
+import "Layer.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -13,6 +14,7 @@ class DisplayNode {
 	var shape: Shape;
 	var transform: Transform;
 	var parent = null: DisplayNode;
+	var layer = null: Layer;
 	
 	function constructor(shape: Shape, left: number, top: number, scale: number, rotation: number) {
 		this.shape = shape;
@@ -55,6 +57,11 @@ class DisplayNode {
 		// todo: calcClientRect
 		// todo: set dirty flag
 	}
+	
+	function setLayer(layer: Layer): void {
+		this.layer = layer;
+	}
+	
 	function render(ctx: CanvasRenderingContext2D): void {
 		ctx.save();
 		var matrix = this.transform.getMatrix();

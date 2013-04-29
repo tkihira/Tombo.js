@@ -4,6 +4,7 @@ import "js/web.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 import "DisplayNode.jsx";
+import "Layer.jsx";
 
 class DisplayGroup extends DisplayNode {
 	// todo: support clipping
@@ -25,6 +26,13 @@ class DisplayGroup extends DisplayNode {
 	function appendChild(node: DisplayNode): void {
 		this.children.push(node);
 		node.parent = this;
+		node.setLayer(this.layer);
+	}
+	override function setLayer(layer: Layer): void {
+		super.setLayer(layer);
+		for(var i = 0; i < this.children.length; i++) {
+			this.children[i].setLayer(layer);
+		}
 	}
 	override function render(ctx: CanvasRenderingContext2D): void {
 		if(this.shape) {

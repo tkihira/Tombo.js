@@ -1,6 +1,7 @@
 import "js/web.jsx";
 
 import "LayoutInformation.jsx";
+import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
 import "../Tombo.jsx";
 
@@ -14,6 +15,7 @@ class Layer {
 	var isChild = false;
 	
 	var root: DisplayGroup = new DisplayGroup(0, 0);
+	var touchableNodeList = []: DisplayNode[];
 	
 	function constructor(width: number, height: number) {
 		var layout = new LayoutInformation();
@@ -26,6 +28,7 @@ class Layer {
 		this.layout = layout;
 		this.width = width;
 		this.height = height;
+		this.root.setLayer(this);
 		
 		if(layout.layoutMode & LayoutInformation.FIXED_SCALE) {
 			// create canvas now
@@ -51,6 +54,9 @@ class Layer {
 		this.layout.scale = scale;
 		this.modifyCanvas();
 		// todo: set proper dirty flag
+	}
+	function addTouchableNode(node: DisplayNode): void {
+		this.touchableNodeList.push(node);
 	}
 	
 	function render(): void {
