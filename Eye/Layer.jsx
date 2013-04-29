@@ -51,9 +51,13 @@ class Layer {
 		// todo: set proper dirty flag
 	}
 	
+	function appendNode(node: DisplayNode): void {
+		this.displayList.push(node);
+	}
+	
 	function render(): void {
 		if(!this.canvas) {
-			Tombo.warn("Layer's canvas is not created");
+			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this.modifyCanvas();
 		}
 		// todo: check zIndex(depth)

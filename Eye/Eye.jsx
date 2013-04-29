@@ -29,8 +29,8 @@ class Eye {
 		this.initialize(canvas);
 	}
 	function initialize(canvas: HTMLCanvasElement): void {
-		if(canvas) {
-			Tombo.error("Tombo Eye is already initialized");
+		if(this.canvas) {
+			Tombo.error("[Eye#initialize] Tombo Eye is already initialized");
 		}
 		this.setCanvas(canvas);
 		this.layerList = []: Layer[];
@@ -47,7 +47,7 @@ class Eye {
 	
 	function appendLayer(layer: Layer): void {
 		if(layer.isChild) {
-			Tombo.warn("now trying to append a layer which is already appended");
+			Tombo.warn("[Eye#appendLayer] now trying to append a layer which is already appended");
 		}
 		if(layer.layout.layoutMode & LayoutInformation.AUTO_SCALE) {
 			// calculate scale
@@ -65,6 +65,10 @@ class Eye {
 		
 		// todo: check background-color
 		this.ctx.clearRect(0, 0, this.width, this.height);
+		
+		// for debug
+		this.ctx.fillStyle = "#505050";
+		this.ctx.fillRect(0, 0, this.width, this.height);
 		
 		for(var i = 0; i < this.layerList.length; i++) {
 			this.layerList[i].render();
