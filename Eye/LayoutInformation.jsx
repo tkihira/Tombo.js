@@ -18,6 +18,9 @@ class LayoutInformation {
 	var bottom = 0;
 	var scale = 1;
 	
+	var clientWidth: number;
+	var clientHeight: number;
+	
 	var layoutMode: int;
 	
 	function constructor() {

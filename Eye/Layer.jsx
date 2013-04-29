@@ -42,6 +42,8 @@ class Layer {
 		}
 		this.canvas.width = width;
 		this.canvas.height = height;
+		this.layout.clientWidth = width;
+		this.layout.clientHeight = height;
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.ctx.setTransform(scale, 0, 0, scale, 0, 0);
 	}

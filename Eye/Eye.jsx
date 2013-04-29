@@ -71,10 +71,36 @@ class Eye {
 		this.ctx.fillRect(0, 0, this.width, this.height);
 		
 		for(var i = 0; i < this.layerList.length; i++) {
-			this.layerList[i].render();
+			var layer = this.layerList[i];
+			// todo: check dirty flag
+			layer.render();
 			
-			// TODO: check layout and set proper transform
-			this.ctx.drawImage(this.layerList[i].canvas, 0, 0);
+			// check layout and set proper transform
+			var width = layer.layout.clientWidth;
+			var height = layer.layout.clientHeight;
+			if(!width || !height) {
+				Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
+			}
+			// todo: cache the calculated values
+			var left = 0;
+			var top = 0;
+			if(layer.layout.layoutMode & LayoutInformation.CENTER) {
+				left = (this.width - width) / 2;
+				top = (this.height - height) / 2;
+			}
+			if(layer.layout.layoutMode & LayoutInformation.LEFT) {
+				left = layer.layout.left;
+			}
+			if(layer.layout.layoutMode & LayoutInformation.TOP) {
+				top = layer.layout.top;
+			}
+			if(layer.layout.layoutMode & LayoutInformation.RIGHT) {
+				left = this.width - width - layer.layout.right;
+			}
+			if(layer.layout.layoutMode & LayoutInformation.BOTTOM) {
+				top = this.height - height - layer.layout.bottom;
+			}
+			this.ctx.drawImage(this.layerList[i].canvas, left, top);
 		}
 	}
 }
