@@ -31,9 +31,9 @@ class _Main {
 				var buttonImageShape = new ImageShape(buttonImg);
 				// create Node
 				var logoNode = new DisplayNode(logoImageShape, 160, 90, 0.5);
-				layer.appendNode(logoNode);
+				layer.root.appendChild(logoNode);
 				var buttonNode = new DisplayNode(buttonImageShape, 256, 290, 0.5);
-				layer.appendNode(buttonNode);
+				layer.root.appendChild(buttonNode);
 				
 				// you got everything prepared. just render!
 				eye.render();

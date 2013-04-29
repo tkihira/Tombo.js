@@ -1,7 +1,7 @@
 import "js/web.jsx";
 
 import "LayoutInformation.jsx";
-import "DisplayNode.jsx";
+import "DisplayGroup.jsx";
 import "../Tombo.jsx";
 
 class Layer {
@@ -13,7 +13,7 @@ class Layer {
 	var height: number; // final
 	var isChild = false;
 	
-	var displayList = []: DisplayNode[];
+	var root: DisplayGroup = new DisplayGroup(0, 0);
 	
 	function constructor(width: number, height: number) {
 		var layout = new LayoutInformation();
@@ -53,20 +53,11 @@ class Layer {
 		// todo: set proper dirty flag
 	}
 	
-	function appendNode(node: DisplayNode): void {
-		this.displayList.push(node);
-	}
-	
 	function render(): void {
 		if(!this.canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this.modifyCanvas();
 		}
-		// todo: check zIndex(depth)
-		for(var i = 0; i < this.displayList.length; i++) {
-			// TODO: set proper matrix
-			var node = this.displayList[i];
-			node.render(this.ctx);
-		}
+		this.root.render(this.ctx);
 	}
 }

@@ -5,8 +5,8 @@ import "../../BasicTypes.jsx";
 
 class ImageShape implements Shape {
 	var bounds: Rect;
-	
 	var img: HTMLImageElement;
+	var isMutable = false;
 	
 	function constructor(img: HTMLImageElement) {
 		this.img = img;
