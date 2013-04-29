@@ -131,3 +131,19 @@ class Transform {
 		}
 	}
 }
+
+class Color {
+	static function createRGB(r: int, g: int, b: int): int {
+		return Color.createRGBA(r, g, b, 255);
+	}
+	static function createRGBA(r: int, g: int, b: int, a: int): int {
+		return ((r & 0xFF) << 24) | ((g & 0xFF) << 16) | ((b & 0xFF) << 8) | (a & 0xFF);
+	}
+	static function stringify(color: int): string {
+		var r = (color >> 24) & 0xFF;
+		var g = (color >> 16) & 0xFF;
+		var b = (color >> 8) & 0xFF;
+		var a = (color & 0xFF) as number;
+		return "rgba(" + (r as string) + "," + (g as string) + "," + (b as string) + "," + ((a / 255) as string) + ")";
+	}
+}
