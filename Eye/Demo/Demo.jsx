@@ -33,10 +33,22 @@ class _Main {
 				var logoNode = new DisplayNode(logoImageShape, 160, 90, 0.5);
 				layer.root.appendChild(logoNode);
 				var buttonNode = new DisplayNode(buttonImageShape, 256, 290, 0.5);
+				buttonNode.setTouchable(true);
 				layer.root.appendChild(buttonNode);
 				
 				// you got everything prepared. just render!
 				eye.render();
+				
+				canvas.addEventListener("mousedown", (e) -> {
+					var m = e as MouseEvent;
+					if(m) {
+						var x = m.clientX - canvas.offsetLeft;
+						var y = m.clientY - canvas.offsetTop;
+						if(eye.findTouchedNode(x, y) == buttonNode) {
+							dom.window.alert("button clicked");
+						}
+					}
+				});
 			};
 		};
 	}

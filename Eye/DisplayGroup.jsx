@@ -25,7 +25,7 @@ class DisplayGroup extends DisplayNode {
 	
 	function appendChild(node: DisplayNode): void {
 		this.children.push(node);
-		node.parent = this;
+		node.setParent(this);
 		node.setLayer(this.layer);
 	}
 	override function setLayer(layer: Layer): void {

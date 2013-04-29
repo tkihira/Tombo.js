@@ -11,6 +11,12 @@ class Rect {
 	}
 	function constructor() {
 	}
+	function isInside(x: number, y: number): boolean {
+		if(x < this.left || y < this.top || x >= this.left + this.width || y >= this.top + this.height) {
+			return false;
+		}
+		return true;
+	}
 }
 
 class Transform {
@@ -99,6 +105,29 @@ class Transform {
 			return this.matrix;
 		} else {
 			return [this.scale, 0, 0, this.scale, this.left, this.top];
+		}
+	}
+	
+	function transformRect(rect: Rect): Rect {
+		if(this.matrix) {
+			// todo implement mul
+			throw "[Transform#mul] sorry, not implemented";
+		} else {
+			return new Rect(this.scale * rect.left + this.left, this.scale * rect.top + this.top,
+							this.scale * rect.width, this.scale * rect.height);
+		}
+	}
+	
+	static function mul(a: Transform, b: Transform): Transform {
+		if(a.matrix || b.matrix) {
+			// todo implement mul
+			throw "[Transform#mul] sorry, not implemented";
+		} else {
+			// neither matrix has transform
+			var scale = a.scale * b.scale;
+			var left = a.scale * b.left + a.left;
+			var top = a.scale * b.top + a.top;
+			return new Transform(left, top, scale);
 		}
 	}
 }

@@ -4,6 +4,7 @@ import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
 import "../Tombo.jsx";
+import "../BasicTypes.jsx";
 
 class Layer {
 	var canvas: HTMLCanvasElement;
@@ -57,6 +58,30 @@ class Layer {
 	}
 	function addTouchableNode(node: DisplayNode): void {
 		this.touchableNodeList.push(node);
+	}
+	function removeTouchableNode(node: DisplayNode): void {
+		for(var i = 0; i < this.touchableNodeList.length; i++) {
+			if(this.touchableNodeList[i] == node) {
+				this.touchableNodeList.splice(i, 1);
+				return;
+			}
+		}
+	}
+	function findTouchedNode(transform: Transform, x: number, y: number): DisplayNode {
+		if(x < 0 || x >= this.width || y < 0 || y >= this.height) {
+			return null;
+		}
+		for(var i = 0; i < this.touchableNodeList.length; i++) {
+			var node = this.touchableNodeList[i];
+			// todo: check node's dirty flag and recalculation the rect if dirty
+			if(!node.clientRect) {
+				Tombo.warn("[Layer#findTouchedNode] node#clientRect is not set");
+			}
+			if(node.clientRect && transform.transformRect(node.clientRect).isInside(x, y)) {
+				return node;
+			}
+		}
+		return null;
 	}
 	
 	function render(): void {
