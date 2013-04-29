@@ -15,6 +15,6 @@ var command_exec = function(command) {
 
 desc("build demo");
 task("default", [], function() {
-	command_exec("jsx --executable web --output demo.js Demo.jsx");
+	command_exec("jsx --executable web --output simple.js Simple.jsx");
 });
 
