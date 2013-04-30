@@ -1,9 +1,9 @@
 import "js/web.jsx";
 
-import "../Eye.jsx";
-import "../Layer.jsx";
-import "../DisplayNode.jsx";
-import "../Shapes/ImageShape.jsx";
+import "Eye/Eye.jsx";
+import "Eye/Layer.jsx";
+import "Eye/DisplayNode.jsx";
+import "Eye/Shapes/ImageShape.jsx";
 
 class _Main {
 	static function main(args: string[]): void {

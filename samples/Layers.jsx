@@ -1,12 +1,12 @@
 import "js/web.jsx";
 
-import "../Eye.jsx";
-import "../Layer.jsx";
-import "../LayoutInformation.jsx";
-import "../DisplayNode.jsx";
-import "../DisplayGroup.jsx";
-import "../Shapes/ImageShape.jsx";
-import "../Shapes/TextShape.jsx";
+import "Eye/Eye.jsx";
+import "Eye/Layer.jsx";
+import "Eye/LayoutInformation.jsx";
+import "Eye/DisplayNode.jsx";
+import "Eye/DisplayGroup.jsx";
+import "Eye/Shapes/ImageShape.jsx";
+import "Eye/Shapes/TextShape.jsx";
 
 class _Main {
 	static var imgMap = {}: Map.<HTMLImageElement>;

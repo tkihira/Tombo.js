@@ -22,16 +22,16 @@ task("default", [], function() {
 
 desc("build simple");
 task("simple", [], function() {
-	command_exec("jsx --executable web --output simple.js Simple.jsx");
+	command_exec("jsx --add-search-path ../src/ --executable web --output simple.js Simple.jsx");
 });
 
 desc("build text");
 task("text", [], function() {
-	command_exec("jsx --executable web --output text.js Text.jsx");
+	command_exec("jsx --add-search-path ../src/ --executable web --output text.js Text.jsx");
 });
 
 desc("build layers");
 task("layers", [], function() {
-	command_exec("jsx --executable web --output layers.js Layers.jsx");
+	command_exec("jsx --add-search-path ../src/ --executable web --output layers.js Layers.jsx");
 });
 
