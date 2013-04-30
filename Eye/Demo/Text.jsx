@@ -1,5 +1,6 @@
 import "js/web.jsx";
 
+import "../../BasicTypes.jsx";
 import "../Eye.jsx";
 import "../Layer.jsx";
 import "../DisplayNode.jsx";
@@ -23,9 +24,11 @@ class _Main {
 		// create TextShape
 		var textShape = new TextShape(320, 320, "very long long long long initial text");
 		var option = new TextShape.Option();
-		option.align = TextShape.LEFT;
+		option.align = TextShape.CENTER;
 		option.multiline = true;
 		option.wordWrap = true;
+		option.fontHeight = 50;
+		option.textColor = Color.createRGB(0,255,255);
 		textShape.setOption(option);
 		// create Node
 		var textNode = new DisplayNode(textShape, 160, 160, 1);
