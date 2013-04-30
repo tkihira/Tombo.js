@@ -68,15 +68,16 @@ class Layer {
 		}
 	}
 	function findTouchedNode(transform: Transform, x: number, y: number): DisplayNode {
-		if(x < 0 || x >= this.width || y < 0 || y >= this.height) {
-			return null;
-		}
+//		if(x < 0 || x >= this.width || y < 0 || y >= this.height) {
+//			// return null;
+//		}
 		for(var i = 0; i < this.touchableNodeList.length; i++) {
 			var node = this.touchableNodeList[i];
 			// todo: check node's dirty flag and recalculation the rect if dirty
 			if(!node.clientRect) {
 				Tombo.warn("[Layer#findTouchedNode] node#clientRect is not set");
 			}
+			//log node.clientRect.left, node.clientRect.top, node.clientRect.width, node.clientRect.height, x, y;
 			if(node.clientRect && transform.transformRect(node.clientRect).isInside(x, y)) {
 				return node;
 			}
@@ -89,6 +90,7 @@ class Layer {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this.modifyCanvas();
 		}
+		this.ctx.clearRect(0, 0, this.width, this.height);
 		this.root.render(this.ctx);
 	}
 }

@@ -124,7 +124,6 @@ class TextShape implements Shape {
 		
 		var fontHeight = this.option.fontHeight;
 		var characterPerLine = (this.option.wordWrap && this.option.multiline)? Math.ceil((x2 - x1) / fontHeight * 2): 0;
-		log characterPerLine;
 		
 		ctx.font = (fontHeight as string) + "px " + (this.option.font? this.option.font: "sans-serif");
 		ctx.fillStyle = Color.stringify(this.option.textColor);

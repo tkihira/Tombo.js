@@ -34,6 +34,11 @@ class DisplayGroup extends DisplayNode {
 			this.children[i].setLayer(layer);
 		}
 	}
+	override function calcClientRect(): void {
+		for(var i = 0; i < this.children.length; i++) {
+			this.children[i].calcClientRect();
+		}
+	}
 	override function render(ctx: CanvasRenderingContext2D): void {
 		if(this.shape) {
 			Tombo.warn("[DisplayGroup#render] not implemented: clipping");

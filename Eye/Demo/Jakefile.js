@@ -17,5 +17,21 @@ desc("build demo");
 task("default", [], function() {
 	command_exec("jsx --executable web --output simple.js Simple.jsx");
 	command_exec("jsx --executable web --output text.js Text.jsx");
+	command_exec("jsx --executable web --output layers.js Layers.jsx");
+});
+
+desc("build simple");
+task("simple", [], function() {
+	command_exec("jsx --executable web --output simple.js Simple.jsx");
+});
+
+desc("build text");
+task("text", [], function() {
+	command_exec("jsx --executable web --output text.js Text.jsx");
+});
+
+desc("build layers");
+task("layers", [], function() {
+	command_exec("jsx --executable web --output layers.js Layers.jsx");
 });
 

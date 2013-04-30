@@ -9,9 +9,10 @@ import "../Shapes/TextShape.jsx";
 
 class _Main {
 	static function main(args: string[]): void {
+		var size = dom.window.location.hash.substring(1).split(",").concat(["",""]);
 		var canvas = dom.createElement("canvas") as HTMLCanvasElement;
-		canvas.width = 640;
-		canvas.height = 960;
+		canvas.width = (size[0] as number)? size[0] as number: 640;
+		canvas.height = (size[1] as number)? size[1] as number: 960;
 		dom.document.body.appendChild(canvas);
 		
 		// initialize Eye
