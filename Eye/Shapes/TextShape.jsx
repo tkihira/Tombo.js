@@ -119,6 +119,8 @@ class TextShape implements Shape {
 		ctx.lineTo(x2, y1);
 		ctx.closePath();
 		ctx.clip();
+		//ctx.fillStyle = "red";
+		//ctx.fill();
 		
 		var fontHeight = this.option.fontHeight;
 		var characterPerLine = (this.option.wordWrap && this.option.multiline)? Math.ceil((x2 - x1) / fontHeight * 2): 0;
@@ -149,7 +151,12 @@ class TextShape implements Shape {
 		
 		var stringArray = TextShape.splitString(this.text, characterPerLine);
 		for(var i = 0, y = y0; i < stringArray.length; i++, y += fontHeight) {
-			ctx.fillText(stringArray[i], x0, y);
+			var str = stringArray[i];
+			if(this.option.maxLength) {
+				ctx.fillText(str, x0, y, this.option.maxLength);
+			} else {
+				ctx.fillText(str, x0, y);
+			}
 		}
 		
 		ctx.restore();
