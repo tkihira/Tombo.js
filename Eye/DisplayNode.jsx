@@ -7,103 +7,154 @@ import "DisplayGroup.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
+/**
+ * DisplayNode class
+ * 
+ * <p>The DOM-structure node class.
+ * Node always has one shape which will be drawn when render is called.
+ * Node is just shape container. You can control position, scale, rotation of the Node.</p>
+ *
+ * @author Takuo KIHIRA <t-kihira@broadtail.jp>
+ */
 class DisplayNode {
 	
-	// TODO: calclate client positions
-	var clientRect: Rect;
-	var compositeTransform: Transform;
+	var _clientRect: Rect;
+	var _compositeTransform: Transform;
 	
+	/** READONLY: the associated shape */
 	var shape: Shape;
-	var transform: Transform;
+	/** READONLY: parent node group */
 	var parent = null: DisplayGroup;
-	var layer = null: Layer;
-	var isTouchable = false;
 	
+	
+	var _layer = null: Layer;
+	var _isTouchable = false;
+	var _transform: Transform;
+	
+	/**
+	 * create new node with shape, position, scale and rotation
+	 */
 	function constructor(shape: Shape, left: number, top: number, scale: number, rotation: number) {
 		this.shape = shape;
-		this.transform = new Transform(left, top, scale, rotation);
+		this._transform = new Transform(left, top, scale, rotation);
 	}
+	/**
+	 * create new node with shape, position and scale
+	 */
 	function constructor(shape: Shape, left: number, top: number, scale: number) {
 		this.shape = shape;
-		this.transform = new Transform(left, top, scale);
+		this._transform = new Transform(left, top, scale);
 	}
+	/**
+	 * create new node with shape and position
+	 */
 	function constructor(shape: Shape, left: number, top: number) {
 		this.shape = shape;
-		this.transform = new Transform(left, top);
+		this._transform = new Transform(left, top);
 	}
+	/**
+	 * create new node with shape
+	 */
+	function constructor(shape: Shape) {
+		this.shape = shape;
+		this._transform = new Transform(0, 0);
+	}
+	/**
+	 * create new node with shape and matrix
+	 */
 	function constructor(shape: Shape, matrix: number[]) {
 		this.shape = shape;
-		this.transform = new Transform(matrix);
+		this._transform = new Transform(matrix);
 	}
 	
+	/**
+	 * set position of the node
+	 */
 	function setPosition(left: number, top: number): void {
-		this.transform.setPosition(left, top);
-		this.calcClientRect();
+		this._transform.setPosition(left, top);
+		this._calcClientRect();
 		// todo: set dirty flag
 	}
+	/**
+	 * set scale of the node
+	 */
 	function setScale(scale: number): void {
-		this.transform.setScale(scale);
-		this.calcClientRect();
+		this._transform.setScale(scale);
+		this._calcClientRect();
 		// todo: set dirty flag
 	}
+	/**
+	 * set rotation of the node
+	 *
+	 * @param rotation radian, not degree
+	 */
 	function setRotation(rotation: number): void {
-		this.transform.setRotation(rotation);
-		this.calcClientRect();
+		this._transform.setRotation(rotation);
+		this._calcClientRect();
 		// todo: set dirty flag
 	}
+	/**
+	 * set matrix of the node
+	 * once matrix is set, the position/scale/rotation will be ignored
+	 *
+	 * @param matrix [sx, r0, r1, sy, tx, ty] as the same order of ctx.transform argument
+	 */
 	function setMatrix(matrix: number[]): void {
-		this.transform.setMatrix(matrix);
-		this.calcClientRect();
+		this._transform.setMatrix(matrix);
+		this._calcClientRect();
 		// todo: set dirty flag
 	}
 	
-	function setLayer(layer: Layer): void {
-		if(this.layer) {
+	function _setLayer(layer: Layer): void {
+		if(this._layer) {
 			// remove
-			if(this.isTouchable) {
-				this.layer.removeTouchableNode(this);
+			if(this._isTouchable) {
+				this._layer._removeTouchableNode(this);
 			}
 		}
-		this.layer = layer;
+		this._layer = layer;
 		if(layer) {
 			// add
-			if(this.isTouchable) {
-				layer.addTouchableNode(this);
+			if(this._isTouchable) {
+				layer._addTouchableNode(this);
 			}
 		}
 	}
-	function setParent(parent: DisplayGroup): void {
+	function _setParent(parent: DisplayGroup): void {
 		this.parent = parent;
-		this.calcClientRect();
+		this._calcClientRect();
 	}
 	
 	
+	/**
+	 * indicate that this node is touch sensitive or not
+	 */
 	function setTouchable(touchable: boolean): void {
-		if(this.isTouchable && !touchable && this.layer) {
-			this.layer.removeTouchableNode(this);
-		} else if(!this.isTouchable && touchable && this.layer) {
-			this.layer.addTouchableNode(this);
+		if(this._isTouchable && !touchable && this._layer) {
+			this._layer._removeTouchableNode(this);
+		} else if(!this._isTouchable && touchable && this._layer) {
+			this._layer._addTouchableNode(this);
 		}
-		this.isTouchable = touchable;
+		this._isTouchable = touchable;
 	}
 	
-	function calcClientRect(): void {
+	function _calcClientRect(): void {
 		// todo: lazy eval using dirty flag
 		if(!this.parent) {
 			return;
 		}
 		// calculate transform
 		if(this.parent) {
-			this.compositeTransform = Transform.mul(this.parent.transform, this.transform);
+			this._compositeTransform = Transform.mul(this.parent._transform, this._transform);
 		} else {
-			this.compositeTransform = this.transform;
+			this._compositeTransform = this._transform;
 		}
-		this.clientRect = this.compositeTransform.transformRect(this.shape.bounds);
+		this._clientRect = this._compositeTransform.transformRect(this.shape.bounds);
 	}
 	
-	function render(ctx: CanvasRenderingContext2D): void {
+	function _render(ctx: CanvasRenderingContext2D): void {
 		ctx.save();
-		var matrix = this.transform.getMatrix();
+		var matrix = this._transform.getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 		
 		this.shape.draw(ctx);

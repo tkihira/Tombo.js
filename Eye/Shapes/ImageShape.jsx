@@ -3,13 +3,23 @@ import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
 
+/**
+ * ImageShape class
+ * 
+ * <p>ImageShape has only one image, and draw the image as is</p>
+ *
+ * @author Takuo KIHIRA <t-kihira@broadtail.jp>
+ */
 class ImageShape implements Shape {
 	var bounds: Rect;
-	var img: HTMLImageElement;
 	var isMutable = false;
+	var _img: HTMLImageElement;
 	
+	/**
+	 * create Shape with Image Element
+	 */
 	function constructor(img: HTMLImageElement) {
-		this.img = img;
+		this._img = img;
 		if(!img.width || !img.height) {
 			Tombo.warn("[ImageShape#constructor] image is not initialized");
 		}
@@ -17,6 +27,6 @@ class ImageShape implements Shape {
 	}
 	
 	override function draw(ctx: CanvasRenderingContext2D): void {
-		ctx.drawImage(this.img, 0, 0);
+		ctx.drawImage(this._img, 0, 0);
 	}
 }

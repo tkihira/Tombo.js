@@ -3,40 +3,68 @@ import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
 
+/**
+ * TextShape class
+ * 
+ * <p>TextShape is for drawing mutable text. It has features such as word-wrap or multiline.</p>
+ *
+ * @author Takuo KIHIRA <t-kihira@broadtail.jp>
+ */
 class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	
+	/** TextMargin: Left */
 	static const LEFT = 0;
+	/** TextMargin: RIGHT */
 	static const RIGHT = 1;
+	/** TextMargin: CENTER */
 	static const CENTER = 2;
+	/** Option class for TextShape */
 	class Option {
+		/** word wrap: default false */
 		var wordWrap = false;
+		/** multiline: default false */
 		var multiline = false;
+		/** textColor: default rgb(255,255,255) */
 		var textColor = Color.createRGB(255, 255, 255);
+		/** maxLength: 0 if disable */
 		var maxLength = 0;
+		/** font: font name*/
 		var font = "";
-		var fontClass = "";
+		//** fontClass: font class name*/
+		//var fontClass = "";
 		//var autoSize = false;
+		/** leftMargin: default 0 */
 		var leftMargin = 0;
+		/** rightMargin: default 0 */
 		var rightMargin = 0;
+		/** align: default TextShape.LEFT */
 		var align = TextShape.LEFT;
+		/** fontHeight: default 30 */
 		var fontHeight = 30;
 	}
 	
-	var text: string;
-	var option = new TextShape.Option;
+	var _text: string;
+	var _option = new TextShape.Option;
 	
+	/**
+	 * create TextNode with the size and initial text
+	 */
 	function constructor(width: number, height: number, text: string) {
 		this.bounds = new Rect(0, 0, width, height);
-		this.text = text;
+		this._text = text;
 	}
 	
+	/**
+	 * set option
+	 */
 	function setOption(option: TextShape.Option): void {
-		this.option = option;
+		this._option = option;
+		// todo: set dirty flag
 	}
 	
-	static function splitString(targetString: string, maxLineWidth: number): string[] {
+	static function _splitString(targetString: string, maxLineWidth: number): string[] {
 		targetString = targetString.replace(/\r\n/, "\n").replace(/\r/, "\n");
 		if(maxLineWidth == 0) {
 			return targetString.split("\n");
@@ -50,7 +78,7 @@ class TextShape implements Shape {
 		var targetStrLen = targetString.length;
 		for(var charIndex = 0; charIndex < targetStrLen; charIndex++) {
 			var currentChar = targetString.charAt(charIndex);
-			var charWidth = TextShape.isHankaku(currentChar) ? 1 : 2;
+			var charWidth = TextShape._isHankaku(currentChar) ? 1 : 2;
 			if(currentChar == "\n") {
 				// Force newline for "\n"
 				if(currentLineWidth + currentWordWidth > maxLineWidth) {
@@ -99,15 +127,15 @@ class TextShape implements Shape {
 
 		return lines;
 	}
-	static const hankakuReg = new RegExp("[\uFF61\uFF62\uFF63\uFF64\uFF65\uFF66\uFF67\uFF68\uFF69\uFF6A\uFF6B\uFF6C\uFF6D\uFF6E\uFF6F\uFF70\uFF71\uFF72\uFF73\uFF74\uFF75\uFF76\uFF77\uFF78\uFF79\uFF7A\uFF7B\uFF7C\uFF7D\uFF7E\uFF7F\uFF80\uFF81\uFF82\uFF83\uFF84\uFF85\uFF86\uFF87\uFF88\uFF89\uFF8A\uFF8B\uFF8C\uFF8D\uFF8E\uFF8F\uFF90\uFF91\uFF92\uFF93\uFF94\uFF95\uFF96\uFF97\uFF98\uFF99\uFF9A\uFF9B\uFF9C\uFF9D\uFF9E\uFF9F]");
-	static function isHankaku(c: string): boolean {
+	static const _hankakuReg = new RegExp("[\uFF61\uFF62\uFF63\uFF64\uFF65\uFF66\uFF67\uFF68\uFF69\uFF6A\uFF6B\uFF6C\uFF6D\uFF6E\uFF6F\uFF70\uFF71\uFF72\uFF73\uFF74\uFF75\uFF76\uFF77\uFF78\uFF79\uFF7A\uFF7B\uFF7C\uFF7D\uFF7E\uFF7F\uFF80\uFF81\uFF82\uFF83\uFF84\uFF85\uFF86\uFF87\uFF88\uFF89\uFF8A\uFF8B\uFF8C\uFF8D\uFF8E\uFF8F\uFF90\uFF91\uFF92\uFF93\uFF94\uFF95\uFF96\uFF97\uFF98\uFF99\uFF9A\uFF9B\uFF9C\uFF9D\uFF9E\uFF9F]");
+	static function _isHankaku(c: string): boolean {
 		var code = c.charCodeAt(0);
-		return (0x20 <= code && code <= 0x7e) || TextShape.hankakuReg.test(c);
+		return (0x20 <= code && code <= 0x7e) || TextShape._hankakuReg.test(c);
 	}
 	
 	override function draw(ctx: CanvasRenderingContext2D): void {
-		var x1 = this.bounds.left + this.option.leftMargin;
-		var x2 = this.bounds.left + this.bounds.width - this.option.rightMargin;
+		var x1 = this.bounds.left + this._option.leftMargin;
+		var x2 = this.bounds.left + this.bounds.width - this._option.rightMargin;
 		var y1 = this.bounds.top;
 		var y2 = this.bounds.top + this.bounds.height;
 		
@@ -122,15 +150,15 @@ class TextShape implements Shape {
 		//ctx.fillStyle = "red";
 		//ctx.fill();
 		
-		var fontHeight = this.option.fontHeight;
-		var characterPerLine = (this.option.wordWrap && this.option.multiline)? Math.ceil((x2 - x1) / fontHeight * 2): 0;
+		var fontHeight = this._option.fontHeight;
+		var characterPerLine = (this._option.wordWrap && this._option.multiline)? Math.ceil((x2 - x1) / fontHeight * 2): 0;
 		
-		ctx.font = (fontHeight as string) + "px " + (this.option.font? this.option.font: "sans-serif");
-		ctx.fillStyle = Color.stringify(this.option.textColor);
+		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
+		ctx.fillStyle = Color.stringify(this._option.textColor);
 		ctx.textBaseline = "top";
 		// todo: align
 		var x0 = 0, y0 = 0;
-		switch(this.option.align) {
+		switch(this._option.align) {
 		case TextShape.RIGHT:
 			ctx.textAlign = "end";
 			x0 = x2 - 4;
@@ -148,11 +176,11 @@ class TextShape implements Shape {
 			break;
 		}
 		
-		var stringArray = TextShape.splitString(this.text, characterPerLine);
+		var stringArray = TextShape._splitString(this._text, characterPerLine);
 		for(var i = 0, y = y0; i < stringArray.length; i++, y += fontHeight) {
 			var str = stringArray[i];
-			if(this.option.maxLength) {
-				ctx.fillText(str, x0, y, this.option.maxLength);
+			if(this._option.maxLength) {
+				ctx.fillText(str, x0, y, this._option.maxLength);
 			} else {
 				ctx.fillText(str, x0, y);
 			}

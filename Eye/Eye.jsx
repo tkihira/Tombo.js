@@ -1,3 +1,9 @@
+/***
+ * Eye, Tombo Rendering Engine.
+ *
+ * @author Takuo KIHIRA <t-kihira@broadtail.jp>
+ */
+
 import "js/web.jsx";
 
 import "Layer.jsx";
@@ -6,50 +12,69 @@ import "DisplayNode.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
+/**
+ * Eye class
+ *
+ * <p>Eye's main class. At first, you should create the instance of this class.</p>
+ *
+ * @author Takuo KIHIRA <t-kihira@broadtail.jp>
+ */
 class Eye {
-	var canvas: HTMLCanvasElement;
-	var width: number;
-	var height: number;
-	var ctx: CanvasRenderingContext2D;
+	var _canvas: HTMLCanvasElement;
+	var _width: number;
+	var _height: number;
+	var _ctx: CanvasRenderingContext2D;
 	
-	var layerList: Array.<Layer>;
+	var _layerList: Array.<Layer>;
 	
-	function constructor() {
-		this.initialize(640, 960);
-	}
+	/**
+	 * create instance with prepared canvas
+	 */
 	function constructor(canvas: HTMLCanvasElement) {
-		this.initialize(canvas);
+		this._initialize(canvas);
 	}
+	/**
+	 * create instance with new canvas (width, height)
+	 */
 	function constructor(width: number, height: number) {
-		this.initialize(width, height);
+		this._initialize(width, height);
+	}
+	/**
+	 * create instance with new canvas (640, 960)
+	 */
+	function constructor() {
+		this._initialize(640, 960);
 	}
 	
-	function initialize(width: number, height: number): void {
+	function _initialize(width: number, height: number): void {
 		var canvas = dom.createElement("canvas") as HTMLCanvasElement;
 		canvas.width = width;
 		canvas.height = height;
-		this.initialize(canvas);
+		this._initialize(canvas);
 	}
-	function initialize(canvas: HTMLCanvasElement): void {
-		if(this.canvas) {
+	function _initialize(canvas: HTMLCanvasElement): void {
+		if(this._canvas) {
 			Tombo.error("[Eye#initialize] Tombo Eye is already initialized");
 		}
-		this.setCanvas(canvas);
-		this.layerList = []: Layer[];
+		this._setCanvas(canvas);
+		this._layerList = []: Layer[];
 	}
 	
-	function setCanvas(canvas: HTMLCanvasElement): void {
-		this.canvas = canvas;
-		this.width = canvas.width;
-		this.height = canvas.height;
-		this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+	function _setCanvas(canvas: HTMLCanvasElement): void {
+		this._canvas = canvas;
+		this._width = canvas.width;
+		this._height = canvas.height;
+		this._ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 		
 		// todo: recalculate all layer's layout
 	}
 	
+	/**
+	 * get a node from canvas position (x, y)
+	 */
 	function findTouchedNode(x: number, y: number): DisplayNode {
-		for(var i = 0; i < this.layerList.length; i++) {
-			var layer = this.layerList[i];
+		for(var i = 0; i < this._layerList.length; i++) {
+			var layer = this._layerList[i];
 			// todo: check dirty flag
 			
 			// check layout and set proper transform
@@ -59,8 +84,8 @@ class Eye {
 				Tombo.warn("[Eye#findTouchedNode] layoutInformation.clientWidth/Height is not initialized");
 			} else {
 				// todo: cache the calculated values
-				var transform = this.calculateLayoutTransform(layer);
-				var node = layer.findTouchedNode(transform, x, y);
+				var transform = this._calculateLayoutTransform(layer);
+				var node = layer._findTouchedNode(transform, x, y);
 				if(node) {
 					return node;
 				}
@@ -69,30 +94,33 @@ class Eye {
 		return null;
 	}
 	
+	/**
+	 * append a layer
+	 */
 	function appendLayer(layer: Layer): void {
-		if(layer.isChild) {
+		if(layer._isChild) {
 			Tombo.warn("[Eye#appendLayer] now trying to append a layer which is already appended");
 		}
 		if(layer.layout.layoutMode & LayoutInformation.AUTO_SCALE) {
 			// calculate scale
-			var scale = Math.min(this.width / layer.width, this.height / layer.height);
-			layer.setLayoutScale(scale);
+			var scale = Math.min(this._width / layer.width, this._height / layer.height);
+			layer._setLayoutScale(scale);
 		}
-		this.layerList.push(layer);
-		layer.isChild = true;
+		this._layerList.push(layer);
+		layer._isChild = true;
 		
 		// todo: set proper dirty flag
 	}
 	
-	function calculateLayoutTransform(layer: Layer): Transform {
+	function _calculateLayoutTransform(layer: Layer): Transform {
 		// todo: cache the result
 		var width = layer.layout.clientWidth;
 		var height = layer.layout.clientHeight;
 		var left = 0;
 		var top = 0;
 		if(layer.layout.layoutMode & LayoutInformation.CENTER) {
-			left = (this.width - width) / 2;
-			top = (this.height - height) / 2;
+			left = (this._width - width) / 2;
+			top = (this._height - height) / 2;
 		}
 		if(layer.layout.layoutMode & LayoutInformation.LEFT) {
 			left = layer.layout.left;
@@ -101,28 +129,31 @@ class Eye {
 			top = layer.layout.top;
 		}
 		if(layer.layout.layoutMode & LayoutInformation.RIGHT) {
-			left = this.width - width - layer.layout.right;
+			left = this._width - width - layer.layout.right;
 		}
 		if(layer.layout.layoutMode & LayoutInformation.BOTTOM) {
-			top = this.height - height - layer.layout.bottom;
+			top = this._height - height - layer.layout.bottom;
 		}
 		return new Transform(left, top, layer.layout.scale);
 	}
 	
+	/**
+	 * render layers
+	 */
 	function render(): void {
 		// todo: render only if any layer is dirty
 		
 		// todo: check background-color
-		this.ctx.clearRect(0, 0, this.width, this.height);
+		this._ctx.clearRect(0, 0, this._width, this._height);
 		
 		// for debug
-		this.ctx.fillStyle = "#505050";
-		this.ctx.fillRect(0, 0, this.width, this.height);
+		this._ctx.fillStyle = "#505050";
+		this._ctx.fillRect(0, 0, this._width, this._height);
 		
-		for(var i = 0; i < this.layerList.length; i++) {
-			var layer = this.layerList[i];
+		for(var i = 0; i < this._layerList.length; i++) {
+			var layer = this._layerList[i];
 			// todo: check dirty flag
-			layer.render();
+			layer._render();
 			
 			// check layout and set proper transform
 			var width = layer.layout.clientWidth;
@@ -132,8 +163,8 @@ class Eye {
 			}
 			
 			// draw
-			var transform = this.calculateLayoutTransform(layer);
-			this.ctx.drawImage(this.layerList[i].canvas, transform.left, transform.top);
+			var transform = this._calculateLayoutTransform(layer);
+			this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 		}
 	}
 }
