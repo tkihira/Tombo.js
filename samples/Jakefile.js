@@ -15,9 +15,9 @@ var command_exec = function(command) {
 
 desc("build demo");
 task("default", [], function() {
-	command_exec("jsx --executable web --output simple.js Simple.jsx");
-	command_exec("jsx --executable web --output text.js Text.jsx");
-	command_exec("jsx --executable web --output layers.js Layers.jsx");
+	command_exec("jsx --add-search-path ../src/ --executable web --output simple.js Simple.jsx");
+	command_exec("jsx --add-search-path ../src/ --executable web --output text.js Text.jsx");
+	command_exec("jsx --add-search-path ../src/ --executable web --output layers.js Layers.jsx");
 });
 
 desc("build simple");
