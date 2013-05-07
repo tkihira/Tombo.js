@@ -32,6 +32,6 @@ task("text", [], function() {
 
 desc("build layers");
 task("layers", [], function() {
-	command_exec("jsx --add-search-path ../src/ --executable web --output layers.js Layers.jsx");
+	command_exec("jsx --release --add-search-path ../src/ --executable web --output layers.js Layers.jsx");
 });
 
