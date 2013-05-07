@@ -15,6 +15,7 @@ var command_exec = function(command) {
 
 desc("build doc");
 task("default", [], function() {
+	console.log("build documentation");
 	command_exec("jsx --mode doc --output doc src/Eye/Eye.jsx");
 	command_exec("jsx --mode doc --output doc src/Eye/Shapes/ImageShape.jsx");
 	command_exec("jsx --mode doc --output doc src/Eye/Shapes/TextShape.jsx");
