@@ -58,6 +58,19 @@ class DisplayGroup extends DisplayNode {
 		node._setParent(this);
 		node._setLayer(this._layer);
 	}
+	/**
+	 * remove child
+	 */
+	function removeChild(node: DisplayNode): void {
+		for(var i = 0; i < this._children.length; i++) {
+			if(this._children[i] == node) {
+				this._children.splice(i, 1);
+				node._setParent(null);
+				node._setLayer(null);
+			}
+		}
+	}
+	
 	override function _setLayer(layer: Layer): void {
 		super._setLayer(layer);
 		for(var i = 0; i < this._children.length; i++) {
