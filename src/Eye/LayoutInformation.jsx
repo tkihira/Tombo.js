@@ -46,17 +46,36 @@ class LayoutInformation {
 	/** READONLY: layout and scaling mode */
 	var layoutMode: int;
 	
+	/** READONLY: composite operation (default: "source-over") */
+	var compositeOperation: string;
+	
 	/**
 	 * create default layout (CENTER and AUTO_SCALE)
 	 */
 	function constructor() {
 		this.layoutMode = LayoutInformation.CENTER | LayoutInformation.AUTO_SCALE;
+		this.compositeOperation = "source-over";
+	}
+	/**
+	 * create default layout (CENTER and AUTO_SCALE) with compositeOperation
+	 */
+	function constructor(compositeOperation: string) {
+		this.layoutMode = LayoutInformation.CENTER | LayoutInformation.AUTO_SCALE;
+		this.compositeOperation = compositeOperation;
 	}
 	/**
 	 * create layout with layoutMode
 	 */
 	function constructor(layoutMode: int) {
 		this.layoutMode = layoutMode;
+		this.compositeOperation = "source-over";
+	}
+	/**
+	 * create layout with layoutMode and compositeOperation
+	 */
+	function constructor(layoutMode: int, compositeOperation: string) {
+		this.layoutMode = layoutMode;
+		this.compositeOperation = compositeOperation;
 	}
 	function _setLeft(left: number): void {
 		this.left = left;

@@ -164,6 +164,7 @@ class Eye {
 			
 			// draw
 			var transform = this._calculateLayoutTransform(layer);
+			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
 			this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 		}
 	}

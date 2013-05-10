@@ -21,7 +21,7 @@ class _Main {
 		eye.appendLayer(topLayer);
 		var bottomLayer = new Layer(640, 87, new LayoutInformation(LayoutInformation.CENTER | LayoutInformation.BOTTOM | LayoutInformation.AUTO_SCALE));
 		eye.appendLayer(bottomLayer);
-		var centerLayer = new Layer(640, 640);
+		var centerLayer = new Layer(640, 640, new LayoutInformation("lighter"));
 		eye.appendLayer(centerLayer);
 		
 		// create nodes
@@ -90,6 +90,8 @@ class _Main {
 						if(ratio != 1) {
 							dom.window.setTimeout(popup, 10);
 						} else {
+							bottomLayer.root.removeChild(bottomNode);
+							eye.render();
 							status = "dialoged";
 						}
 					})();
@@ -111,6 +113,8 @@ class _Main {
 							if(ratio != 1) {
 								dom.window.setTimeout(popdown, 10);
 							} else {
+								bottomLayer.root.appendChild(bottomNode);
+								eye.render();
 								status = "normal";
 							}
 						})();
