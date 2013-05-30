@@ -23,7 +23,7 @@ class UVImageShape implements Shape, PartialImage {
 	function constructor(img: HTMLImageElement, uvs: Array.<number>) {
 		this._img = img;
 		if(!img.width || !img.height) {
-			Tombo.warn("[ImageShape#constructor] image is not initialized");
+			Tombo.warn("[UVImageShape#constructor] image is not initialized");
 		}
 		this.setRect(img.width * uvs[0], img.height * uvs[1], img.width * uvs[2], img.height * uvs[3]);
 		this.bounds = new Rect(0, 0, this.width, this.height);
@@ -40,7 +40,7 @@ class UVImageShape implements Shape, PartialImage {
 	function constructor(img: HTMLImageElement, left: number, top: number, width: number, height: number) {
 		this._img = img;
 		if(!img.width || !img.height) {
-			Tombo.warn("[ImageShape#constructor] image is not initialized");
+			Tombo.warn("[UVImageShape#constructor] image is not initialized");
 		}
 		this.setRect(img.width * left, img.height * top, img.width * width, img.height * height);
 		this.bounds = new Rect(0, 0, this.width, this.height);
