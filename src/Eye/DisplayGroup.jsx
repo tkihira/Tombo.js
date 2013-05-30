@@ -22,14 +22,14 @@ class DisplayGroup extends DisplayNode {
 	/**
 	 * create new group with position, scale and rotation
 	 */
-	function constructor(left: number, top: number, scale: number, rotation: number) {
-		super(null, left, top, scale, rotation);
+	function constructor(left: number, top: number, scaleX: number, scaleY: number, rotation: number) {
+		super(null, left, top, scaleX, scaleY, rotation);
 	}
 	/**
 	 * create new group with position and scale
 	 */
-	function constructor(left: number, top: number, scale: number) {
-		super(null, left, top, scale);
+	function constructor(left: number, top: number, scaleX: number, scaleY: number) {
+		super(null, left, top, scaleX, scaleY);
 	}
 	/**
 	 * create new group with position
