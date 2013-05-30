@@ -151,7 +151,7 @@ class Eye {
 		if(layer.layout.layoutMode & LayoutInformation.BOTTOM) {
 			top = this._height - height - layer.layout.bottom;
 		}
-		return new Transform(left, top, layer.layout.scale);
+		return new Transform(left, top, layer.layout.scale, layer.layout.scale);
 	}
 	
 	/**

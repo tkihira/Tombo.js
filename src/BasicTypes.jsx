@@ -22,24 +22,27 @@ class Rect {
 class Transform {
 	var left = 0;
 	var top = 0;
-	var scale = 1;
+	var scaleX = 1;
+	var scaleY = 1;
 	var rotation = 0;
 	var matrix = null: number[];
 	var userMatrix = false;
 	
-	function constructor(left: number, top: number, scale: number, rotation: number) {
+	function constructor(left: number, top: number, scaleX: number, scaleY: number, rotation: number) {
 		this.left = left;
 		this.top = top;
-		this.scale = scale;
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
 		this.rotation = rotation;
 		if(this.rotation) {
 			this.calcMatrix();
 		}
 	}
-	function constructor(left: number, top: number, scale: number) {
+	function constructor(left: number, top: number, scaleX: number, scaleY: number) {
 		this.left = left;
 		this.top = top;
-		this.scale = scale;
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
 	}
 	function constructor(left: number, top: number) {
 		this.left = left;
@@ -57,8 +60,9 @@ class Transform {
 			this.calcMatrix();
 		}
 	}
-	function setScale(scale: number): void {
-		this.scale = scale;
+	function setScale(scaleX: number, scaleY: number): void {
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
 		if(this.rotation) {
 			this.calcMatrix();
 		}
@@ -81,7 +85,8 @@ class Transform {
 		this.matrix = null;
 		this.top = 0;
 		this.left = 0;
-		this.scale = 1;
+		this.scaleX = 1;
+		this.scaleY = 1;
 		this.rotation = 0;
 	}
 	
@@ -94,7 +99,7 @@ class Transform {
 			// set proper matrix value
 			var cos = Math.cos(this.rotation);
 			var sin = Math.sin(this.rotation);
-			this.matrix = [cos * this.scale, sin, -sin, cos * this.scale, this.left, this.top]: number[];
+			this.matrix = [cos * this.scaleX, sin, -sin, cos * this.scaleY, this.left, this.top]: number[];
 		} else {
 			// clear matrix becuase rotation == 0
 			this.matrix = null;
@@ -104,7 +109,7 @@ class Transform {
 		if(this.matrix) {
 			return this.matrix;
 		} else {
-			return [this.scale, 0, 0, this.scale, this.left, this.top];
+			return [this.scaleX, 0, 0, this.scaleY, this.left, this.top];
 		}
 	}
 	
@@ -113,8 +118,8 @@ class Transform {
 			// todo implement mul
 			throw "[Transform#mul] sorry, not implemented";
 		} else {
-			return new Rect(this.scale * rect.left + this.left, this.scale * rect.top + this.top,
-							this.scale * rect.width, this.scale * rect.height);
+			return new Rect(this.scaleX * rect.left + this.left, this.scaleY * rect.top + this.top,
+							this.scaleX * rect.width, this.scaleY * rect.height);
 		}
 	}
 	
@@ -124,10 +129,11 @@ class Transform {
 			throw "[Transform#mul] sorry, not implemented";
 		} else {
 			// neither matrix has transform
-			var scale = a.scale * b.scale;
-			var left = a.scale * b.left + a.left;
-			var top = a.scale * b.top + a.top;
-			return new Transform(left, top, scale);
+			var scaleX = a.scaleX * b.scaleY;
+			var scaleY = a.scaleX * b.scaleY;
+			var left = a.scaleX * b.left + a.left;
+			var top = a.scaleY * b.top + a.top;
+			return new Transform(left, top, scaleX, scaleY);
 		}
 	}
 }

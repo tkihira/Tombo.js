@@ -34,16 +34,16 @@ class DisplayNode {
 	/**
 	 * create new node with shape, position, scale and rotation
 	 */
-	function constructor(shape: Shape, left: number, top: number, scale: number, rotation: number) {
+	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number, rotation: number) {
 		this.shape = shape;
-		this._transform = new Transform(left, top, scale, rotation);
+		this._transform = new Transform(left, top, scaleX, scaleY, rotation);
 	}
 	/**
 	 * create new node with shape, position and scale
 	 */
-	function constructor(shape: Shape, left: number, top: number, scale: number) {
+	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number) {
 		this.shape = shape;
-		this._transform = new Transform(left, top, scale);
+		this._transform = new Transform(left, top, scaleX, scaleY);
 	}
 	/**
 	 * create new node with shape and position
@@ -78,8 +78,8 @@ class DisplayNode {
 	/**
 	 * set scale of the node
 	 */
-	function setScale(scale: number): void {
-		this._transform.setScale(scale);
+	function setScale(scaleX: number, scaleY: number): void {
+		this._transform.setScale(scaleX, scaleY);
 		this._calcClientRect();
 		// todo: set dirty flag
 	}
