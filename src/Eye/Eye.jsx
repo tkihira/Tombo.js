@@ -112,6 +112,23 @@ class Eye {
 		// todo: set proper dirty flag
 	}
 	
+	/**
+	 * remove a child layer. return true if successfully removed
+	 * @param layer layer which is removed
+	 */
+	function removeLayer(layer: Layer): boolean {
+		if(!layer._isChild) {
+			return false;
+		}
+		for(var i = 0; i < this._layerList.length; i++) {
+			if(this._layerList[i] == layer) {
+				this._layerList.splice(i, 1);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	function _calculateLayoutTransform(layer: Layer): Transform {
 		// todo: cache the result
 		var width = layer.layout.clientWidth;
