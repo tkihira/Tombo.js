@@ -32,7 +32,7 @@ class _Main {
 		option.textColor = Color.createRGB(0,255,255);
 		textShape.setOption(option);
 		// create Node
-		var textNode = new DisplayNode(textShape, 160, 160, 1);
+		var textNode = new DisplayNode(textShape, 160, 160, 1, 1);
 		layer.root.appendChild(textNode);
 		
 		// you got everything prepared. just render!

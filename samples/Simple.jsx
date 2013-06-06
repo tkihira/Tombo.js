@@ -31,9 +31,9 @@ class _Main {
 				var logoImageShape = new ImageShape(logoImg);
 				var buttonImageShape = new ImageShape(buttonImg);
 				// create Node
-				var logoNode = new DisplayNode(logoImageShape, 160, 90, 0.5);
+				var logoNode = new DisplayNode(logoImageShape, 160, 90, 0.5, 0.5);
 				layer.root.appendChild(logoNode);
-				var buttonNode = new DisplayNode(buttonImageShape, 256, 290, 0.5);
+				var buttonNode = new DisplayNode(buttonImageShape, 256, 290, 0.5, 0.5);
 				buttonNode.setTouchable(true);
 				layer.root.appendChild(buttonNode);
 				

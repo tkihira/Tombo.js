@@ -35,7 +35,7 @@ class _Main {
 		// create group
 		var dialog = new DisplayGroup(44, 69);
 		centerLayer.root.appendChild(dialog);
-		dialog.setScale(0);
+		dialog.setScale(0, 0);
 		// create dialog
 		var dialogAreaShape = new ImageShape(_Main.imgMap["bg_dialogarea.png"]);
 		var dialogAreaNode = new DisplayNode(dialogAreaShape, 0, 0);
@@ -63,7 +63,7 @@ class _Main {
 		option.fontHeight = 30;
 		textShape.setOption(option);
 		// create Node
-		var textNode = new DisplayNode(textShape, 54, 104, 1);
+		var textNode = new DisplayNode(textShape, 54, 104, 1, 1);
 		dialog.appendChild(textNode);
 		
 		// you got everything prepared. just render!
@@ -84,7 +84,7 @@ class _Main {
 						if(ratio > 1) {
 							ratio = 1;
 						}
-						dialog.setScale(ratio);
+						dialog.setScale(ratio, ratio);
 						dialog.setPosition((640 - 552 * ratio) / 2, (640 - 502 * ratio) / 2);
 						eye.render();
 						if(ratio != 1) {
@@ -107,7 +107,7 @@ class _Main {
 							if(ratio > 1) {
 								ratio = 1;
 							}
-							dialog.setScale(1 - ratio);
+							dialog.setScale(1 - ratio, 1 - ratio);
 							dialog.setPosition((640 - 552 * (1 - ratio)) / 2, (640 - 502 * (1 - ratio)) / 2);
 							eye.render();
 							if(ratio != 1) {
