@@ -143,18 +143,24 @@ class DisplayNode {
 		return this._clientRect;
 	}
 
-	function _calcClientRect(): void {
-		// todo: lazy eval using dirtyRect flag
-		if(!this.parent) {
-			return;
-		}
-		// calculate transform
+	function getCompositeTransform(): Transform {
+		// TODO: dirty flag
+		this._compositeTransform = this._calcCompositeTransform();
+		return this._compositeTransform;
+	}
+
+	function _calcCompositeTransform(): Transform {
 		if(this.parent) {
-			this._compositeTransform = Transform.mul(this.parent._transform, this._transform);
+			return Transform.mul(this.parent.getCompositeTransform(), this._transform);
 		} else {
-			this._compositeTransform = this._transform;
+			return this._transform;
 		}
-		this._clientRect = this._compositeTransform.transformRect(this.shape.bounds);
+	}
+
+	function _calcClientRect(): void {
+		// calculate transform
+		this._clientRect = this.getCompositeTransform().transformRect(this.shape.bounds);
+		this._dirtyRect = false;
 	}
 	
 	function _render(ctx: CanvasRenderingContext2D): void {
