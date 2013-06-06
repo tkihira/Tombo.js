@@ -102,12 +102,9 @@ class Layer {
 		// todo: implement the proper check
 		for(var i = 0; i < this._touchableNodeList.length; i++) {
 			var node = this._touchableNodeList[i];
-			// todo: check node's dirty flag and recalculation the rect if dirty
-			if(!node._clientRect) {
-				Tombo.warn("[Layer#findTouchedNode] node#clientRect is not set");
-			}
+			var clientRect = node.getClientRect();
 			//log node.clientRect.left, node.clientRect.top, node.clientRect.width, node.clientRect.height, x, y;
-			if(node._clientRect && transform.transformRect(node._clientRect).isInside(x, y)) {
+			if(clientRect && transform.transformRect(clientRect).isInside(x, y)) {
 				return node;
 			}
 		}
