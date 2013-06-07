@@ -18,6 +18,7 @@ task("default", [], function() {
 	command_exec("jsx --add-search-path ../src/ --executable web --output simple.js Simple.jsx");
 	command_exec("jsx --add-search-path ../src/ --executable web --output text.js Text.jsx");
 	command_exec("jsx --add-search-path ../src/ --executable web --output layers.js Layers.jsx");
+	command_exec("jsx --release --add-search-path ../src/ --executable web --output touch.js Touch.jsx");
 });
 
 desc("build simple");
@@ -35,3 +36,7 @@ task("layers", [], function() {
 	command_exec("jsx --release --add-search-path ../src/ --executable web --output layers.js Layers.jsx");
 });
 
+desc("build touch");
+task("touch", [], function() {
+	command_exec("jsx --release --add-search-path ../src/ --executable web --output touch.js Touch.jsx");
+});

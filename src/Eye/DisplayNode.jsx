@@ -31,6 +31,8 @@ class DisplayNode {
 	var _isTouchable = false;
 	var _transform: Transform;
 	
+	var _dirtyRect = true;
+
 	/**
 	 * create new node with shape, position, scale and rotation
 	 */
@@ -72,16 +74,14 @@ class DisplayNode {
 	 */
 	function setPosition(left: number, top: number): void {
 		this._transform.setPosition(left, top);
-		this._calcClientRect();
-		// todo: set dirty flag
+		this._dirtyRect = true;
 	}
 	/**
 	 * set scale of the node
 	 */
 	function setScale(scaleX: number, scaleY: number): void {
 		this._transform.setScale(scaleX, scaleY);
-		this._calcClientRect();
-		// todo: set dirty flag
+		this._dirtyRect = true;
 	}
 	/**
 	 * set rotation of the node
@@ -90,8 +90,7 @@ class DisplayNode {
 	 */
 	function setRotation(rotation: number): void {
 		this._transform.setRotation(rotation);
-		this._calcClientRect();
-		// todo: set dirty flag
+		this._dirtyRect = true;
 	}
 	/**
 	 * set matrix of the node
@@ -101,8 +100,7 @@ class DisplayNode {
 	 */
 	function setMatrix(matrix: number[]): void {
 		this._transform.setMatrix(matrix);
-		this._calcClientRect();
-		// todo: set dirty flag
+		this._dirtyRect = true;
 	}
 	
 	function _setLayer(layer: Layer): void {
@@ -122,7 +120,7 @@ class DisplayNode {
 	}
 	function _setParent(parent: DisplayGroup): void {
 		this.parent = parent;
-		this._calcClientRect();
+		this._dirtyRect = true;
 	}
 	
 	
@@ -137,19 +135,32 @@ class DisplayNode {
 		}
 		this._isTouchable = touchable;
 	}
-	
-	function _calcClientRect(): void {
-		// todo: lazy eval using dirty flag
-		if(!this.parent) {
-			return;
+
+	function getClientRect(): Rect {
+		if(this._dirtyRect) {
+			this._calcClientRect();
 		}
-		// calculate transform
+		return this._clientRect;
+	}
+
+	function getCompositeTransform(): Transform {
+		// TODO: dirty flag
+		this._compositeTransform = this._calcCompositeTransform();
+		return this._compositeTransform;
+	}
+
+	function _calcCompositeTransform(): Transform {
 		if(this.parent) {
-			this._compositeTransform = Transform.mul(this.parent._transform, this._transform);
+			return Transform.mul(this.parent.getCompositeTransform(), this._transform);
 		} else {
-			this._compositeTransform = this._transform;
+			return this._transform;
 		}
-		this._clientRect = this._compositeTransform.transformRect(this.shape.bounds);
+	}
+
+	function _calcClientRect(): void {
+		// calculate transform
+		this._clientRect = this.getCompositeTransform().transformRect(this.shape.bounds);
+		this._dirtyRect = false;
 	}
 	
 	function _render(ctx: CanvasRenderingContext2D): void {
