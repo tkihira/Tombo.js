@@ -54,7 +54,13 @@ class DisplayGroup extends DisplayNode {
 	 * append child. You can also append DisplayGroup
 	 */
 	function appendChild(node: DisplayNode): void {
-		this._children.push(node);
+		this.appendChildAt(node, this._children.length);
+	}
+	/**
+	 * append child at specified order. You can also append DisplayGroup
+	 */
+	function appendChildAt(node: DisplayNode, index: int): void {
+		this._children.splice(index, 0, node);
 		node._setParent(this);
 		node._setLayer(this._layer);
 	}
@@ -62,14 +68,33 @@ class DisplayGroup extends DisplayNode {
 	 * remove child
 	 */
 	function removeChild(node: DisplayNode): void {
-		for(var i = 0; i < this._children.length; i++) {
-			if(this._children[i] == node) {
-				this._children.splice(i, 1);
-				node._setParent(null);
-				node._setLayer(null);
-			}
-		}
+		var targetIndex: int = this.getChildIndex(node);
+		this.removeChildAt(node, targetIndex);
 	}
+	/**
+	 * remove child by specified index
+	 */
+	function removeChildAt(node: DisplayNode, index: int): void {
+		this._children.splice(index, 1);
+		node._setParent(null);
+		node._setLayer(null);
+  }
+	/**
+		* Get node's index
+		*/
+	function getChildIndex(node: DisplayNode): int {
+		var index = this._children.indexOf(node);
+		if (index == -1) { throw 'Index is out of range.'; }
+		return index;
+	}
+	/**
+	 * Set node's index
+	 */
+	function setChildIndex(node: DisplayNode, index: int): void {
+		var origIndex: int = this.getChildIndex(node);
+		this._children.splice(origIndex, 1);
+		this._children.splice(index, 0, node);
+  }
 	
 	override function _setLayer(layer: Layer): void {
 		super._setLayer(layer);
