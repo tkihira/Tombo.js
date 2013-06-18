@@ -32,6 +32,7 @@ class DisplayNode {
 	var _transform: Transform;
 	
 	var _dirtyRect = true;
+	var _dirty : boolean;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -39,6 +40,7 @@ class DisplayNode {
 	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number, rotation: number) {
 		this.shape = shape;
 		this._transform = new Transform(left, top, scaleX, scaleY, rotation);
+		this._dirty = true;
 	}
 	/**
 	 * create new node with shape, position and scale
@@ -46,6 +48,7 @@ class DisplayNode {
 	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number) {
 		this.shape = shape;
 		this._transform = new Transform(left, top, scaleX, scaleY);
+		this._dirty = true;
 	}
 	/**
 	 * create new node with shape and position
@@ -53,6 +56,7 @@ class DisplayNode {
 	function constructor(shape: Shape, left: number, top: number) {
 		this.shape = shape;
 		this._transform = new Transform(left, top);
+		this._dirty = true;
 	}
 	/**
 	 * create new node with shape
@@ -60,6 +64,7 @@ class DisplayNode {
 	function constructor(shape: Shape) {
 		this.shape = shape;
 		this._transform = new Transform(0, 0);
+		this._dirty = true;
 	}
 	/**
 	 * create new node with shape and matrix
@@ -67,12 +72,20 @@ class DisplayNode {
 	function constructor(shape: Shape, matrix: number[]) {
 		this.shape = shape;
 		this._transform = new Transform(matrix);
+		this._dirty = true;
 	}
 	
 	/**
 	 * set position of the node
 	 */
 	function setPosition(left: number, top: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(left != this._transform.left || top != this._transform.top) {
+				this._addDirtyRectangle();
+				this._transform.setPosition(left, top);
+			}
+			return;
+		}
 		this._transform.setPosition(left, top);
 		this._dirtyRect = true;
 	}
@@ -80,6 +93,13 @@ class DisplayNode {
 	 * set scale of the node
 	 */
 	function setScale(scaleX: number, scaleY: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(scaleX != this._transform.scaleX || scaleY != this._transform.scaleY) {
+				this._addDirtyRectangle();
+				this._transform.setScale(scaleX, scaleY);
+			}
+			return;
+		}
 		this._transform.setScale(scaleX, scaleY);
 		this._dirtyRect = true;
 	}
@@ -89,6 +109,13 @@ class DisplayNode {
 	 * @param rotation radian, not degree
 	 */
 	function setRotation(rotation: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(rotation != this._transform.rotation) {
+				this._addDirtyRectangle();
+				this._transform.setRotation(rotation);
+			}
+			return;
+		}
 		this._transform.setRotation(rotation);
 		this._dirtyRect = true;
 	}
@@ -109,12 +136,18 @@ class DisplayNode {
 			if(this._isTouchable) {
 				this._layer._removeTouchableNode(this);
 			}
+			if(Layer.USE_NEW_RENDERER) {
+				this._addDirtyRectangle();
+			}
 		}
 		this._layer = layer;
 		if(layer) {
 			// add
 			if(this._isTouchable) {
 				layer._addTouchableNode(this);
+			}
+			if(Layer.USE_NEW_RENDERER) {
+				this._addDirtyRectangle();
 			}
 		}
 	}
@@ -163,7 +196,34 @@ class DisplayNode {
 		this._dirtyRect = false;
 	}
 	
+	function _addDirtyRectangle(): void {
+		if(this._layer) {
+			this._clientRect = this.getCompositeTransform().transformRect(this.shape.bounds);
+			this._layer.addDirtyRectangle(this._clientRect);
+			this._dirty = true;
+		}
+	}
+
 	function _render(ctx: CanvasRenderingContext2D): void {
+		if(Layer.USE_NEW_RENDERER) {
+			// We have to draw this object:
+			// * when this object is marked as dirty, or;
+			// * when this object has an intersection with dirty rectangles.
+			// It may take long time to check if an object has an intersection
+			// with the dirty rectangles and this code skips checking whether a
+			// dirty object has an intersection with the dirty rectangles, which
+			// is obviously true.
+			if(!this._dirty && !this._layer.hasIntersection(this._clientRect)) {
+				return;
+			}
+			this._dirty = false;
+			ctx.save();
+			var matrix = this._transform.getMatrix();
+			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
+			this.shape.draw(ctx);
+			ctx.restore();
+			return;
+		}
 		ctx.save();
 		var matrix = this._transform.getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);

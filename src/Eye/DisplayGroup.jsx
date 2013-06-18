@@ -70,6 +70,9 @@ class DisplayGroup extends DisplayNode {
 			}
 		}
 	}
+	function hasChildren(): boolean {
+		return this._children.length > 0;
+	}
 	
 	override function _setLayer(layer: Layer): void {
 		super._setLayer(layer);
@@ -80,6 +83,11 @@ class DisplayGroup extends DisplayNode {
 	override function _calcClientRect(): void {
 		for(var i = 0; i < this._children.length; i++) {
 			this._children[i]._calcClientRect();
+		}
+	}
+	override function _addDirtyRectangle(): void {
+		for(var i = 0; i < this._children.length; i++) {
+			this._children[i]._addDirtyRectangle();
 		}
 	}
 	override function _render(ctx: CanvasRenderingContext2D): void {

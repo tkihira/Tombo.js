@@ -40,6 +40,9 @@ class Layer {
 	var _isChild = false;
 	var _touchableNodeList = []: DisplayNode[];
 	
+	var _dirtyRegions : Array.<Array.<number>>;
+	static const USE_NEW_RENDERER = false;
+
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
@@ -63,6 +66,7 @@ class Layer {
 			// create canvas now
 			this._modifyCanvas();
 		}
+		this._dirtyRegions = [] : Array.<Array.<number>>;
 	}
 	
 	function _modifyCanvas(): void {
@@ -116,7 +120,70 @@ class Layer {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
 		}
+		if(Layer.USE_NEW_RENDERER) {
+			// Erase the region covered by the dirty rectangles and redraw
+			// objects that have intersections with the rectangles.
+			if(this._dirtyRegions.length == 0) {
+				return;
+			}
+			var context = this._ctx;
+			// Clean up this layer and return now without saving or restoring
+			// the context if it does not have any nodes. (It is better to avoid
+			// unnecessary calls for Canvas APIs.)
+			if (!this.root.hasChildren()) {
+				context.clearRect(0, 0, this.width, this.height);
+				this._dirtyRegions = [] : Array.<Array.<number>>;
+				return;
+			}
+			context.save();
+			context.beginPath();
+			var length = this._dirtyRegions.length;
+			for(var i = 0; i < length; ++i) {
+				var region = this._dirtyRegions[i];
+				var x = region[0];
+				var y  = region[1];
+				var width = region[2] - x;
+				var height = region[3] - y;
+				context.rect(x, y, width, height);
+			}
+			context.clip();
+			context.clearRect(0, 0, this.width, this.height);
+			this.root._render(context);
+			context.restore();
+			this._dirtyRegions = [] : Array.<Array.<number>>;
+			return;
+		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
 		this.root._render(this._ctx);
+	}
+
+	function addDirtyRectangle(rectangle: Rect) : void {
+		// Add a couple of points (a top-left corner and a bottom-right corner)
+		// of the specified rectangle to the list of dirty regions for easier
+		// calculation of separation lines.
+		this._dirtyRegions.push([rectangle.left, rectangle.top, rectangle.left + rectangle.width, rectangle.top + rectangle.height]);
+	}
+
+	function hasIntersection(rectangle : Rect): boolean {
+		// Use the hyperplane-separation theorem to filter out rectangles that
+		// do not have intersections with dirty ones. Even though this code has
+		// true-negative cases (i.e. it does not filter out rectangles that do
+		// not have intersections with the dirty ones) it is sufficient for
+		// this use case.
+		var minX = rectangle.left;
+		var minY = rectangle.top;
+		var maxX = minX + rectangle.width;
+		var maxY = minY + rectangle.height;
+		if(maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) {
+			return false;
+		}
+		var length = this._dirtyRegions.length;
+		for(var i = 0; i < length; ++i) {
+			var region = this._dirtyRegions[i];
+			if(Math.max(minX, region[0]) < Math.min(maxX, region[2]) && Math.max(minY, region[1]) < Math.min(maxY, region[3])) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
