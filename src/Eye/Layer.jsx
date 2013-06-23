@@ -209,7 +209,7 @@ class Layer {
 			var binIndex = this._orderDrawBins[i] as string;
 			var bin = this._drawBins[binIndex];
 			if(this._dirtyDrawBins[binIndex]) {
-				bin.sort((a, b) -> { return a._drawOrder - b._drawOrder; });
+				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
 			}
 			for(var j = 0; j < bin.length; j++) {
 				bin[j]._render(this._ctx);
