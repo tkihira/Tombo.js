@@ -213,7 +213,6 @@ class Layer {
 			}
 			for(var j = 0; j < bin.length; j++) {
 				bin[j]._render(this._ctx);
-				log j;
 			}
 		}
 		

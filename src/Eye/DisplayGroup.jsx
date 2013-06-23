@@ -80,6 +80,14 @@ class DisplayGroup extends DisplayNode {
 			this._children[i]._setLayer(layer);
 		}
 	}
+	override function _setDirtyRect(value: boolean): void {
+		super._setDirtyRect(value);
+		if(value) {
+			for(var i = 0; i < this._children.length; i++) {
+				this._children[i]._setDirtyRect(value);
+			}
+		}
+	}
 	override function _calcClientRect(): void {
 		for(var i = 0; i < this._children.length; i++) {
 			this._children[i]._calcClientRect();

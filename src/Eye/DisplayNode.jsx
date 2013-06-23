@@ -227,6 +227,10 @@ class DisplayNode {
 	}
 
 	function getCompositeTransform(): Transform {
+		if(Layer.USE_NEW_RENDERER) {
+			this._compositeTransform = this._calcCompositeTransform();
+			return this._compositeTransform;
+		}
 		if(!this._compositeTransform) {
 			this._compositeTransform = this._calcCompositeTransform();
 		}
