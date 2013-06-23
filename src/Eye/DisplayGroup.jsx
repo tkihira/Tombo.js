@@ -91,6 +91,7 @@ class DisplayGroup extends DisplayNode {
 		}
 	}
 	override function _render(ctx: CanvasRenderingContext2D): void {
+		/*
 		if(this.shape) {
 			Tombo.warn("[DisplayGroup#render] not implemented: clipping");
 		}
@@ -103,6 +104,6 @@ class DisplayGroup extends DisplayNode {
 			this._children[i]._render(ctx);
 		}
 		
-		ctx.restore();
+		ctx.restore();*/
 	}
 }
