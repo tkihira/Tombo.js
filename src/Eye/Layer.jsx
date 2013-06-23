@@ -42,7 +42,11 @@ class Layer {
 	
 	var _dirtyRegions : Array.<Array.<number>>;
 	static const USE_NEW_RENDERER = false;
-
+	
+	var _drawBins = {}: Map.<Array.<DisplayNode>>;
+	var _orderDrawBins = []: Array.<int>;
+	var _dirtyDrawBins = {}: Map.<boolean>;
+	
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
@@ -88,6 +92,43 @@ class Layer {
 		this._modifyCanvas();
 		// todo: set proper dirty flag
 	}
+	function _addNode(node: DisplayNode): void {
+		this._addNodeToBin(node);
+	}
+	function _addNodeToBin(node: DisplayNode): void {
+		var index = node._drawBin as string;
+		var bin = this._drawBins[index];
+		if(!bin) {
+			// create new bin(bins are never deleted even if it become empty)
+			bin = this._drawBins[index] = []: Array.<DisplayNode>;
+			this._orderDrawBins.push(node._drawBin);
+			this._orderDrawBins.sort((a, b) -> { return a - b; });
+		}
+		bin.push(node);
+		this._dirtyDrawBins[index] = true;
+	}
+	function _removeNode(node: DisplayNode): void {
+		this._removeNodeFromBin(node, node._drawBin as string);
+	}
+	function _removeNodeFromBin(node: DisplayNode, index: string): void {
+		var bin = this._drawBins[index];
+		for(var i = 0; i < bin.length; i++) {
+			if(bin[i] == node) {
+				bin.splice(i, 1);
+				// no need to set dirty flag because it's not affected to drawing order by removing an item
+				return;
+			}
+		}
+	}
+	function _moveDrawBin(node: DisplayNode, oldBin: int): void {
+		// move node from oldBin to node._drawBin
+		this._removeNodeFromBin(node, oldBin as string);
+		this._addNodeToBin(node);
+	}
+	function _dirtyDrawBin(index: int): void {
+		this._dirtyDrawBins[index as string] = true;
+	}
+	
 	function _addTouchableNode(node: DisplayNode): void {
 		this._touchableNodeList.push(node);
 	}
@@ -148,13 +189,34 @@ class Layer {
 			}
 			context.clip();
 			context.clearRect(0, 0, this.width, this.height);
-			this.root._render(context);
+			for(var i = 0; i < this._orderDrawBins.length; i++) {
+				var binIndex = this._orderDrawBins[i] as string;
+				var bin = this._drawBins[binIndex];
+				if(this._dirtyDrawBins[binIndex]) {
+					bin.sort((a, b) -> { return a._drawOrder - b._drawOrder; });
+				}
+				for(var j = 0; j < bin.length; j++) {
+					bin[j]._render(this._ctx);
+				}
+			}
 			context.restore();
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
-		this.root._render(this._ctx);
+		
+		for(var i = 0; i < this._orderDrawBins.length; i++) {
+			var binIndex = this._orderDrawBins[i] as string;
+			var bin = this._drawBins[binIndex];
+			if(this._dirtyDrawBins[binIndex]) {
+				bin.sort((a, b) -> { return a._drawOrder - b._drawOrder; });
+			}
+			for(var j = 0; j < bin.length; j++) {
+				bin[j]._render(this._ctx);
+			}
+		}
+		
+		//this.root._render(this._ctx);
 	}
 
 	function addDirtyRectangle(rectangle: Rect) : void {
