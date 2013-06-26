@@ -26,8 +26,12 @@ class TextShape implements Shape {
 		var wordWrap = false;
 		/** multiline: default false */
 		var multiline = false;
+		/** border: default false */
+		var border = false;
 		/** textColor: default rgb(255,255,255) */
 		var textColor = Color.createRGB(255, 255, 255);
+		/** borderColor: default rgb(0,0,0) */
+		var borderColor = Color.createRGB(0, 0, 0);
 		/** maxLength: 0 if disable */
 		var maxLength = 0;
 		/** font: font name*/
@@ -155,6 +159,9 @@ class TextShape implements Shape {
 		
 		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
 		ctx.fillStyle = Color.stringify(this._option.textColor);
+		if(this._option.border) {
+			ctx.strokeStyle = Color.stringify(this._option.borderColor);
+		}
 		ctx.textBaseline = "top";
 		// todo: align
 		var x0 = 0, y0 = 0;
@@ -181,8 +188,14 @@ class TextShape implements Shape {
 			var str = stringArray[i];
 			if(this._option.maxLength) {
 				ctx.fillText(str, x0, y, this._option.maxLength);
+				if(this._option.border) {
+					ctx.strokeText(str, x0, y, this._option.maxLength);
+				}
 			} else {
 				ctx.fillText(str, x0, y);
+				if(this._option.border) {
+					ctx.strokeText(str, x0, y);
+				}
 			}
 		}
 		

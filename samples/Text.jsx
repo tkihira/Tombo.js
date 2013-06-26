@@ -28,8 +28,10 @@ class _Main {
 		option.align = TextShape.CENTER;
 		option.multiline = true;
 		option.wordWrap = true;
+		option.border = true;
 		option.fontHeight = 50;
 		option.textColor = Color.createRGB(0,255,255);
+		option.borderColor = Color.createRGB(255,0,0);
 		textShape.setOption(option);
 		// create Node
 		var textNode = new DisplayNode(textShape, 160, 160, 1, 1);
