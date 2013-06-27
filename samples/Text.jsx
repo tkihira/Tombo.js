@@ -32,6 +32,7 @@ class _Main {
 		option.fontHeight = 50;
 		option.textColor = Color.createRGB(0,255,255);
 		option.borderColor = Color.createRGB(255,0,0);
+		option.borderWidth = 2.5;
 		textShape.setOption(option);
 		// create Node
 		var textNode = new DisplayNode(textShape, 160, 160, 1, 1);
