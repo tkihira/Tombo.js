@@ -73,7 +73,7 @@ class DisplayGroup extends DisplayNode {
 	function hasChildren(): boolean {
 		return this._children.length > 0;
 	}
-	function redrawAll(): void {
+	function invalidateAll(): void {
 		if(this._layer) {
 			this._layer.addDirtyRectangle(new Rect(0, 0, this._layer.width, this._layer.height));
 		}
