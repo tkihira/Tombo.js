@@ -129,8 +129,8 @@ class Transform {
 			throw "[Transform#mul] sorry, not implemented";
 		} else {
 			// neither matrix has transform
-			var scaleX = a.scaleX * b.scaleY;
-			var scaleY = a.scaleX * b.scaleY;
+			var scaleX = a.scaleX * b.scaleX;
+			var scaleY = a.scaleY * b.scaleY;
 			var left = a.scaleX * b.left + a.left;
 			var top = a.scaleY * b.top + a.top;
 			return new Transform(left, top, scaleX, scaleY);
