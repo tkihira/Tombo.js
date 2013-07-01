@@ -73,6 +73,23 @@ class DisplayGroup extends DisplayNode {
 	function hasChildren(): boolean {
 		return this._children.length > 0;
 	}
+	function invalidateAll(): void {
+		if(this._layer) {
+			this._layer.addDirtyRectangle(new Rect(0, 0, this._layer.width, this._layer.height));
+		}
+	}
+	function addDirtyRectangles(rectangles: Array.<number>): void {
+		if(this._layer) {
+			var transform = this.getCompositeTransform();
+			for(var i = 0; i < rectangles.length; i += 4) {
+				var x = rectangles[i];
+				var y = rectangles[i + 1];
+				var width = rectangles[i + 2];
+				var height = rectangles[i + 3];
+				this._layer.addDirtyRectangle(transform.transformRect(new Rect(x, y, width, height)));
+			}
+		}
+	}
 	
 	override function _setLayer(layer: Layer): void {
 		super._setLayer(layer);
