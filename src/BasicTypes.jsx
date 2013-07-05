@@ -19,6 +19,91 @@ class Rect {
 	}
 }
 
+class Tetragon extends Rect {
+	var _topLeft : Array.<number>;
+	var _topRight : Array.<number>;
+	var _bottomLeft : Array.<number>;
+	var _bottomRight : Array.<number>;
+	function constructor() {
+		super(0, 0, 0, 0);
+		this._topLeft = [0, 0];
+		this._topRight = [0, 0];
+		this._bottomLeft = [0, 0];
+		this._bottomRight = [0, 0];
+	}
+	function constructor(left: number, top: number, width: number, height: number) {
+		super(left, top, width, height);
+		var right = left + width;
+		var bottom = top + height;
+		this._topLeft = [left, top];
+		this._topRight = [right, top];
+		this._bottomLeft = [left, bottom];
+		this._bottomRight = [right, bottom];
+	}
+	function transform(matrix: Array.<number>): void {
+		// Transform all the corners of this rectangle.
+		this._topLeft = this._transformPoint(matrix, this._topLeft);
+		this._topRight = this._transformPoint(matrix, this._topRight);
+		this._bottomLeft = this._transformPoint(matrix, this._bottomLeft);
+		this._bottomRight = this._transformPoint(matrix, this._bottomRight);
+
+		// Calculate the bounding box of this transformed rectangle and fill the
+		// Rect members with it.
+		var minX = Math.min(this._topLeft[0], this._topRight[0], this._bottomLeft[0], this._bottomRight[0]);
+		var maxX = Math.max(this._topLeft[0], this._topRight[0], this._bottomLeft[0], this._bottomRight[0]);
+		var minY = Math.min(this._topLeft[1], this._topRight[1], this._bottomLeft[1], this._bottomRight[1]);
+		var maxY = Math.max(this._topLeft[1], this._topRight[1], this._bottomLeft[1], this._bottomRight[1]);
+		this.left = minX;
+		this.top = minY;
+		this.width = maxX - minX;
+		this.height = maxY - minX;
+	}
+	override function isInside(x0: number, y0: number): boolean {
+		// Skip retriving intersections when the given point is not in the
+		// bounding box of this rectangle.
+		if(!super.isInside(x0, y0)) {
+			return false;
+		}
+		// Check whether the given x is in an intersection of this rectangle and
+		// a horizontal line 'y = y0', which must consist of only two points.
+		// The intersection of a closed path and a line must be an empty region
+		// or a closed region, i.e. it must consist of an even number of points.
+		// Also, the intersection of a convex (including a rectangle) and a line
+		// must consist of zero points or two. If the intersection of a
+		// rectangle and a horizontal line does not have any points, the
+		// specified point is not in the bounding box of a rectangle, this
+		// function does not execute this check.
+		var intersection = [] : Array.<number>;
+		this._addIntersection(y0, this._topLeft, this._topRight, intersection);
+		this._addIntersection(y0, this._topRight, this._bottomRight, intersection);
+		this._addIntersection(y0, this._bottomRight, this._bottomLeft, intersection);
+		this._addIntersection(y0, this._bottomLeft, this._topLeft, intersection);
+		return intersection.length == 2 && this._isInRange(x0, intersection[0], intersection[1]);
+	}
+	function _transformPoint(matrix: Array.<number>, point: Array.<number>): Array.<number> {
+		var a = matrix[0];
+		var b = matrix[1];
+		var c = matrix[2];
+		var d = matrix[3];
+		var tx = matrix[4];
+		var ty = matrix[5];
+		var x = a * point[0] + c * point[1] + tx;
+		var y = b * point[0] + d * point[1] + ty;
+		return [x, y];
+	}
+	function _addIntersection(y: number, p0: Array.<number>, p1: Array.<number>, intersection: Array.<number>): void {
+		var minY = Math.min(p0[1], p1[1]);
+		var maxY = Math.max(p0[1], p1[1]);
+		if(minY != maxY && minY <= y && y < maxY) {
+			var angle = (p0[0] - p1[0]) / (p0[1] - p1[1]);
+			intersection.push(p0[0] + (y - p0[1]) * angle);
+		}
+	}
+	function _isInRange(x: number, x0: number, x1: number): boolean {
+		return x0 < x1 ? (x0 <= x && x < x1) : (x1 <= x && x < x0);
+	}
+}
+
 class Transform {
 	var left = 0;
 	var top = 0;
@@ -115,8 +200,9 @@ class Transform {
 	
 	function transformRect(rect: Rect): Rect {
 		if(this.matrix) {
-			// todo implement mul
-			throw "[Transform#mul] sorry, not implemented";
+			var tetragon = new Tetragon(rect.left, rect.top, rect.width, rect.height);
+			tetragon.transform(this.matrix);
+			return tetragon;
 		} else {
 			return new Rect(this.scaleX * rect.left + this.left, this.scaleY * rect.top + this.top,
 							this.scaleX * rect.width, this.scaleY * rect.height);
