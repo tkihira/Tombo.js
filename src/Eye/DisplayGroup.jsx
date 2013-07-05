@@ -70,6 +70,17 @@ class DisplayGroup extends DisplayNode {
 			}
 		}
 	}
+	function removeAllChildren(): void {
+		for(var i = 0; i < this._children.length; i++) {
+            this._children[i]._setParent(null);
+            this._children[i]._setLayer(null);
+            if(this._children[i] instanceof DisplayGroup){
+                var nodeGroup = this._children[i] as DisplayGroup;
+                nodeGroup.removeAllChildren();
+            }
+		}
+        this._children = [];
+	}
 	function hasChildren(): boolean {
 		return this._children.length > 0;
 	}

@@ -38,6 +38,8 @@ class DisplayNode {
 
 	var _id: number;
 	static var _counter = 0;
+    
+    var _visible = true;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -80,6 +82,12 @@ class DisplayNode {
 		this._id = DisplayNode._counter++;
 	}
 	
+	/**
+	 * set visible of the node
+	 */
+	function setVisible(enable: boolean): void {
+		this._visible = enable;
+	}
 	/**
 	 * set position of the node
 	 */
@@ -260,6 +268,7 @@ class DisplayNode {
 	}
 
 	function _render(ctx: CanvasRenderingContext2D): void {
+        if(this._visible){
 		if(Layer.USE_NEW_RENDERER) {
 			// We have to draw this object:
 			// * when this object is marked as dirty, or;
@@ -286,5 +295,6 @@ class DisplayNode {
 		this.shape.draw(ctx);
 		
 		ctx.restore();
+        }
 	}
 }
