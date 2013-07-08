@@ -184,7 +184,7 @@ class Transform {
 			// set proper matrix value
 			var cos = Math.cos(this.rotation);
 			var sin = Math.sin(this.rotation);
-			this.matrix = [cos * this.scaleX, sin, -sin, cos * this.scaleY, this.left, this.top]: number[];
+			this.matrix = [cos * this.scaleX, sin * this.scaleX, -sin * this.scaleY, cos * this.scaleY, this.left, this.top]: number[];
 		} else {
 			// clear matrix becuase rotation == 0
 			this.matrix = null;
