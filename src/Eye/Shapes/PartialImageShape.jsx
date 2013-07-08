@@ -12,21 +12,22 @@ import "PartialImage.jsx";
  * @author Takuo KIHIRA <t-kihira@broadtail.jp>
  */
 class PartialImageShape implements Shape, PartialImage {
-	var bounds: Rect;
 	var isMutable = false;
 	
 	/**
 	 * create Shape with Image Element
 	 * @param img an image element
 	 * @param frame Array.<number>(4) Specified in pixel coordinates ranging from 0 to img.width/height. The four coordinates represent left, top, width, and height, in that order. Set [0, 0, img.width, img.height] if you want to display the entire image.
+	 * //@param destWidth the fixed width size of the destination image (optional)
+	 * //@param destHeight the fixed height size of the destination image (optional)
 	 */
-	function constructor(img: HTMLImageElement, frame: Array.<number>) {
+	function constructor(img: HTMLImageElement, frame: Array.<number>, destWidth: number = 0, destHeight: number = 0) {
 		this._img = img;
 		if(!img.width || !img.height) {
 			Tombo.warn("[PartialImageShape#constructor] image is not initialized");
 		}
 		this.setRect(frame[0], frame[1], frame[2], frame[3]);
-		this.bounds = new Rect(0, 0, this.width, this.height);
+		this.bounds = new Rect(0, 0, destWidth ?: this.width, destHeight ?:this.height);
 	}
 
 	/**
@@ -36,14 +37,15 @@ class PartialImageShape implements Shape, PartialImage {
 	 * @param top the top value specified in pixel.
 	 * @param width the width value specified in pixel.
 	 * @param height the height value specified in pixel.
+	 * //@param destWidth the fixed width size of the destination image (optional)
+	 * //@param destHeight the fixed height size of the destination image (optional)
 	 */
-	function constructor(img: HTMLImageElement, left: number, top: number, width: number, height: number) {
+	function constructor(img: HTMLImageElement, left: number, top: number, width: number, height: number, destWidth: number = 0, destHeight: number = 0) {
 		this._img = img;
 		if(!img.width || !img.height) {
 			Tombo.warn("[PartialImageShape#constructor] image is not initialized");
 		}
-		log("hello");
 		this.setRect(left, top, width, height);
-		this.bounds = new Rect(0, 0, this.width, this.height);
+		this.bounds = new Rect(0, 0, destWidth ?: this.width, destHeight ?:this.height);
 	}
 }
