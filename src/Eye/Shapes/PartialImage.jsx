@@ -7,18 +7,29 @@ mixin PartialImage {
 	var top: number;
 	var width: number;
 	var height: number;
+	var anchorX: number;
+	var anchorY: number;
 	var _img: HTMLImageElement;
-    var offsetX: number;
-    var offsetY: number;
-	
+
 	function setRect(left: number, top: number, width: number, height: number): void {
 		this.left = left;
 		this.top = top;
 		this.width = width;
 		this.height = height;
+		this.anchorX = 0;
+		this.anchorY = 0;
+	}
+
+	function setRect(left: number, top: number, width: number, height: number, anchorX:number, anchorY: number): void {
+		this.left = left;
+		this.top = top;
+		this.width = width;
+		this.height = height;
+		this.anchorX = anchorX;
+		this.anchorY = anchorY;
 	}
 	
 	override function draw(ctx: CanvasRenderingContext2D): void {
-		ctx.drawImage(this._img, this.left, this.top, this.width, this.height, this.offsetX, this.offsetY, this.width, this.height);
+		ctx.drawImage(this._img, this.left, this.top, this.width, this.height, this.anchorX, this.anchorY, this.width, this.height);
 	}
 }

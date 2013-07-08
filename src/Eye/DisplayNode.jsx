@@ -26,6 +26,8 @@ class DisplayNode {
 	/** READONLY: parent node group */
 	var parent = null: DisplayGroup;
 	
+	var _color = 0;
+	
 	var _drawBin = 0 as int;
 	var _drawOrder = 0 as number;
 	
@@ -214,6 +216,19 @@ class DisplayNode {
 		return this._drawOrder;
 	}
 	
+	/**
+	 * get node color
+	 */
+	function getColor(): number {
+		return this._color;
+	}
+	/**
+	 * set node color
+	 */
+	function setColor(value: number): void{
+		this._color = value;
+	}
+	
 	
 	/**
 	 * indicate that this node is touch sensitive or not
@@ -269,6 +284,66 @@ class DisplayNode {
 
 	function _render(ctx: CanvasRenderingContext2D): void {
         if(this._visible){
+		var canvas = null: HTMLCanvasElement;
+		if(this._color != 0) {
+			// TODO: caching
+			var width = this.shape.bounds.width;
+			var height = this.shape.bounds.height;
+			
+			var canvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+			canvas.width = width;
+			canvas.height = height;
+			var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+			this.shape.draw(cctx);
+			
+			// create alpha canvas
+			var ac = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+			ac.width = width;
+			ac.height = height;
+			var actx = ac.getContext("2d") as CanvasRenderingContext2D;
+			actx.drawImage(canvas, 0, 0);
+			actx.globalCompositeOperation = "source-atop";
+			actx.fillStyle = "rgba(255,255,255,1)";
+			actx.fillRect(0, 0, width, height);
+			
+			// create ouput canvas
+			var oc = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+			oc.width = width;
+			oc.height = height;
+			var octx = oc.getContext("2d") as CanvasRenderingContext2D;
+			octx.globalCompositeOperation = "lighter";
+			
+			// breakdown RGB and compose
+			var filters = [Color.createRGB(0, 0, 255), Color.createRGB(0, 255, 0), Color.createRGB(255, 0, 0)]; // order (B-> G-> R) is important
+			var color = this._color;
+			for(var i = 0; i < 3; i++) {
+				var ec = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+				ec.width = width;
+				ec.height = height;
+				var ectx = ec.getContext("2d") as CanvasRenderingContext2D;
+				ectx.drawImage(canvas, 0, 0);
+				
+				ectx.globalCompositeOperation = "darker";
+				ectx.fillStyle = Color.stringify(filters[i]);
+				ectx.fillRect(0, 0, width, height);
+				
+				color >>= 8;
+				var alpha = 1 - (color & 0xFF) / 255;
+				ectx.globalCompositeOperation = "source-over";
+				ectx.globalAlpha = alpha;
+				ectx.fillStyle = "#000";
+				ectx.fillRect(0, 0, width, height);
+				
+				octx.drawImage(ec, 0, 0); // with lighter
+			}
+			// alpha mask
+			octx.globalCompositeOperation = "destination-in";
+			octx.globalAlpha = 1;
+			octx.drawImage(ac, 0, 0);
+			
+			canvas = oc;
+		}
+
 		if(Layer.USE_NEW_RENDERER) {
 			// We have to draw this object:
 			// * when this object is marked as dirty, or;
@@ -284,7 +359,11 @@ class DisplayNode {
 			ctx.save();
 			var matrix = this.getCompositeTransform().getMatrix();
 			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
-			this.shape.draw(ctx);
+			if(canvas) {
+				ctx.drawImage(canvas, 0, 0);
+			} else {
+				this.shape.draw(ctx);
+			}
 			ctx.restore();
 			return;
 		}
@@ -292,7 +371,11 @@ class DisplayNode {
 		var matrix = this.getCompositeTransform().getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 		
-		this.shape.draw(ctx);
+		if(canvas) {
+			ctx.drawImage(canvas, 0, 0);
+		} else {
+			this.shape.draw(ctx);
+		}
 		
 		ctx.restore();
         }
