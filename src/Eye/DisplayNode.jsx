@@ -20,6 +20,8 @@ class DisplayNode {
 	
 	var _clientRect: Rect;
 	var _compositeTransform: Transform;
+	var _compositeColor = -1; // -1 if not initialized
+	var _compositeAlpha = -1; // -1 if not initialized
 	
 	/** READONLY: the associated shape */
 	var shape: Shape;
@@ -27,6 +29,7 @@ class DisplayNode {
 	var parent = null: DisplayGroup;
 	
 	var _color = 0;
+	var _alpha = 1;
 	
 	var _drawBin = 0 as int;
 	var _drawOrder = 0 as number;
@@ -40,8 +43,8 @@ class DisplayNode {
 
 	var _id: number;
 	static var _counter = 0;
-    
-    var _visible = true;
+
+	var _visible = true;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -225,8 +228,23 @@ class DisplayNode {
 	/**
 	 * set node color
 	 */
-	function setColor(value: number): void{
+	function setColor(value: number): void {
+		this._compositeColor = -1;
 		this._color = value;
+	}
+	
+	/**
+	 * get node alpha value
+	 */
+	function getAlpha(): number {
+		return this._alpha;
+	}
+	/**
+	 * set node alpha value
+	 */
+	function setAlpha(value: number): void {
+		this._compositeAlpha = -1;
+		this._alpha = value;
 	}
 	
 	
@@ -259,7 +277,6 @@ class DisplayNode {
 		}
 		return this._compositeTransform;
 	}
-
 	function _calcCompositeTransform(): Transform {
 		if(this.parent) {
 			return Transform.mul(this.parent.getCompositeTransform(), this._transform);
@@ -267,6 +284,47 @@ class DisplayNode {
 			return this._transform;
 		}
 	}
+
+	function _getCompositeColor(): number {
+		if(this._compositeColor == -1) {
+			this._compositeColor = this._calcCompositeColor();
+		}
+		return this._compositeColor;
+	}
+	function _calcCompositeColor(): number {
+		if(this.parent) {
+			var c1 = this._color;
+			var c2 = this.parent._getCompositeColor();
+			if(c1 == 0) {
+				return c2;
+			}
+			if(c2 == 0) {
+				return c1;
+			}
+			var r = ((c1 >> 24) & 0xFF) / 255 * ((c2 >> 24) & 0xFF);
+			var g = ((c1 >> 16) & 0xFF) / 255 * ((c2 >> 16) & 0xFF);
+			var b = ((c1 >> 8) & 0xFF) / 255 * ((c2 >> 8) & 0xFF);
+			
+			return Color.createRGB(r, g, b);
+		} else {
+			return this._color;
+		}
+	}
+
+	function _getCompositeAlpha(): number {
+		if(this._compositeAlpha == -1) {
+			this._compositeAlpha = this._calcCompositeAlpha();
+		}
+		return this._compositeAlpha;
+	}
+	function _calcCompositeAlpha(): number {
+		if(this.parent) {
+			return this._alpha * this.parent._getCompositeAlpha();
+		} else {
+			return this._alpha;
+		}
+	}
+
 
 	function _calcClientRect(): void {
 		// calculate transform
@@ -283,9 +341,12 @@ class DisplayNode {
 	}
 
 	function _render(ctx: CanvasRenderingContext2D): void {
-        if(this._visible){
+		if(!this._visible) {
+			return;
+		}
 		var canvas = null: HTMLCanvasElement;
-		if(this._color != 0) {
+		var color = this._getCompositeColor();
+		if(color != 0) {
 			// TODO: caching
 			var width = this.shape.bounds.width;
 			var height = this.shape.bounds.height;
@@ -315,7 +376,7 @@ class DisplayNode {
 			
 			// breakdown RGB and compose
 			var filters = [Color.createRGB(0, 0, 255), Color.createRGB(0, 255, 0), Color.createRGB(255, 0, 0)]; // order (B-> G-> R) is important
-			var color = this._color;
+			
 			for(var i = 0; i < 3; i++) {
 				var ec = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 				ec.width = width;
@@ -357,6 +418,7 @@ class DisplayNode {
 			}
 			this._dirty = false;
 			ctx.save();
+			ctx.globalAlpha = this._getCompositeAlpha();
 			var matrix = this.getCompositeTransform().getMatrix();
 			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 			if(canvas) {
@@ -371,6 +433,7 @@ class DisplayNode {
 		var matrix = this.getCompositeTransform().getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 		
+		ctx.globalAlpha = this._getCompositeAlpha();
 		if(canvas) {
 			ctx.drawImage(canvas, 0, 0);
 		} else {
@@ -378,6 +441,5 @@ class DisplayNode {
 		}
 		
 		ctx.restore();
-        }
 	}
 }

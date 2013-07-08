@@ -72,14 +72,10 @@ class DisplayGroup extends DisplayNode {
 	}
 	function removeAllChildren(): void {
 		for(var i = 0; i < this._children.length; i++) {
-            this._children[i]._setParent(null);
-            this._children[i]._setLayer(null);
-            if(this._children[i] instanceof DisplayGroup){
-                var nodeGroup = this._children[i] as DisplayGroup;
-                nodeGroup.removeAllChildren();
-            }
+			this._children[i]._setParent(null);
+			this._children[i]._setLayer(null);
 		}
-        this._children = [];
+		this._children = [];
 	}
 	function hasChildren(): boolean {
 		return this._children.length > 0;
@@ -113,6 +109,22 @@ class DisplayGroup extends DisplayNode {
 		if(value) {
 			for(var i = 0; i < this._children.length; i++) {
 				this._children[i]._setDirtyRect(value);
+			}
+		}
+	}
+	override function setAlpha(value: number): void {
+		super.setAlpha(value);
+		if(value) {
+			for(var i = 0; i < this._children.length; i++) {
+				this._children[i]._compositeAlpha = -1;
+			}
+		}
+	}
+	override function setColor(value: number): void {
+		super.setColor(value);
+		if(value) {
+			for(var i = 0; i < this._children.length; i++) {
+				this._children[i]._compositeColor = -1;
 			}
 		}
 	}
