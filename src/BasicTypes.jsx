@@ -211,8 +211,43 @@ class Transform {
 	
 	static function mul(a: Transform, b: Transform): Transform {
 		if(a.matrix || b.matrix) {
-			// todo implement mul
-			throw "[Transform#mul] sorry, not implemented";
+			// Treat these matrices as homogeneous matrices and multiply them as
+			// listed below.
+			//   | a0 c0 tx0 |   | a1 c1 tx1 |
+			//   | b0 d0 ty0 | x | b1 d1 ty1 |
+			//   | 0  0  1   |   | 0  0  1   |
+			//     | a0*a1+c0*b1 a0*c1+c0*d1 a0*tx1+c0*ty1+tx0 |
+			//   = | b0*a1+d0*b1 b0*c1+d0*d1 b0*tx1+d0*ty1+ty0 |
+			//     | 0           0           1                 |
+			//     | a2 c2 tx2 |
+			//   = | b2 d2 ty2 |
+			//     | 0  0  1   |
+			var m0 = a.getMatrix();
+			var a0 = m0[0];
+			var b0 = m0[1];
+			var c0 = m0[2];
+			var d0 = m0[3];
+			var tx0 = m0[4];
+			var ty0 = m0[5];
+			var m1 = b.getMatrix();
+			var a1 = m1[0];
+			var b1 = m1[1];
+			var c1 = m1[2];
+			var d1 = m1[3];
+			var tx1 = m1[4];
+			var ty1 = m1[5];
+			var a2 = a0 * a1 + c0 * b1;
+			var b2 = b0 * a1 + d0 * b1;
+			var c2 = a0 * c1 + c0 * d1;
+			var d2 = b0 * c1 + d0 * d1;
+			var tx2 = a0 * tx1 + c0 * ty1 + tx0;
+			var ty2 = b0 * tx1 + d0 * ty1 + ty0;
+
+			// Create a new Transform and set its matrix. (This transform should
+			// be constant, i.e. we should prohibit changing this transform.)
+			var transform = new Transform(tx2, ty2, 1, 1);
+			transform.setMatrix([a2, b2, c2, d2, tx2, ty2]);
+			return transform;
 		} else {
 			// neither matrix has transform
 			var scaleX = a.scaleX * b.scaleX;
