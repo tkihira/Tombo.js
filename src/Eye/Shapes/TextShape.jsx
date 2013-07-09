@@ -16,10 +16,17 @@ class TextShape implements Shape {
 	
 	/** TextMargin: Left */
 	static const LEFT = 0;
-	/** TextMargin: RIGHT */
+	/** TextMargin: Right */
 	static const RIGHT = 1;
-	/** TextMargin: CENTER */
+	/** TextMargin: Center */
 	static const CENTER = 2;
+	/** TextVerticleMargin: Top */
+	static const TOP = 0;
+	/** TextVerticleMargin: Bottom */
+	static const BOTTOM = 1;
+	/** TextVerticleMargin: Middle */
+	static const MIDDLE = 2;
+	
 	/** Option class for TextShape */
 	class Option {
 		/** word wrap: default false */
@@ -47,6 +54,8 @@ class TextShape implements Shape {
 		var rightMargin = 0;
 		/** align: default TextShape.LEFT */
 		var align = TextShape.LEFT;
+		/** valign: default TextShape.TOP */
+		var valign = TextShape.TOP;
 		/** fontHeight: default 30 */
 		var fontHeight = 30;
 	}
@@ -172,21 +181,33 @@ class TextShape implements Shape {
 		case TextShape.RIGHT:
 			ctx.textAlign = "end";
 			x0 = x2 - 4;
-			y0 = y1 + 2;
 			break;
 		case TextShape.CENTER:
 			ctx.textAlign = "center";
 			x0 = (x1 + x2) / 2 + 2;
-			y0 = y1 + 2;
 			break;
 		default: // left
 			ctx.textAlign = "start";
 			x0 = x1 + 2;
-			y0 = y1 + 2;
 			break;
 		}
 		
 		var stringArray = TextShape._splitString(this._text, characterPerLine);
+		var totalHeight = fontHeight * stringArray.length;
+		
+		switch(this._option.valign) {
+		case TextShape.TOP:
+			y0 = y1 + 2;
+			break;
+		case TextShape.BOTTOM:
+			y0 = y2 - 2 - totalHeight;
+			break;
+		case TextShape.MIDDLE:
+			y0 = (y1 + y2) / 2 - totalHeight / 2;
+			break;
+		}
+		
+		
 		for(var i = 0, y = y0; i < stringArray.length; i++, y += fontHeight) {
 			var str = stringArray[i];
 			if(this._option.maxLength) {
