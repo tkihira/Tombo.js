@@ -48,6 +48,8 @@ class DisplayNode {
 	var _anchorX = 0;
 	var _anchorY = 0;
 
+	var _compositeOperation = "";
+
 	/**
 	 * create new node with shape, position, scale and rotation
 	 */
@@ -351,6 +353,10 @@ class DisplayNode {
 			this._dirty = true;
 		}
 	}
+	
+	function _setCompositeOperation(operation: string): void {
+		this._compositeOperation = operation;
+	}
 
 	function _render(ctx: CanvasRenderingContext2D): void {
 		if(!this._visible) {
@@ -430,6 +436,11 @@ class DisplayNode {
 			}
 			this._dirty = false;
 			ctx.save();
+			var oldOperation = this._compositeOperation? ctx.globalCompositeOperation: "";
+			if(this._compositeOperation) {
+				ctx.globalCompositeOperation = this._compositeOperation;
+			}
+
 			ctx.globalAlpha = this._getCompositeAlpha();
 			var matrix = this.getCompositeTransform().getMatrix();
 			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
@@ -438,10 +449,18 @@ class DisplayNode {
 			} else {
 				this.shape.draw(ctx);
 			}
+			if(this._compositeOperation) {
+				ctx.globalCompositeOperation = oldOperation;
+			}
 			ctx.restore();
 			return;
 		}
 		ctx.save();
+		var oldOperation = this._compositeOperation? ctx.globalCompositeOperation: "";
+		if(this._compositeOperation) {
+			ctx.globalCompositeOperation = this._compositeOperation;
+		}
+		log ctx.globalCompositeOperation;
 		var matrix = this.getCompositeTransform().getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 		
@@ -452,6 +471,9 @@ class DisplayNode {
 			this.shape.draw(ctx);
 		}
 		
+		if(this._compositeOperation) {
+			ctx.globalCompositeOperation = oldOperation;
+		}
 		ctx.restore();
 	}
 }
