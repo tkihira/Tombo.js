@@ -180,15 +180,15 @@ class TextShape implements Shape {
 		switch(this._option.align) {
 		case TextShape.RIGHT:
 			ctx.textAlign = "end";
-			x0 = x2 - 4;
+			x0 = x2;
 			break;
 		case TextShape.CENTER:
 			ctx.textAlign = "center";
-			x0 = (x1 + x2) / 2 + 2;
+			x0 = (x1 + x2) / 2;
 			break;
 		default: // left
 			ctx.textAlign = "start";
-			x0 = x1 + 2;
+			x0 = x1;
 			break;
 		}
 		
@@ -197,10 +197,10 @@ class TextShape implements Shape {
 		
 		switch(this._option.valign) {
 		case TextShape.TOP:
-			y0 = y1 + 2;
+			y0 = y1;
 			break;
 		case TextShape.BOTTOM:
-			y0 = y2 - 2 - totalHeight;
+			y0 = y2 - totalHeight;
 			break;
 		case TextShape.MIDDLE:
 			y0 = (y1 + y2) / 2 - totalHeight / 2;
