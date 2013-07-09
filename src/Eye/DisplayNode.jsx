@@ -45,6 +45,8 @@ class DisplayNode {
 	static var _counter = 0;
 
 	var _visible = true;
+	var _anchorX = 0;
+	var _anchorY = 0;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -100,11 +102,11 @@ class DisplayNode {
 		if(Layer.USE_NEW_RENDERER) {
 			if(left != this._transform.left || top != this._transform.top) {
 				this._addDirtyRectangle();
-				this._transform.setPosition(left, top);
+				this._transform.setPosition(left + this._anchorX, top + this._anchorY);
 			}
 			return;
 		}
-		this._transform.setPosition(left, top);
+		this._transform.setPosition(left + this._anchorX, top + this._anchorY);
 		this._setDirtyRect(true);
 	}
 	/**
@@ -247,6 +249,16 @@ class DisplayNode {
 		this._alpha = value;
 	}
 	
+	/**
+	 * set scale of the node
+	 */
+	function setAnchor(anchorX: number, anchorY: number): void {
+		var left = this._transform.left - this._anchorX;
+		var top = this._transform.top - this._anchorY;
+		this._anchorX = anchorX;
+		this._anchorY = anchorY;
+		this._transform.setPosition(left + anchorX, top + anchorY);
+	}
 	
 	/**
 	 * indicate that this node is touch sensitive or not
