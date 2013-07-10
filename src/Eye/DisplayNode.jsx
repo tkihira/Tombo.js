@@ -104,11 +104,11 @@ class DisplayNode {
 		if(Layer.USE_NEW_RENDERER) {
 			if(left != this._transform.left || top != this._transform.top) {
 				this._addDirtyRectangle();
-				this._transform.setPosition(left + this._anchorX, top + this._anchorY);
+				this._transform.setPosition(left, top);
 			}
 			return;
 		}
-		this._transform.setPosition(left + this._anchorX, top + this._anchorY);
+		this._transform.setPosition(left, top);
 		this._setDirtyRect(true);
 	}
 	/**
@@ -255,11 +255,8 @@ class DisplayNode {
 	 * set scale of the node
 	 */
 	function setAnchor(anchorX: number, anchorY: number): void {
-		var left = this._transform.left - this._anchorX;
-		var top = this._transform.top - this._anchorY;
 		this._anchorX = anchorX;
 		this._anchorY = anchorY;
-		this._transform.setPosition(left + anchorX, top + anchorY);
 	}
 	
 	/**
@@ -442,6 +439,11 @@ class DisplayNode {
 			}
 
 			ctx.globalAlpha = this._getCompositeAlpha();
+			
+			if(this._anchorX || this._anchorY) {
+				ctx.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
+			}
+			
 			var matrix = this.getCompositeTransform().getMatrix();
 			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 			if(canvas) {
@@ -460,7 +462,13 @@ class DisplayNode {
 		if(this._compositeOperation) {
 			ctx.globalCompositeOperation = this._compositeOperation;
 		}
-		log ctx.globalCompositeOperation;
+		//log ctx.globalCompositeOperation;
+		
+		
+		if(this._anchorX || this._anchorY) {
+			ctx.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
+		}
+		
 		var matrix = this.getCompositeTransform().getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 		
