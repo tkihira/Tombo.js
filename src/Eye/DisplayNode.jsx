@@ -440,12 +440,12 @@ class DisplayNode {
 
 			ctx.globalAlpha = this._getCompositeAlpha();
 			
+			var matrix = this.getCompositeTransform().getMatrix();
+			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 			if(this._anchorX || this._anchorY) {
 				ctx.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
 			}
 			
-			var matrix = this.getCompositeTransform().getMatrix();
-			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
 			if(canvas) {
 				ctx.drawImage(canvas, 0, 0);
 			} else {
