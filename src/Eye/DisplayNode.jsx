@@ -28,7 +28,7 @@ class DisplayNode {
 	/** READONLY: parent node group */
 	var parent = null: DisplayGroup;
 	
-	var _color = 0;
+	var _color = Color.createRGB(255, 255, 255);
 	var _alpha = 1;
 	
 	var _drawBin = 0 as int;
@@ -361,7 +361,7 @@ class DisplayNode {
 		}
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
-		if(color != 0) {
+		if(color != Color.createRGB(255, 255, 255)) {
 			// TODO: caching
 			var width = this.shape.bounds.width;
 			var height = this.shape.bounds.height;
