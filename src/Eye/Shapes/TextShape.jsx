@@ -14,6 +14,9 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	
+	/** Whether to cache rendered text. */
+	static const USE_CACHE = false;
+
 	/** TextMargin: Left */
 	static const LEFT = 0;
 	/** TextMargin: Right */
@@ -62,6 +65,10 @@ class TextShape implements Shape {
 	
 	var _text: string;
 	var _option = new TextShape.Option;
+	var _textCanvas: HTMLCanvasElement;
+	var _textWidth: number;
+	var _textHeight: number;
+	var _textDirty: boolean;
 	
 	/**
 	 * create TextNode with the size and initial text
@@ -69,6 +76,10 @@ class TextShape implements Shape {
 	function constructor(width: number, height: number, text: string) {
 		this.bounds = new Rect(0, 0, width, height);
 		this._text = text;
+		this._textCanvas = null;
+		this._textWidth = 0;
+		this._textHeight = 0;
+		this._textDirty = true;
 	}
 	
 	/**
@@ -76,7 +87,17 @@ class TextShape implements Shape {
 	 */
 	function setOption(option: TextShape.Option): void {
 		this._option = option;
-		// todo: set dirty flag
+		this._textDirty = true;
+	}
+	
+	/**
+	 * change the text of this node.
+	 */
+	function setText(text: string): void {
+		if(this._text != text) {
+			this._text = text;
+			this._textDirty = true;
+		}
 	}
 	
 	static function _splitString(targetString: string, maxLineWidth: number): string[] {
@@ -147,8 +168,77 @@ class TextShape implements Shape {
 		var code = c.charCodeAt(0);
 		return (0x20 <= code && code <= 0x7e) || TextShape._hankakuReg.test(c);
 	}
+	function _drawText(): void {
+		if(!this._textCanvas) {
+			this._textCanvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+		}
+		var textWidth = this.bounds.width - this._option.leftMargin - this._option.rightMargin;
+		var fontHeight = this._option.fontHeight;
+		var characterPerLine = (this._option.wordWrap && this._option.multiline)? Math.ceil(textWidth / fontHeight * 2): 0;
+		var stringArray = TextShape._splitString(this._text, characterPerLine);
+		var textHeight = fontHeight * stringArray.length;
+		if(this._textWidth != textWidth || this._textHeight != textHeight) {
+			this._textWidth = textWidth;
+			this._textCanvas.width = textWidth;
+			this._textHeight = textHeight;
+			this._textCanvas.height = textHeight;
+		}
+		var ctx = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
+		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
+		ctx.clearRect(0, 0, textWidth, textHeight);
+		ctx.fillStyle = Color.stringify(this._option.textColor);
+		if(this._option.border) {
+			ctx.strokeStyle = Color.stringify(this._option.borderColor);
+			ctx.lineWidth = this._option.borderWidth;
+		}
+		ctx.textBaseline = "top";
+		var x0 = 0;
+		switch(this._option.align) {
+		case TextShape.RIGHT:
+			ctx.textAlign = "end";
+			x0 = textWidth;
+			break;
+		case TextShape.CENTER:
+			ctx.textAlign = "center";
+			x0 = textWidth >> 1;
+			break;
+		default: // left
+			ctx.textAlign = "start";
+			break;
+		}
+		var y0 = 0;
+		for(var i = 0, y = y0; i < stringArray.length; i++, y += fontHeight) {
+			var str = stringArray[i];
+			if(this._option.maxLength) {
+				if(this._option.border) {
+					ctx.strokeText(str, x0, y, this._option.maxLength);
+				}
+				ctx.fillText(str, x0, y, this._option.maxLength);
+			} else {
+				if(this._option.border) {
+					ctx.strokeText(str, x0, y);
+				}
+				ctx.fillText(str, x0, y);
+			}
+		}
+		this._textDirty = false;
+	}
 	
 	override function draw(ctx: CanvasRenderingContext2D): void {
+		if(TextShape.USE_CACHE) {
+			if(this._textDirty) {
+				this._drawText();
+			}
+			var x0 = this.bounds.left + this._option.leftMargin;
+			var y0 = this.bounds.top;
+			if(this._option.valign == TextShape.BOTTOM) {
+				y0 += this.bounds.height - this._textHeight;
+			} else if(this._option.valign == TextShape.MIDDLE) {
+				y0 += (this.bounds.height - this._textHeight) >> 1;
+			}
+			ctx.drawImage(this._textCanvas, x0, y0);
+			return;
+		}
 		var x1 = this.bounds.left + this._option.leftMargin;
 		var x2 = this.bounds.left + this.bounds.width - this._option.rightMargin;
 		var y1 = this.bounds.top;
