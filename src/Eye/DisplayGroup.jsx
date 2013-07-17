@@ -112,16 +112,16 @@ class DisplayGroup extends DisplayNode {
 			}
 		}
 	}
-	override function setAlpha(value: number): void {
-		super.setAlpha(value);
+	override function _clearCompositeAlpha(): void {
+		super._clearCompositeAlpha();
 		for(var i = 0; i < this._children.length; i++) {
-			this._children[i]._compositeAlpha = -1;
+			this._children[i]._clearCompositeAlpha();
 		}
 	}
-	override function setColor(value: number): void {
-		super.setColor(value);
+	override function _clearCompositeColor(): void {
+		super._clearCompositeColor();
 		for(var i = 0; i < this._children.length; i++) {
-			this._children[i]._compositeColor = -1;
+			this._children[i]._clearCompositeColor();
 		}
 	}
 	override function _calcClientRect(): void {

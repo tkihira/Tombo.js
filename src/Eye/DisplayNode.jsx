@@ -233,8 +233,11 @@ class DisplayNode {
 	 * set node color
 	 */
 	function setColor(value: number): void {
-		this._compositeColor = -1;
+		this._clearCompositeColor();
 		this._color = value;
+	}
+	function _clearCompositeColor(): void {
+		this._compositeColor = -1;
 	}
 	
 	/**
@@ -247,8 +250,12 @@ class DisplayNode {
 	 * set node alpha value
 	 */
 	function setAlpha(value: number): void {
-		this._compositeAlpha = -1;
+		this._clearCompositeAlpha();
 		this._alpha = value;
+	}
+	
+	function _clearCompositeAlpha(): void {
+		this._compositeAlpha = -1;
 	}
 	
 	/**
