@@ -13,6 +13,8 @@ interface Shape {
 	var bounds: Rect;
 	/** false if shape never change */
 	var isMutable: boolean;
+	/** true if this shape is an image. */
+	var isImage: boolean;
 	
 	/** draw shape on the context */
 	function draw(ctx: CanvasRenderingContext2D): void;

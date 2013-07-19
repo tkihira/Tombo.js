@@ -368,7 +368,7 @@ class DisplayNode {
 		}
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
-		if(color != Color.createRGB(255, 255, 255)) {
+		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
 			// TODO: caching
 			var width = this.shape.bounds.width;
 			var height = this.shape.bounds.height;
