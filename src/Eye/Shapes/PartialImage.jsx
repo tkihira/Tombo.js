@@ -18,7 +18,7 @@ mixin PartialImage {
 		this.height = height;
 	}
 
-	override function draw(ctx: CanvasRenderingContext2D): void {
+	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
 		ctx.drawImage(this._img, this.left, this.top, this.width, this.height, 0, 0, this.bounds.width, this.bounds.height);
 	}
 }
