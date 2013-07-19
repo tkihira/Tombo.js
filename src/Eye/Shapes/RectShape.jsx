@@ -24,7 +24,7 @@ class RectShape implements Shape {
 		this.bounds = new Rect(0, 0, width, height);
 	}
 	
-	override function draw(ctx: CanvasRenderingContext2D): void {
+	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
 		if(this._color) {
 			ctx.fillStyle = Color.stringify(this._color);
 			ctx.fillRect(0, 0, this.bounds.width, this.bounds.height);

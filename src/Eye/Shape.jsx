@@ -17,5 +17,5 @@ interface Shape {
 	var isImage: boolean;
 	
 	/** draw shape on the context */
-	function draw(ctx: CanvasRenderingContext2D): void;
+	function draw(ctx: CanvasRenderingContext2D, color: number): void;
 }
