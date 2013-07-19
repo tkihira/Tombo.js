@@ -19,6 +19,7 @@ import "../BasicTypes.jsx";
 class DisplayNode {
 	
 	var _clientRect: Rect;
+	var _renderRect: Rect;
 	var _compositeTransform: Transform;
 	var _compositeColor = -1; // -1 if not initialized
 	var _compositeAlpha = -1; // -1 if not initialized
@@ -54,6 +55,7 @@ class DisplayNode {
 	 * create new node with shape, position, scale and rotation
 	 */
 	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number, rotation: number) {
+		this._renderRect = null;
 		this.shape = shape;
 		this._transform = new Transform(left, top, scaleX, scaleY, rotation);
 		this._id = DisplayNode._counter++;
@@ -62,6 +64,7 @@ class DisplayNode {
 	 * create new node with shape, position and scale
 	 */
 	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number) {
+		this._renderRect = null;
 		this.shape = shape;
 		this._transform = new Transform(left, top, scaleX, scaleY);
 		this._id = DisplayNode._counter++;
@@ -70,6 +73,7 @@ class DisplayNode {
 	 * create new node with shape and position
 	 */
 	function constructor(shape: Shape, left: number, top: number) {
+		this._renderRect = null;
 		this.shape = shape;
 		this._transform = new Transform(left, top);
 		this._id = DisplayNode._counter++;
@@ -78,6 +82,7 @@ class DisplayNode {
 	 * create new node with shape
 	 */
 	function constructor(shape: Shape) {
+		this._renderRect = null;
 		this.shape = shape;
 		this._transform = new Transform(0, 0);
 		this._id = DisplayNode._counter++;
@@ -86,6 +91,7 @@ class DisplayNode {
 	 * create new node with shape and matrix
 	 */
 	function constructor(shape: Shape, matrix: number[]) {
+		this._renderRect = null;
 		this.shape = shape;
 		this._transform = new Transform(matrix);
 		this._id = DisplayNode._counter++;
@@ -105,6 +111,7 @@ class DisplayNode {
 			if(left != this._transform.left || top != this._transform.top) {
 				this._addDirtyRectangle();
 				this._transform.setPosition(left, top);
+				this._setDirtyRect(true);
 			}
 			return;
 		}
@@ -119,6 +126,7 @@ class DisplayNode {
 			if(scaleX != this._transform.scaleX || scaleY != this._transform.scaleY) {
 				this._addDirtyRectangle();
 				this._transform.setScale(scaleX, scaleY);
+				this._setDirtyRect(true);
 			}
 			return;
 		}
@@ -135,6 +143,7 @@ class DisplayNode {
 			if(rotation != this._transform.rotation) {
 				this._addDirtyRectangle();
 				this._transform.setRotation(rotation);
+				this._setDirtyRect(true);
 			}
 			return;
 		}
@@ -233,6 +242,14 @@ class DisplayNode {
 	 * set node color
 	 */
 	function setColor(value: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(this._color != value) {
+				this._addDirtyRectangle();
+				this._clearCompositeColor();
+				this._color = value;
+			}
+			return;
+		}
 		this._clearCompositeColor();
 		this._color = value;
 	}
@@ -250,6 +267,14 @@ class DisplayNode {
 	 * set node alpha value
 	 */
 	function setAlpha(value: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(this._alpha != value) {
+				this._addDirtyRectangle();
+				this._clearCompositeAlpha();
+				this._alpha = value;
+			}
+			return;
+		}
 		this._clearCompositeAlpha();
 		this._alpha = value;
 	}
@@ -353,9 +378,16 @@ class DisplayNode {
 	function _addDirtyRectangle(): void {
 		if(this._layer) {
 			this._clientRect = this.getCompositeTransform().transformRect(this.shape.bounds);
-			this._layer.addDirtyRectangle(this._clientRect);
-			this._dirty = true;
+			// TODO(hbono): Use Affine transformation to get an accurate
+			// bounding box.
+			var left = this._clientRect.left - this._anchorX;
+			var top =  this._clientRect.top - this._anchorY;
+			var width = this._clientRect.width;
+			var height =  this._clientRect.height;
+			this._renderRect = new Rect(left, top, width, height);
+			this._layer.addDirtyRectangle(this._renderRect);
 		}
+		this._dirty = true;
 	}
 	
 	function _setCompositeOperation(operation: string): void {
