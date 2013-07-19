@@ -13,6 +13,7 @@ import "../../BasicTypes.jsx";
 class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
+	var isImage = false;
 	
 	/** Whether to cache rendered text. */
 	static const USE_CACHE = false;
