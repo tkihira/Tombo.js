@@ -377,7 +377,7 @@ class DisplayNode {
 			canvas.width = width;
 			canvas.height = height;
 			var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-			this.shape.draw(cctx);
+			this.shape.draw(cctx, color);
 			
 			// create alpha canvas
 			var ac = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
@@ -456,7 +456,7 @@ class DisplayNode {
 			if(canvas) {
 				ctx.drawImage(canvas, 0, 0);
 			} else {
-				this.shape.draw(ctx);
+				this.shape.draw(ctx, color);
 			}
 			if(this._compositeOperation) {
 				ctx.globalCompositeOperation = oldOperation;
@@ -483,7 +483,7 @@ class DisplayNode {
 		if(canvas) {
 			ctx.drawImage(canvas, 0, 0);
 		} else {
-			this.shape.draw(ctx);
+			this.shape.draw(ctx, color);
 		}
 		
 		if(this._compositeOperation) {

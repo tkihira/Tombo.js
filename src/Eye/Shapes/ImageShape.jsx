@@ -34,7 +34,7 @@ class ImageShape implements Shape {
 		}
 	}
 	
-	override function draw(ctx: CanvasRenderingContext2D): void {
+	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
 		if(this._isFixedScale) {
 			ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
 		} else {

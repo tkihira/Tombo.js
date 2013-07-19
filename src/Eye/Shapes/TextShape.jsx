@@ -225,7 +225,11 @@ class TextShape implements Shape {
 		this._textDirty = false;
 	}
 	
-	override function draw(ctx: CanvasRenderingContext2D): void {
+	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
+		if(this._option.textColor != color) {
+			this._option.textColor = color;
+			this._textDirty = true;
+		}
 		if(TextShape.USE_CACHE) {
 			if(this._textDirty) {
 				this._drawText();
