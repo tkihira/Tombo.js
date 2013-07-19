@@ -13,6 +13,7 @@ import "../../BasicTypes.jsx";
 class RectShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
+	var isImage = false;
 	var _color = 0;
 	
 	/**

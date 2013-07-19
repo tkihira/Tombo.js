@@ -13,6 +13,7 @@ import "../../BasicTypes.jsx";
 class ImageShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
+	var isImage = true;
 	var _img: HTMLImageElement;
 	var _isFixedScale = false;
 	
