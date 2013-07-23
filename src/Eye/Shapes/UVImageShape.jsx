@@ -13,6 +13,7 @@ import "PartialImage.jsx";
  */
 class UVImageShape implements Shape, PartialImage {
 	var isMutable = false;
+	var isImage = true;
 	
 	/**
 	 * create Shape with Image Element
