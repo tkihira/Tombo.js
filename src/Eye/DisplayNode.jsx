@@ -377,14 +377,12 @@ class DisplayNode {
 	
 	function _addDirtyRectangle(): void {
 		if(this._layer) {
-			this._clientRect = this.getCompositeTransform().transformRect(this.shape.bounds);
-			// TODO(hbono): Use Affine transformation to get an accurate
-			// bounding box.
-			var left = this._clientRect.left - this._anchorX;
-			var top =  this._clientRect.top - this._anchorY;
-			var width = this._clientRect.width;
-			var height =  this._clientRect.height;
-			this._renderRect = new Rect(left, top, width, height);
+			var transform = this.getCompositeTransform();
+			this._clientRect = transform.transformRect(this.shape.bounds);
+			if (this._anchorX != 0 || this._anchorY != 0) {
+				transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
+			}
+			this._renderRect = transform.transformRect(this.shape.bounds);
 			this._layer.addDirtyRectangle(this._renderRect);
 		}
 		this._dirty = true;
