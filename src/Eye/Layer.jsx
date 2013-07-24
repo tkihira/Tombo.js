@@ -245,6 +245,10 @@ class Layer {
 			}
 			context.clip();
 			context.clearRect(0, 0, this.width, this.height);
+			if (this._dirtyOrderDrawBins) {
+				this._orderDrawBins.sort((a, b) -> { return a - b; });
+				this._dirtyOrderDrawBins = false;
+			}
 			for(var i = 0; i < this._orderDrawBins.length; i++) {
 				var binIndex = this._orderDrawBins[i] as string;
 				var bin = this._drawBins[binIndex];
@@ -262,6 +266,10 @@ class Layer {
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
 		
+		if (this._dirtyOrderDrawBins) {
+			this._orderDrawBins.sort((a, b) -> { return a - b; });
+			this._dirtyOrderDrawBins = false;
+		}
 		for(var i = 0; i < this._orderDrawBins.length; i++) {
 			var binIndex = this._orderDrawBins[i] as string;
 			var bin = this._drawBins[binIndex];
