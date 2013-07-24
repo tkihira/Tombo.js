@@ -96,7 +96,6 @@ class Layer {
 	function _addNode(node: DisplayNode): void {
 		this._addNodeToBin(node);
 	}
-
 	function _getDrawBin(drawBin: int): Array.<DisplayNode> {
 		var key = drawBin as string;
 		var bin = this._drawBins[key];
