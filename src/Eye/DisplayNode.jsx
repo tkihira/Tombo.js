@@ -465,7 +465,7 @@ class DisplayNode {
 			// with the dirty rectangles and this code skips checking whether a
 			// dirty object has an intersection with the dirty rectangles, which
 			// is obviously true.
-			if(!this._dirty && !this._layer.hasIntersection(this._clientRect)) {
+			if(!this._dirty && !this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
 			this._dirty = false;
