@@ -41,7 +41,7 @@ class Layer {
 	var _touchableNodeList = []: DisplayNode[];
 	
 	var _dirtyRegions : Array.<Array.<number>>;
-	static const USE_NEW_RENDERER = false;
+	static const USE_NEW_RENDERER = true;
 	
 	var _drawBins = {}: Map.<Array.<DisplayNode>>;
 	var _orderDrawBins = []: Array.<int>;
