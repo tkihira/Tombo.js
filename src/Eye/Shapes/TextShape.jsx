@@ -16,7 +16,7 @@ class TextShape implements Shape {
 	var isImage = false;
 	
 	/** Whether to cache rendered text. */
-	static const USE_CACHE = false;
+	static const USE_CACHE = true;
 
 	/** TextMargin: Left */
 	static const LEFT = 0;
