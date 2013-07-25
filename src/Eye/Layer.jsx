@@ -110,8 +110,8 @@ class Layer {
 		this._dirtyDrawBins[key] = false;
 		var length = this._orderDrawBins.length;
 		if (length == 0) {
-				this._orderDrawBins.push(drawBin);
-				return bin;
+			this._orderDrawBins.push(drawBin);
+			return bin;
 		}
 		// Add this bin at the beginning of this bin list or its end
 		// without marking the list as dirty if we can add the bin
@@ -119,7 +119,7 @@ class Layer {
 		if (!this._dirtyOrderDrawBins) {
 			var lastDrawBin = this._orderDrawBins[--length];
 			if (lastDrawBin <= drawBin) {
-			this._orderDrawBins.push(drawBin);
+				this._orderDrawBins.push(drawBin);
 				return bin;
 			}
 			var firstDrawBin = this._orderDrawBins[0];
