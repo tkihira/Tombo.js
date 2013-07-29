@@ -56,7 +56,7 @@ class Tetragon extends Rect {
 		this.left = minX;
 		this.top = minY;
 		this.width = maxX - minX;
-		this.height = maxY - minX;
+		this.height = maxY - minY;
 	}
 	override function isInside(x0: number, y0: number): boolean {
 		// Skip retriving intersections when the given point is not in the
