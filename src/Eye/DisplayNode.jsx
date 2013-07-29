@@ -377,6 +377,9 @@ class DisplayNode {
 	
 	function _addDirtyRectangle(): void {
 		if(this._layer) {
+			if(this._renderRect) {
+				this._layer.addDirtyRectangle(this._renderRect);
+			}
 			var transform = this.getCompositeTransform();
 			this._clientRect = transform.transformRect(this.shape.bounds);
 			if (this._anchorX != 0 || this._anchorY != 0) {
