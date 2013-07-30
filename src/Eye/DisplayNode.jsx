@@ -109,9 +109,9 @@ class DisplayNode {
 	function setPosition(left: number, top: number): void {
 		if(Layer.USE_NEW_RENDERER) {
 			if(left != this._transform.left || top != this._transform.top) {
-				this._addDirtyRectangle();
 				this._transform.setPosition(left, top);
 				this._setDirtyRect(true);
+				this._addDirtyRectangle();
 			}
 			return;
 		}
@@ -124,9 +124,9 @@ class DisplayNode {
 	function setScale(scaleX: number, scaleY: number): void {
 		if(Layer.USE_NEW_RENDERER) {
 			if(scaleX != this._transform.scaleX || scaleY != this._transform.scaleY) {
-				this._addDirtyRectangle();
 				this._transform.setScale(scaleX, scaleY);
 				this._setDirtyRect(true);
+				this._addDirtyRectangle();
 			}
 			return;
 		}
@@ -141,9 +141,9 @@ class DisplayNode {
 	function setRotation(rotation: number): void {
 		if(Layer.USE_NEW_RENDERER) {
 			if(rotation != this._transform.rotation) {
-				this._addDirtyRectangle();
 				this._transform.setRotation(rotation);
 				this._setDirtyRect(true);
+				this._addDirtyRectangle();
 			}
 			return;
 		}
