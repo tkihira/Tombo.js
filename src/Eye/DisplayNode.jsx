@@ -375,17 +375,20 @@ class DisplayNode {
 		this._setDirtyRect(false);
 	}
 	
+	function _calcRenderRect(): void {
+		var transform = this.getCompositeTransform();
+		if(this._anchorX != 0 || this._anchorY != 0) {
+			transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
+		}
+		this._renderRect = transform.transformRect(this.shape.bounds);
+	}
+
 	function _addDirtyRectangle(): void {
 		if(this._layer) {
 			if(this._renderRect) {
 				this._layer.addDirtyRectangle(this._renderRect);
 			}
-			var transform = this.getCompositeTransform();
-			this._clientRect = transform.transformRect(this.shape.bounds);
-			if (this._anchorX != 0 || this._anchorY != 0) {
-				transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
-			}
-			this._renderRect = transform.transformRect(this.shape.bounds);
+			this._calcRenderRect();
 			this._layer.addDirtyRectangle(this._renderRect);
 		}
 		this._dirty = true;
@@ -468,7 +471,9 @@ class DisplayNode {
 			// with the dirty rectangles and this code skips checking whether a
 			// dirty object has an intersection with the dirty rectangles, which
 			// is obviously true.
-			if(!this._dirty && !this._layer.hasIntersection(this._renderRect)) {
+			if(this._dirty) {
+				this._calcRenderRect();
+			} else if(!this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
 			this._dirty = false;
