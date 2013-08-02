@@ -101,6 +101,13 @@ class DisplayNode {
 	 * set visible of the node
 	 */
 	function setVisible(enable: boolean): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(enable != this._visible) {
+				this._visible = enable;
+				this._addDirtyRectangle();
+			}
+			return;
+		}
 		this._visible = enable;
 	}
 	/**
@@ -287,6 +294,14 @@ class DisplayNode {
 	 * set scale of the node
 	 */
 	function setAnchor(anchorX: number, anchorY: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(this._anchorX != anchorX || this._anchorY != anchorY) {
+				this._anchorX = anchorX;
+				this._anchorY = anchorY;
+				this._addDirtyRectangle();
+			}
+			return;
+		}
 		this._anchorX = anchorX;
 		this._anchorY = anchorY;
 	}
