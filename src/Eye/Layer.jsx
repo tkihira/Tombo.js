@@ -217,6 +217,7 @@ class Layer {
 		}
 		
 		//this.root._render(this._ctx);
+		this._dirtyRegions = [] : Array.<Array.<number>>;
 	}
 
 	function addDirtyRectangle(rectangle: Rect) : void {
@@ -232,8 +233,15 @@ class Layer {
 		minY = Math.max(minY, 0);
 		maxX = Math.min(maxX, this.width);
 		maxY = Math.min(maxY, this.height);
+		if (this._dirtyRegions.length > 0) {
+			var region = this._dirtyRegions[0];
+			minX = Math.min(region[0], minX);
+			minY = Math.min(region[1], minY);
+			maxX = Math.max(region[2], maxX);
+			maxY = Math.max(region[3], maxY);
+		}
 		if (minX < maxX && minY < maxY) {
-			this._dirtyRegions.push([minX, minY, maxX, maxY]);
+			this._dirtyRegions = [[minX, minY, maxX, maxY]];
 		}
 	}
 
