@@ -101,6 +101,13 @@ class DisplayNode {
 	 * set visible of the node
 	 */
 	function setVisible(enable: boolean): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(enable != this._visible) {
+				this._visible = enable;
+				this._addDirtyRectangle();
+			}
+			return;
+		}
 		this._visible = enable;
 	}
 	/**
@@ -109,9 +116,9 @@ class DisplayNode {
 	function setPosition(left: number, top: number): void {
 		if(Layer.USE_NEW_RENDERER) {
 			if(left != this._transform.left || top != this._transform.top) {
-				this._addDirtyRectangle();
 				this._transform.setPosition(left, top);
 				this._setDirtyRect(true);
+				this._addDirtyRectangle();
 			}
 			return;
 		}
@@ -124,9 +131,9 @@ class DisplayNode {
 	function setScale(scaleX: number, scaleY: number): void {
 		if(Layer.USE_NEW_RENDERER) {
 			if(scaleX != this._transform.scaleX || scaleY != this._transform.scaleY) {
-				this._addDirtyRectangle();
 				this._transform.setScale(scaleX, scaleY);
 				this._setDirtyRect(true);
+				this._addDirtyRectangle();
 			}
 			return;
 		}
@@ -141,9 +148,9 @@ class DisplayNode {
 	function setRotation(rotation: number): void {
 		if(Layer.USE_NEW_RENDERER) {
 			if(rotation != this._transform.rotation) {
-				this._addDirtyRectangle();
 				this._transform.setRotation(rotation);
 				this._setDirtyRect(true);
+				this._addDirtyRectangle();
 			}
 			return;
 		}
@@ -287,6 +294,14 @@ class DisplayNode {
 	 * set scale of the node
 	 */
 	function setAnchor(anchorX: number, anchorY: number): void {
+		if(Layer.USE_NEW_RENDERER) {
+			if(this._anchorX != anchorX || this._anchorY != anchorY) {
+				this._anchorX = anchorX;
+				this._anchorY = anchorY;
+				this._addDirtyRectangle();
+			}
+			return;
+		}
 		this._anchorX = anchorX;
 		this._anchorY = anchorY;
 	}
@@ -375,17 +390,20 @@ class DisplayNode {
 		this._setDirtyRect(false);
 	}
 	
+	function _calcRenderRect(): void {
+		var transform = this.getCompositeTransform();
+		if(this._anchorX != 0 || this._anchorY != 0) {
+			transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
+		}
+		this._renderRect = transform.transformRect(this.shape.bounds);
+	}
+
 	function _addDirtyRectangle(): void {
 		if(this._layer) {
 			if(this._renderRect) {
 				this._layer.addDirtyRectangle(this._renderRect);
 			}
-			var transform = this.getCompositeTransform();
-			this._clientRect = transform.transformRect(this.shape.bounds);
-			if (this._anchorX != 0 || this._anchorY != 0) {
-				transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
-			}
-			this._renderRect = transform.transformRect(this.shape.bounds);
+			this._calcRenderRect();
 			this._layer.addDirtyRectangle(this._renderRect);
 		}
 		this._dirty = true;
@@ -468,7 +486,9 @@ class DisplayNode {
 			// with the dirty rectangles and this code skips checking whether a
 			// dirty object has an intersection with the dirty rectangles, which
 			// is obviously true.
-			if(!this._dirty && !this._layer.hasIntersection(this._renderRect)) {
+			if(this._dirty) {
+				this._calcRenderRect();
+			} else if(!this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
 			this._dirty = false;
