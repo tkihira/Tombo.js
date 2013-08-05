@@ -153,7 +153,7 @@ class Layer {
 				return;
 			}
 			var firstOrder = firstOrder = bin[0]._drawOrder;
-			var firstId = firstId = bin[0]._id;
+			var firstId = bin[0]._id;
 			if(node._drawOrder < firstOrder || node._drawOrder == firstOrder && node._id <= firstId) {
 				bin.unshift(node);
 				return;
