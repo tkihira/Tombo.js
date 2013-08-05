@@ -46,6 +46,7 @@ class Layer {
 	var _drawBins = {}: Map.<Array.<DisplayNode>>;
 	var _orderDrawBins = []: Array.<int>;
 	var _dirtyDrawBins = {}: Map.<boolean>;
+	var _dirtyOrderDrawBins = false;
 	
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
@@ -95,17 +96,71 @@ class Layer {
 	function _addNode(node: DisplayNode): void {
 		this._addNodeToBin(node);
 	}
+	function _getDrawBin(drawBin: int): Array.<DisplayNode> {
+		var key = drawBin as string;
+		var bin = this._drawBins[key];
+		if(bin) {
+			return bin;
+		}
+		// Create a new bin and insert it to the bin list, in which bins
+		// are sorted in the ascending order. (Bins are never deleted
+		// even when they become empty.)
+		bin = []: Array.<DisplayNode>;
+		this._drawBins[key] = bin;
+		this._dirtyDrawBins[key] = false;
+		var length = this._orderDrawBins.length;
+		if(length == 0) {
+			this._orderDrawBins.push(drawBin);
+			return bin;
+		}
+		// Add this bin at the beginning of this bin list or its end
+		// without marking the list as dirty if we can add the bin
+		// without sorting the list.
+		if(!this._dirtyOrderDrawBins) {
+			var lastDrawBin = this._orderDrawBins[--length];
+			if (lastDrawBin <= drawBin) {
+				this._orderDrawBins.push(drawBin);
+				return bin;
+			}
+			var firstDrawBin = this._orderDrawBins[0];
+			if (drawBin <= firstDrawBin) {
+				this._orderDrawBins.unshift(drawBin);
+				return bin;
+			}
+		}
+		this._orderDrawBins.push(drawBin);
+		this._dirtyOrderDrawBins = true;
+		return bin;
+	}
 	function _addNodeToBin(node: DisplayNode): void {
-		var index = node._drawBin as string;
-		var bin = this._drawBins[index];
-		if(!bin) {
-			// create new bin(bins are never deleted even if it become empty)
-			bin = this._drawBins[index] = []: Array.<DisplayNode>;
-			this._orderDrawBins.push(node._drawBin);
-			this._orderDrawBins.sort((a, b) -> { return a - b; });
+		// Add this node to a draw bin associated with the node and mark
+		// the bin as dirty if it needs to be sorted. (To avoid sorting
+		// nodes too often, this function adds the node to the bin
+		// without marking it as dirty if it can add the node at the
+		//  beginning of the bin or its end.)
+		var bin = this._getDrawBin(node._drawBin);
+		var length = bin.length;
+		if(length == 0) {
+			bin.push(node);
+			return;
+		}
+		if(!this._dirtyDrawBins[node._drawBin as string]) {
+			--length;
+			var lastOrder = bin[length]._drawOrder;
+			var lastId = bin[length]._id;
+			if(lastOrder < node._drawOrder || lastOrder == node._drawOrder && lastId <= node._id) {
+				bin.push(node);
+				return;
+			}
+			var firstOrder = firstOrder = bin[0]._drawOrder;
+			var firstId = firstId = bin[0]._id;
+			if(node._drawOrder < firstOrder || node._drawOrder == firstOrder && node._id <= firstId) {
+				bin.unshift(node);
+				return;
+			}
 		}
 		bin.push(node);
-		this._dirtyDrawBins[index] = true;
+		this._dirtyDrawBin(node._drawBin);
 	}
 	function _removeNode(node: DisplayNode): void {
 		this._removeNodeFromBin(node, node._drawBin as string);
@@ -189,11 +244,16 @@ class Layer {
 			}
 			context.clip();
 			context.clearRect(0, 0, this.width, this.height);
+			if (this._dirtyOrderDrawBins) {
+				this._orderDrawBins.sort((a, b) -> { return a - b; });
+				this._dirtyOrderDrawBins = false;
+			}
 			for(var i = 0; i < this._orderDrawBins.length; i++) {
 				var binIndex = this._orderDrawBins[i] as string;
 				var bin = this._drawBins[binIndex];
 				if(this._dirtyDrawBins[binIndex]) {
 					bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
+					this._dirtyDrawBins[binIndex] = false;
 				}
 				for(var j = 0; j < bin.length; j++) {
 					bin[j]._render(this._ctx);
@@ -205,11 +265,16 @@ class Layer {
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
 		
+		if (this._dirtyOrderDrawBins) {
+			this._orderDrawBins.sort((a, b) -> { return a - b; });
+			this._dirtyOrderDrawBins = false;
+		}
 		for(var i = 0; i < this._orderDrawBins.length; i++) {
 			var binIndex = this._orderDrawBins[i] as string;
 			var bin = this._drawBins[binIndex];
 			if(this._dirtyDrawBins[binIndex]) {
 				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
+				this._dirtyDrawBins[binIndex] = false;
 			}
 			for(var j = 0; j < bin.length; j++) {
 				bin[j]._render(this._ctx);
