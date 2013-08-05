@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "js.jsx";
 
 import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
@@ -47,6 +48,9 @@ class Layer {
 	var _orderDrawBins = []: Array.<int>;
 	var _dirtyDrawBins = {}: Map.<boolean>;
 	var _dirtyOrderDrawBins = false;
+
+	var _alpha: number;
+	var _compositeOperation: string;
 	
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
@@ -72,6 +76,8 @@ class Layer {
 			this._modifyCanvas();
 		}
 		this._dirtyRegions = [] : Array.<Array.<number>>;
+		this._alpha = 1;
+		this._compositeOperation = "source-over";
 	}
 	
 	function _modifyCanvas(): void {
@@ -331,5 +337,28 @@ class Layer {
 			}
 		}
 		return false;
+	}
+
+	function setAlpha(alpha: number): void {
+		if(this._alpha != alpha) {
+			this._alpha = alpha;
+			this._ctx.globalAlpha = alpha;
+		}
+	}
+
+	function setCompositeOperation(compositeOperation: string): void {
+		if(!compositeOperation) {
+			compositeOperation = "source-over";
+		}
+		if(this._compositeOperation != compositeOperation) {
+			this._compositeOperation = compositeOperation;
+			this._ctx.globalCompositeOperation = compositeOperation;
+		}
+	}
+
+	function setTransform(transform: Transform): void {
+		// TODO(hbono): Is it faster to cache the current transform?
+		var matrix = transform.getMatrix();
+		js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 	}
 }

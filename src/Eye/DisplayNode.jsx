@@ -51,6 +51,10 @@ class DisplayNode {
 
 	var _compositeOperation = "";
 
+	var _oldOperation = "";
+	var _renderTransform: Transform;
+	static const USE_RENDER_TRANSFORM = false;
+
 	/**
 	 * create new node with shape, position, scale and rotation
 	 */
@@ -59,6 +63,7 @@ class DisplayNode {
 		this.shape = shape;
 		this._transform = new Transform(left, top, scaleX, scaleY, rotation);
 		this._id = DisplayNode._counter++;
+		this._renderTransform = null;
 	}
 	/**
 	 * create new node with shape, position and scale
@@ -68,6 +73,7 @@ class DisplayNode {
 		this.shape = shape;
 		this._transform = new Transform(left, top, scaleX, scaleY);
 		this._id = DisplayNode._counter++;
+		this._renderTransform = null;
 	}
 	/**
 	 * create new node with shape and position
@@ -77,6 +83,7 @@ class DisplayNode {
 		this.shape = shape;
 		this._transform = new Transform(left, top);
 		this._id = DisplayNode._counter++;
+		this._renderTransform = null;
 	}
 	/**
 	 * create new node with shape
@@ -86,6 +93,7 @@ class DisplayNode {
 		this.shape = shape;
 		this._transform = new Transform(0, 0);
 		this._id = DisplayNode._counter++;
+		this._renderTransform = null;
 	}
 	/**
 	 * create new node with shape and matrix
@@ -95,6 +103,7 @@ class DisplayNode {
 		this.shape = shape;
 		this._transform = new Transform(matrix);
 		this._id = DisplayNode._counter++;
+		this._renderTransform = null;
 	}
 	
 	/**
@@ -119,6 +128,7 @@ class DisplayNode {
 				this._transform.setPosition(left, top);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
+				this._renderTransform = null;
 			}
 			return;
 		}
@@ -134,6 +144,7 @@ class DisplayNode {
 				this._transform.setScale(scaleX, scaleY);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
+				this._renderTransform = null;
 			}
 			return;
 		}
@@ -151,6 +162,7 @@ class DisplayNode {
 				this._transform.setRotation(rotation);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
+				this._renderTransform = null;
 			}
 			return;
 		}
@@ -166,6 +178,7 @@ class DisplayNode {
 	function setMatrix(matrix: number[]): void {
 		this._transform.setMatrix(matrix);
 		this._setDirtyRect(true);
+		this._renderTransform = null;
 	}
 	
 	function _setLayer(layer: Layer): void {
@@ -197,6 +210,7 @@ class DisplayNode {
 	function _setParent(parent: DisplayGroup): void {
 		this.parent = parent;
 		this._setDirtyRect(true);
+		this._renderTransform = null;
 	}
 	function _setDirtyRect(value: boolean): void {
 		this._dirtyRect = value;
@@ -299,6 +313,7 @@ class DisplayNode {
 				this._anchorX = anchorX;
 				this._anchorY = anchorY;
 				this._addDirtyRectangle();
+				this._renderTransform = null;
 			}
 			return;
 		}
@@ -390,12 +405,18 @@ class DisplayNode {
 		this._setDirtyRect(false);
 	}
 	
-	function _calcRenderRect(): void {
-		var transform = this.getCompositeTransform();
-		if(this._anchorX != 0 || this._anchorY != 0) {
-			transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
+	function _getRenderTransform(): Transform {
+		if(!this._renderTransform) {
+			var transform = this._calcCompositeTransform();
+			if(this._anchorX != 0 || this._anchorY != 0) {
+				transform = Transform.mul(transform, new Transform(-this._anchorX, -this._anchorY));
+			}
+			this._renderTransform = transform;
 		}
-		this._renderRect = transform.transformRect(this.shape.bounds);
+		return this._renderTransform;
+	}
+	function _calcRenderRect(): void {
+		this._renderRect = this._getRenderTransform().transformRect(this.shape.bounds);
 	}
 
 	function _addDirtyRectangle(): void {
@@ -411,6 +432,36 @@ class DisplayNode {
 	
 	function _setCompositeOperation(operation: string): void {
 		this._compositeOperation = operation;
+	}
+
+	function _beginPaint(context: CanvasRenderingContext2D): void {
+		if(DisplayNode.USE_RENDER_TRANSFORM) {
+			this._layer.setCompositeOperation(this._compositeOperation);
+			this._layer.setAlpha(this._getCompositeAlpha());
+			this._layer.setTransform(this._getRenderTransform());
+			return;
+		}
+		context.save();
+		this._oldOperation = this._compositeOperation? context.globalCompositeOperation: "";
+		if(this._compositeOperation) {
+			context.globalCompositeOperation = this._compositeOperation;
+		}
+		var matrix = this.getCompositeTransform().getMatrix();
+		js.invoke(context, "transform", matrix as __noconvert__ variant[]);
+		if(this._anchorX || this._anchorY) {
+			context.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
+		}
+		context.globalAlpha = this._getCompositeAlpha();
+	}
+
+	function _endPaint(context: CanvasRenderingContext2D): void {
+		if(DisplayNode.USE_RENDER_TRANSFORM) {
+			return;
+		}
+		if(this._compositeOperation) {
+			context.globalCompositeOperation = this._oldOperation;
+		}
+		context.restore();
 	}
 
 	function _render(ctx: CanvasRenderingContext2D): void {
@@ -492,29 +543,13 @@ class DisplayNode {
 				return;
 			}
 			this._dirty = false;
-			ctx.save();
-			var oldOperation = this._compositeOperation? ctx.globalCompositeOperation: "";
-			if(this._compositeOperation) {
-				ctx.globalCompositeOperation = this._compositeOperation;
-			}
-
-			ctx.globalAlpha = this._getCompositeAlpha();
-			
-			var matrix = this.getCompositeTransform().getMatrix();
-			js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
-			if(this._anchorX || this._anchorY) {
-				ctx.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
-			}
-			
+			this._beginPaint(ctx);
 			if(canvas) {
 				ctx.drawImage(canvas, 0, 0);
 			} else {
 				this.shape.draw(ctx, color);
 			}
-			if(this._compositeOperation) {
-				ctx.globalCompositeOperation = oldOperation;
-			}
-			ctx.restore();
+			this._endPaint(ctx);
 			return;
 		}
 		ctx.save();
