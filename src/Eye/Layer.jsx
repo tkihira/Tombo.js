@@ -99,7 +99,7 @@ class Layer {
 	function _getDrawBin(drawBin: int): Array.<DisplayNode> {
 		var key = drawBin as string;
 		var bin = this._drawBins[key];
-		if (bin) {
+		if(bin) {
 			return bin;
 		}
 		// Create a new bin and insert it to the bin list, in which bins
@@ -109,14 +109,14 @@ class Layer {
 		this._drawBins[key] = bin;
 		this._dirtyDrawBins[key] = false;
 		var length = this._orderDrawBins.length;
-		if (length == 0) {
+		if(length == 0) {
 			this._orderDrawBins.push(drawBin);
 			return bin;
 		}
 		// Add this bin at the beginning of this bin list or its end
 		// without marking the list as dirty if we can add the bin
 		// without sorting the list.
-		if (!this._dirtyOrderDrawBins) {
+		if(!this._dirtyOrderDrawBins) {
 			var lastDrawBin = this._orderDrawBins[--length];
 			if (lastDrawBin <= drawBin) {
 				this._orderDrawBins.push(drawBin);
@@ -140,21 +140,21 @@ class Layer {
 		//  beginning of the bin or its end.)
 		var bin = this._getDrawBin(node._drawBin);
 		var length = bin.length;
-		if (length == 0) {
+		if(length == 0) {
 			bin.push(node);
 			return;
 		}
-		if (!this._dirtyDrawBins[node._drawBin as string]) {
+		if(!this._dirtyDrawBins[node._drawBin as string]) {
 			--length;
 			var lastOrder = bin[length]._drawOrder;
 			var lastId = bin[length]._id;
-			if (lastOrder < node._drawOrder || lastOrder == node._drawOrder && lastId <= node._id) {
+			if(lastOrder < node._drawOrder || lastOrder == node._drawOrder && lastId <= node._id) {
 				bin.push(node);
 				return;
 			}
 			var firstOrder = firstOrder = bin[0]._drawOrder;
 			var firstId = firstId = bin[0]._id;
-			if (node._drawOrder < firstOrder || node._drawOrder == firstOrder && node._id <= firstId) {
+			if(node._drawOrder < firstOrder || node._drawOrder == firstOrder && node._id <= firstId) {
 				bin.unshift(node);
 				return;
 			}
