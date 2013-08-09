@@ -128,7 +128,6 @@ class DisplayNode {
 				this._transform.setPosition(left, top);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
-				this._renderTransform = null;
 			}
 			return;
 		}
@@ -144,7 +143,6 @@ class DisplayNode {
 				this._transform.setScale(scaleX, scaleY);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
-				this._renderTransform = null;
 			}
 			return;
 		}
@@ -162,7 +160,6 @@ class DisplayNode {
 				this._transform.setRotation(rotation);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
-				this._renderTransform = null;
 			}
 			return;
 		}
@@ -178,7 +175,7 @@ class DisplayNode {
 	function setMatrix(matrix: number[]): void {
 		this._transform.setMatrix(matrix);
 		this._setDirtyRect(true);
-		this._renderTransform = null;
+		this._addDirtyRectangle();
 	}
 	
 	function _setLayer(layer: Layer): void {
@@ -210,7 +207,7 @@ class DisplayNode {
 	function _setParent(parent: DisplayGroup): void {
 		this.parent = parent;
 		this._setDirtyRect(true);
-		this._renderTransform = null;
+		this._addDirtyRectangle();
 	}
 	function _setDirtyRect(value: boolean): void {
 		this._dirtyRect = value;
@@ -313,7 +310,6 @@ class DisplayNode {
 				this._anchorX = anchorX;
 				this._anchorY = anchorY;
 				this._addDirtyRectangle();
-				this._renderTransform = null;
 			}
 			return;
 		}
@@ -416,6 +412,7 @@ class DisplayNode {
 		return this._renderTransform;
 	}
 	function _calcRenderRect(): void {
+		this._renderTransform = null;
 		this._renderRect = this._getRenderTransform().transformRect(this.shape.bounds);
 	}
 
