@@ -103,8 +103,8 @@ class DisplayGroup extends DisplayNode {
 	 */
 	override function setDrawBin(value: int): void {
 		for(var i = 0; i < this._children.length; i++) {
-            this._children[i].setDrawBin(value);
-        }
+			this._children[i].setDrawBin(value);
+		}
 	}
 	/**
 	 * set the secondary z-order
@@ -112,9 +112,9 @@ class DisplayGroup extends DisplayNode {
 	 */
 	override function setDrawOrder(value: number): void {
 		for(var i = 0; i < this._children.length; i++) {
-            this._children[i].setDrawOrder(value);
-        }
-    }
+			this._children[i].setDrawOrder(value);
+		}
+	}
 
 	override function _setLayer(layer: Layer): void {
 		super._setLayer(layer);
