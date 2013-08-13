@@ -97,7 +97,25 @@ class DisplayGroup extends DisplayNode {
 			}
 		}
 	}
-	
+	/**
+	 * set the primary z-order
+	 * @param value the primary z-order value. the smaller, the more behind
+	 */
+	override function setDrawBin(value: int): void {
+		for(var i = 0; i < this._children.length; i++) {
+            this._children[i].setDrawBin(value);
+        }
+	}
+	/**
+	 * set the secondary z-order
+	 * @param value the secondary z-order value. the smaller, the more behind
+	 */
+	override function setDrawOrder(value: number): void {
+		for(var i = 0; i < this._children.length; i++) {
+            this._children[i].setDrawOrder(value);
+        }
+    }
+
 	override function _setLayer(layer: Layer): void {
 		super._setLayer(layer);
 		for(var i = 0; i < this._children.length; i++) {
