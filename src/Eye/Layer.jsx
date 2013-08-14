@@ -246,10 +246,10 @@ class Layer {
 				var y  = region[1];
 				var width = region[2] - x;
 				var height = region[3] - y;
+				context.clearRect(x, y, width, height);
 				context.rect(x, y, width, height);
 			}
 			context.clip();
-			context.clearRect(0, 0, this.width, this.height);
 			if (this._dirtyOrderDrawBins) {
 				this._orderDrawBins.sort((a, b) -> { return a - b; });
 				this._dirtyOrderDrawBins = false;
