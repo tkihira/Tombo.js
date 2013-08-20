@@ -26,6 +26,7 @@ class Eye {
 	var _ctx: CanvasRenderingContext2D;
 	
 	var _layerList: Array.<Layer>;
+	static var DEBUG = false;
 	
 	/**
 	 * create instance with prepared canvas
@@ -161,11 +162,13 @@ class Eye {
 		// todo: render only if any layer is dirty
 		
 		// todo: check background-color
-		this._ctx.clearRect(0, 0, this._width, this._height);
+		this._ctx.clearRect(0, 0, this._width, this._height - 1);
 		
 		// for debug
-		this._ctx.fillStyle = "#505050";
-		this._ctx.fillRect(0, 0, this._width, this._height);
+		if(Eye.DEBUG) {
+			this._ctx.fillStyle = "#505050";
+			this._ctx.fillRect(0, 0, this._width, this._height);
+		}
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
