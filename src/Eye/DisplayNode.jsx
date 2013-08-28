@@ -221,10 +221,16 @@ class DisplayNode {
 	 * @param value the primary z-order value. the smaller, the more behind
 	 */
 	function setDrawBin(value: int): void {
+		if(this._drawBin == value) {
+			return;
+		}
 		var oldBin = this._drawBin;
 		this._drawBin = value;
 		if(this._layer) {
 			this._layer._moveDrawBin(this, oldBin);
+		}
+		if(Layer.USE_NEW_RENDERER) {
+			this._addDirtyRectangle();
 		}
 	}
 	/**
@@ -238,6 +244,9 @@ class DisplayNode {
 	 * @param value the secondary z-order value. the smaller, the more behind
 	 */
 	function setDrawOrder(value: number): void {
+		if(this._drawOrder == value) {
+			return;
+		}
 		this._drawOrder = value;
 		if(this._layer) {
 			this._layer._dirtyDrawBin(this._drawBin);
