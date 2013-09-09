@@ -5,6 +5,7 @@ import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 import "DisplayNode.jsx";
 import "Layer.jsx";
+import "Renderer.jsx";
 
 /**
  * DisplayGroup class
@@ -167,5 +168,7 @@ class DisplayGroup extends DisplayNode {
 		}
 		
 		ctx.restore();*/
+	}
+	override function paint(renderer: RenderLayer, timestamp: number): void {
 	}
 }

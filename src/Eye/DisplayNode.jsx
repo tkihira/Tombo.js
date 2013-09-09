@@ -4,6 +4,7 @@ import "js.jsx";
 import "Shape.jsx";
 import "Layer.jsx";
 import "DisplayGroup.jsx";
+import "Renderer.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -53,7 +54,7 @@ class DisplayNode {
 
 	var _oldOperation = "";
 	var _renderTransform: Transform;
-	static const USE_RENDER_TRANSFORM = false;
+	static const USE_RENDER_TRANSFORM = true;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -584,5 +585,22 @@ class DisplayNode {
 			ctx.globalCompositeOperation = oldOperation;
 		}
 		ctx.restore();
+	}
+
+	function paint(renderer: RenderLayer, timestamp: number): void {
+		if(!this._visible) {
+			return;
+		}
+		var color = this._getCompositeColor();
+		if(this._dirty) {
+			this._calcRenderRect();
+		} else if(!this._layer.hasIntersection(this._renderRect)) {
+			return;
+		}
+		this._dirty = false;
+		renderer.setCompositeOperation(this._compositeOperation);
+		renderer.setAlpha(this._getCompositeAlpha());
+		renderer.setTransform(this._getRenderTransform());
+		this.shape.paint(renderer, color, timestamp);
 	}
 }

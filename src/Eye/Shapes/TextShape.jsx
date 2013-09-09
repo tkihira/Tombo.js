@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "../Renderer.jsx";
 import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
@@ -319,5 +320,8 @@ class TextShape implements Shape {
 		}
 		
 		ctx.restore();
+	}
+
+	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
 	}
 }

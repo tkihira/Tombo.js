@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "../Renderer.jsx";
 import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
@@ -28,6 +29,12 @@ class RectShape implements Shape {
 		if(this._color) {
 			ctx.fillStyle = Color.stringify(this._color);
 			ctx.fillRect(0, 0, this.bounds.width, this.bounds.height);
+		}
+	}
+
+	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
+		if(this._color) {
+			renderer.fillRect(0, 0, this.bounds.width, this.bounds.height, this._color);
 		}
 	}
 }

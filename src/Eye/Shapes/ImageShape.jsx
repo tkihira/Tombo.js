@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "../Renderer.jsx";
 import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
@@ -39,6 +40,14 @@ class ImageShape implements Shape {
 			ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
 		} else {
 			ctx.drawImage(this._img, 0, 0);
+		}
+	}
+
+	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
+		if(this._isFixedScale) {
+			renderer.drawPartialImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
+		} else {
+			renderer.drawImage(this._img, 0, 0, this._img.width, this._img.height);
 		}
 	}
 }
