@@ -7,17 +7,15 @@ import "../Tombo.jsx";
 // An interface that provides functions used by DisplayNode objects to render
 // their shapes.
 interface RenderLayer {
-	function save(): void;
-	function restore(): void;
-	function beginPath(): void;
-	function rect(x: number, y: number, width: number, height: number): void;
 	function clearRect(x: number, y: number, width: number, height: number): void;
-	function clip(): void;
+	function clipRect(x: number, y: number, width: number, height: number): void;
 	function fillRect(x: number, y: number, width: number, height: number, color: number): void;
-	function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number): void;
+	function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number, color: number): void;
 	function drawPartialImage(image: HTMLImageElement,
-                              srcX: number, srcY: number, srcWidth: number, srcHeight: number,
-                              x: number, y: number, width: number, height: number): void;
+							  srcX: number, srcY: number, srcWidth: number, srcHeight: number,
+							  x: number, y: number, width: number, height: number,
+							  color: number): void;
+	function drawCanvas(canvas: HTMLCanvasElement, x: number, y: number, width: number, height: number, color: number): void;
 	function setAlpha(alpha: number): void;
 	function setCompositeOperation(compositeOperation: string): void;
 	function setTransform(transform: Transform): void;
@@ -48,27 +46,13 @@ class CanvasRenderLayer implements RenderLayer {
 		this._compositeOperation = "source-over";
 	}
 
-	override function save(): void {
-		this._context.save();
-	}
-
-	override function restore(): void {
-		this._context.restore();
-	}
-
-	override function beginPath(): void {
-		this._context.beginPath();
-	}
-
-	override function rect(x: number, y: number, width: number, height: number): void {
-		this._context.rect(x, y, width, height);
-	}
-
 	override function clearRect(x: number, y: number, width: number, height: number): void {
 		this._context.clearRect(x, y, width, height);
 	}
 
-	override function clip(): void {
+	override function clipRect(x: number, y: number, width: number, height: number): void {
+		this._context.beginPath();
+		this._context.rect(x, y, width, height);
 		this._context.clip();
 	}
 
@@ -77,14 +61,19 @@ class CanvasRenderLayer implements RenderLayer {
 		this._context.fillRect(x, y, width, height);
 	}
 
-	override function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number): void {
+	override function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number, color: number): void {
 		this._context.drawImage(image, x, y, width, height);
 	}
 
 	override function drawPartialImage(image: HTMLImageElement,
-                                       srcX: number, srcY: number, srcWidth: number, srcHeight: number,
-                                       x: number, y: number, width: number, height: number): void {
+									   srcX: number, srcY: number, srcWidth: number, srcHeight: number,
+									   x: number, y: number, width: number, height: number,
+									   color: number): void {
 		this._context.drawImage(image, srcX, srcY, srcWidth, srcHeight, x, y, width, height);
+	}
+
+	override function drawCanvas(canvas: HTMLCanvasElement, x: number, y: number, width: number, height: number, color: number): void {
+		this._context.drawImage(canvas, x, y, width, height);
 	}
 
 	override function setAlpha(alpha: number): void {
@@ -110,9 +99,11 @@ class CanvasRenderLayer implements RenderLayer {
 	}
 
 	override function beginPaint(): void {
+		this._context.save();
 	}
 
 	override function endPaint(): void {
+		this._context.restore();
 	}
 
 	override function paint(context: CanvasRenderingContext2D, compositeOperation: string, left: number, top: number): void {
@@ -686,29 +677,6 @@ class WebGLRenderShape {
 		this.program = null;
 	}
 
-	function constructor(context: WebGLRenderingContext, vertex: string, fragment: string) {
-		this.context = context;
-		this.vertex = context.createShader(WebGL.VERTEX_SHADER);
-		context.shaderSource(this.vertex, vertex);
-		context.compileShader(this.vertex);
-		if(!context.getShaderParameter(this.vertex, WebGL.COMPILE_STATUS)) {
-			Tombo.error(context.getShaderInfoLog(this.vertex));
-		}
-
-		this.fragment = context.createShader(WebGL.FRAGMENT_SHADER);
-		context.shaderSource(this.fragment, fragment);
-		context.compileShader(this.fragment);
-		if(!context.getShaderParameter(this.fragment, WebGL.COMPILE_STATUS)) {
-			Tombo.error(context.getShaderInfoLog(this.vertex));
-		}
-
-		this.program = context.createProgram();
-		context.attachShader(this.program, this.vertex);
-		context.attachShader(this.program, this.fragment);
-		context.linkProgram(this.program);
-		context.useProgram(this.program);
-	}
-
 	function createProgram(vertex: string, fragment: string): void {
 		var context = this.context;
 		this.vertex = context.createShader(WebGL.VERTEX_SHADER);
@@ -744,25 +712,8 @@ class WebGLRenderFrame extends WebGLRenderShape {
 	var _clipRect: Rect;
 	var _frameTexture: WebGLTexture;
 	var _frameBuffer: WebGLFramebuffer;
-/*
-	static const VERTEX =
-		"attribute vec2 position;" +
-		"attribute vec2 texture;" +
-		"varying vec2 uvPoint;" +
-		"void main() {" +
-		"  gl_Position = vec4(2.0*position[0]-1.0, 2.0*position[1]-1.0, 0, 1);" +
-		"  uvPoint = texture;" +
-		"}";
-	static const FRAGMENT =
-		"precision mediump float;" +
-		"varying vec2 uvPoint;" +
-		"uniform sampler2D image;" +
-		"void main() {" +
-		"  gl_FragColor = texture2D(image, uvPoint);" +
-		"}";
-*/
+
 	function constructor(context: WebGLRenderingContext, width: number, height: number) {
-		//super(context, WebGLRenderFrame.VERTEX, WebGLRenderFrame.FRAGMENT);
 		super(context);
 		var VERTEX =
 			"attribute vec2 position;" +
@@ -855,7 +806,13 @@ class WebGLRenderFrame extends WebGLRenderShape {
 		}
 	}
 
-	function draw(x: number, y: number, width: number, height: number): void {
+	function draw(x: number, y: number, screenWidth: number, screenHeight: number, blend: Map.<number>): void {
+		if (blend) {
+			this.context.enable(WebGL.BLEND);
+			this.context.blendEquation(WebGL.FUNC_ADD);
+			this.context.blendFunc(WebGL.SRC_COLOR, WebGL.DST_COLOR);
+		}
+		y = screenHeight - this._height - y;
 		// Copy this frame buffer to the global context.
 		this.context.bindFramebuffer(WebGL.FRAMEBUFFER, null);
 		this.context.viewport(x, y, this._width, this._height);
@@ -864,6 +821,9 @@ class WebGLRenderFrame extends WebGLRenderShape {
 		this._position.bindContext(this.context);
 		this._texture.bindContext(this.context);
 		this.context.drawArrays(WebGL.TRIANGLE_STRIP, 0, 4);
+		if (blend) {
+			this.context.disable(WebGL.BLEND);
+		}
 	}
 }
 
@@ -873,26 +833,8 @@ class WebGLRenderRectangle extends WebGLRenderShape {
 	var _transform: WebGLMatrix;
 	var _position: WebGLRectangle;
 	var _color: WebGLColor;
-/*
-	static const VERTEX =
-      "attribute vec2 position;" +
-      "uniform vec2 anchor;" +
-      "uniform vec2 screen;" +
-      "uniform mat3 transform;" +
-      "void main() {" +
-      "  vec2 v0 = (position + anchor) * screen;" +
-      "  vec3 v1 = transform * vec3(v0[0], -v0[1], 1);" +
-      "  gl_Position = vec4(v1[0], v1[1], 0, 1);" +
-      "}";
-	static const FRAGMENT =
-      "precision mediump float;" +
-      "uniform vec4 color;" +
-      "void main() {" +
-      "  gl_FragColor = color;" +
-      "}";
-*/
+
 	function constructor(context: WebGLRenderingContext, scaleX: number, scaleY: number) {
-		//super(context, WebGLRenderRectangle.VERTEX, WebGLRenderRectangle.FRAGMENT);
 		super(context);
 		var VERTEX =
 	      "attribute vec2 position;" +
@@ -960,31 +902,8 @@ class WebGLRenderSprite extends WebGLRenderShape {
 	var _color: WebGLColor;
 	var _spriteId: number;
 	var _textures: Map.<WebGLTexture>;
-/*
-	static const VERTEX =
-		"attribute vec2 position;" +
-		"attribute vec2 texture;" +
-		"uniform vec2 anchor;" +
-		"uniform vec2 screen;" +
-		"uniform mat3 transform;" +
-		"varying vec2 uvPoint;" +
-		"void main() {" +
-		"  vec2 v0 = (position + anchor) * screen;" +
-		"  vec3 v1 = transform * vec3(v0[0], -v0[1], 1);" +
-		"  gl_Position = vec4(v1[0], v1[1], 0, 1);" +
-		"  uvPoint = texture;" +
-		"}";
-	static const FRAGMENT =
-		"precision mediump float;" +
-		"varying vec2 uvPoint;" +
-		"uniform vec4 color;" +
-		"uniform sampler2D image;" +
-		"void main() {" +
-		"  gl_FragColor = color * texture2D(image, uvPoint);" +
-		"}";
-*/
+
 	function constructor(context: WebGLRenderingContext, scaleX: number, scaleY: number) {
-		//super(context, WebGLRenderSprite.VERTEX, WebGLRenderSprite.FRAGMENT);
 		super(context);
 		var VERTEX =
 			"attribute vec2 position;" +
@@ -1049,7 +968,32 @@ class WebGLRenderSprite extends WebGLRenderShape {
 		this._textures[id] = texture;
 	}
 
-	function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number): void {
+	function _setCanvas(canvas: HTMLCanvasElement): void {
+		// It is very slow to create a texture from an image. To avoid creating
+		// textures every time when this renderer renders the image, this
+		// object caches the created textures and re-uses them.
+		var id = canvas.id;
+		if(!id) {
+			id = (++this._spriteId) as string;
+			canvas.id = id;
+		}
+		var texture = this._textures[id];
+		if(texture) {
+			this.context.bindTexture(WebGL.TEXTURE_2D, texture);
+			return;
+		}
+		texture = this.context.createTexture();
+		this.context.bindTexture(WebGL.TEXTURE_2D, texture);
+		this.context.texParameteri(WebGL.TEXTURE_2D, WebGL.TEXTURE_WRAP_S, WebGL.CLAMP_TO_EDGE);
+		this.context.texParameteri(WebGL.TEXTURE_2D, WebGL.TEXTURE_WRAP_T, WebGL.CLAMP_TO_EDGE);
+		this.context.texParameteri(WebGL.TEXTURE_2D, WebGL.TEXTURE_MIN_FILTER, WebGL.LINEAR);
+		this.context.texParameteri(WebGL.TEXTURE_2D, WebGL.TEXTURE_MAG_FILTER, WebGL.LINEAR);
+		this.context.texImage2D(WebGL.TEXTURE_2D, 0, WebGL.RGBA, WebGL.RGBA, WebGL.UNSIGNED_BYTE, canvas);
+		this._textures[id] = texture;
+	}
+
+	function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number, color: number): void {
+		this._color.setColor(color);
 		this._anchor.set(x, y);
 		this._position.set(0, 0, width, height);
 		this._texture.set(0, 0, 1, 1);
@@ -1066,8 +1010,9 @@ class WebGLRenderSprite extends WebGLRenderShape {
 	}
 
 	function drawPartialImage(image: HTMLImageElement,
-                              srcX: number, srcY: number, srcWidth: number, srcHeight: number,
-                              x: number, y: number, width: number, height: number): void {
+		srcX: number, srcY: number, srcWidth: number, srcHeight: number,
+		x: number, y: number, width: number, height: number,
+		color: number): void {
 		this._anchor.set(x, y);
 		this._position.set(0, 0, width, height);
 		var scaleX = 1 / image.width;
@@ -1085,9 +1030,21 @@ class WebGLRenderSprite extends WebGLRenderShape {
 		this.context.drawArrays(WebGL.TRIANGLE_STRIP, 0, 4);
 	}
 
-	function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number, color: number): void {
+	function drawCanvas(canvas: HTMLCanvasElement, x: number, y: number, width: number, height: number, color: number): void {
 		this._color.setColor(color);
-		this.drawImage(image, x, y, width, height);
+		this._anchor.set(x, y);
+		this._position.set(0, 0, width, height);
+		this._texture.set(0, 0, 1, 1);
+
+		this.context.useProgram(this.program);
+		this._setCanvas(canvas);
+		this._screen.bindContext(this.context);
+		this._color.bindContext(this.context);
+		this._texture.bindContext(this.context);
+		this._anchor.bindContext(this.context);
+		this._transform.bindContext(this.context);
+		this._position.bindContext(this.context);
+		this.context.drawArrays(WebGL.TRIANGLE_STRIP, 0, 4);
 	}
 
 	function setTransform(matrix: Array.<number>): void {
@@ -1105,33 +1062,34 @@ class WebGLRenderLayer implements RenderLayer {
 	var _sprite: WebGLRenderSprite;
 	var _width: number;
 	var _height: number;
+	var _screenWidth: number;
+	var _screenHeight: number;
+	var _alpha: number;
 	var _minX: number;
 	var _minY: number;
 	var _maxX: number;
 	var _maxY: number;
 
-	function constructor(frame: WebGLRenderFrame, rectangle: WebGLRenderRectangle, sprite: WebGLRenderSprite, width: number, height: number, scale: number) {
+	function constructor(frame: WebGLRenderFrame, rectangle: WebGLRenderRectangle, sprite: WebGLRenderSprite, width: number, height: number, scale: number, screenWidth: number, screenHeight: number) {
 		this._frame = frame;
 		this._rectangle = rectangle;
 		this._sprite = sprite;
 		this._width = width;
 		this._height = height;
+		this._screenWidth = screenWidth;
+		this._screenHeight = screenHeight;
+		this._alpha = 255;
 		this._minX = -1;
 		this._minY = -1;
 		this._maxX = -1;
 		this._maxY = -1;
 	}
 
-	override function save(): void {
+	override function clearRect(x: number, y: number, width: number, height: number): void {
+		this._frame.clearRect(x, y, width, height);
 	}
 
-	override function restore(): void {
-	}
-
-	override function beginPath(): void {
-	}
-
-	override function rect(x: number, y: number, width: number, height: number): void {
+	override function clipRect(x: number, y: number, width: number, height: number): void {
 		var minX = x;
 		var minY = y;
 		var maxX = x + width;
@@ -1146,13 +1104,6 @@ class WebGLRenderLayer implements RenderLayer {
 		this._minY = minY;
 		this._maxX = maxX;
 		this._maxY = maxY;
-	}
-
-	override function clearRect(x: number, y: number, width: number, height: number): void {
-		this._frame.clearRect(x, y, width, height);
-	}
-
-	override function clip(): void {
 		var width = this._maxX - this._minX;
 		var height = this._maxY - this._minY;
 		if(width > 0 && height > 0) {
@@ -1163,20 +1114,28 @@ class WebGLRenderLayer implements RenderLayer {
 	}
 
 	override function fillRect(x: number, y: number, width: number, height: number, color: number): void {
+		color = (color & ~255) | this._alpha;
 		this._rectangle.fillRect(x, y, width, height, color);
 	}
 
-	override function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number): void {
-		this._sprite.drawImage(image, x, y, width, height);
+	override function drawImage(image: HTMLImageElement, x: number, y: number, width: number, height: number, color: number): void {
+		color = (color & ~255) | this._alpha;
+		this._sprite.drawImage(image, x, y, width, height, color);
 	}
 
 	override function drawPartialImage(image: HTMLImageElement,
                                        srcX: number, srcY: number, srcWidth: number, srcHeight: number,
-                                       x: number, y: number, width: number, height: number): void {
-		this._sprite.drawPartialImage(image, srcX, srcY, srcWidth, srcHeight, x, y, image.width, image.height);
+                                       x: number, y: number, width: number, height: number, color: number): void {
+		color = (color & ~255) | this._alpha;
+		this._sprite.drawPartialImage(image, srcX, srcY, srcWidth, srcHeight, x, y, width, height, color);
+	}
+
+	override function drawCanvas(canvas: HTMLCanvasElement, x: number, y: number, width: number, height: number, color: number): void {
+		this._sprite.drawCanvas(canvas, x, y, width, height, color);
 	}
 
 	override function setAlpha(alpha: number): void {
+		this._alpha = (alpha * 255) & 255;
 	}
 
 	override function setCompositeOperation(compositeOperation: string): void {
@@ -1209,12 +1168,34 @@ class WebGLRenderLayer implements RenderLayer {
 	}
 
 	override function paint(context: CanvasRenderingContext2D, compositeOperation: string, left: number, top: number): void {
-		this._frame.draw(left, top, 640, 960);
+		var blend = this._getBlend(compositeOperation);
+		this._frame.draw(left, top, this._screenWidth, this._screenHeight, blend);
+	}
+
+	function _getBlend(compositeOperation: string): Map.<number> {
+		var blend = {
+			"source-atop": {equation: 0, source: 0, destination: 0},
+			"source-in": {equation: 0, source: 0, destination: 0},
+			"source-out": {equation: 0, source: 0, destination: 0},
+			"destination-over": {equation: 0, source: 0, destination: 0},
+			"destination-atop": {equation: 0, source: 0, destination: 0},
+			"destination-in": {equation: 0, source: 0, destination: 0},
+			"destination-out": {equation: 0, source: 0, destination: 0},
+			"lighter": {equation: WebGL.FUNC_ADD, source: WebGL.SRC_COLOR, destination: WebGL.DST_COLOR},
+			"copy": {equation: 0, source: 0, destination: 0},
+			"xor": {equation: 0, source: 0, destination: 0}
+		};
+		if (compositeOperation && blend[compositeOperation]) {
+			return blend[compositeOperation];
+		}
+		return null;
 	}
 }
 
 class Renderer {
 	var _canvas: HTMLCanvasElement;
+	var _width: number;
+	var _height: number;
 	var _context: CanvasRenderingContext2D;
 	var _webgl: WebGLRenderingContext;
 	var _rectangle: WebGLRenderRectangle;
@@ -1232,7 +1213,7 @@ class Renderer {
 		var instance = Renderer._instance;
 		if(instance && instance._webgl) {
 			var frame = new WebGLRenderFrame(instance._webgl, width, height);
-			return new WebGLRenderLayer(frame, instance._rectangle, instance._sprite, width, height, scale);
+			return new WebGLRenderLayer(frame, instance._rectangle, instance._sprite, width, height, scale, instance._width, instance._height);
 		}
 		var canvas = dom.createElement("canvas") as HTMLCanvasElement;
 		return new CanvasRenderLayer(canvas, width, height, scale);
@@ -1246,6 +1227,8 @@ class Renderer {
 
 	function constructor(canvas: HTMLCanvasElement) {
 		this._canvas = canvas;
+		this._width = canvas.width;
+		this._height = canvas.height;
 		this._webgl = canvas.getContext("experimental-webgl") as WebGLRenderingContext;
 		if(this._webgl) {
 			var scaleX = 2 / canvas.width;

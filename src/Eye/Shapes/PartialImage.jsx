@@ -24,6 +24,6 @@ mixin PartialImage {
 	}
 
 	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
-		renderer.drawPartialImage(this._img, this.left, this.top, this.width, this.height, 0, 0, this.bounds.width, this.bounds.height);
+		renderer.drawPartialImage(this._img, this.left, this.top, this.width, this.height, 0, 0, this.bounds.width, this.bounds.height, color);
 	}
 }

@@ -167,6 +167,10 @@ class Eye {
 	 * render layers
 	 */
 	function render(): void {
+		if(Eye.USE_WEBGL) {
+			this.paint(0);
+			return;
+		}
 		// todo: render only if any layer is dirty
 		
 		// todo: check background-color

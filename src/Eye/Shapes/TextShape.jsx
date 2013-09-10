@@ -323,5 +323,20 @@ class TextShape implements Shape {
 	}
 
 	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
+		if(this._option.textColor != color) {
+			this._option.textColor = color;
+			this._textDirty = true;
+		}
+		if(this._textDirty) {
+			this._drawText();
+		}
+		var x0 = this.bounds.left + this._option.leftMargin;
+		var y0 = this.bounds.top;
+		if(this._option.valign == TextShape.BOTTOM) {
+			y0 += this.bounds.height - this._textHeight;
+		} else if(this._option.valign == TextShape.MIDDLE) {
+			y0 += (this.bounds.height - this._textHeight) >> 1;
+		}
+		renderer.drawCanvas(this._textCanvas, x0, y0, this._textWidth, this._textHeight, color);
 	}
 }

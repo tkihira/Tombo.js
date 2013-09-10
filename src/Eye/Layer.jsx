@@ -308,8 +308,6 @@ class Layer {
 	function paint(timestamp: number, compositeOperation: string, left: number, top: number): void {
 		this._modifyCanvas();
 		this._renderer.beginPaint();
-		this._renderer.save();
-		this._renderer.beginPath();
 		var length = this._dirtyRegions.length;
 		for(var i = 0; i < length; ++i) {
 			var region = this._dirtyRegions[i];
@@ -318,9 +316,8 @@ class Layer {
 			var width = region[2] - x;
 			var height = region[3] - y;
 			this._renderer.clearRect(x, y, width, height);
-			this._renderer.rect(x, y, width, height);
+			this._renderer.clipRect(x, y, width, height);
 		}
-		this._renderer.clip();
 		if (this._dirtyOrderDrawBins) {
 			this._orderDrawBins.sort((a, b) -> { return a - b; });
 			this._dirtyOrderDrawBins = false;
@@ -336,7 +333,6 @@ class Layer {
 				bin[j].paint(this._renderer, timestamp);
 			}
 		}
-		this._renderer.restore();
 		this._renderer.endPaint();
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		Renderer.paintLayer(this._renderer, compositeOperation, left, top);

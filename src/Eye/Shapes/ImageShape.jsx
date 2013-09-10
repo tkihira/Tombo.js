@@ -45,9 +45,9 @@ class ImageShape implements Shape {
 
 	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
 		if(this._isFixedScale) {
-			renderer.drawPartialImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
+			renderer.drawPartialImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height, color);
 		} else {
-			renderer.drawImage(this._img, 0, 0, this._img.width, this._img.height);
+			renderer.drawImage(this._img, 0, 0, this._img.width, this._img.height, color);
 		}
 	}
 }
