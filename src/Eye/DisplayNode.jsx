@@ -325,6 +325,24 @@ class DisplayNode {
 		this._anchorX = anchorX;
 		this._anchorY = anchorY;
 	}
+	/**
+	 * Sets the width or height of this node. This function changes the size of
+	 * the shape attached to this node and redraws it.
+	 */
+	function setSize(width: number, height: number): void {
+		if(this.shape) {
+			if(Layer.USE_NEW_RENDERER) {
+				if(width != this.shape.bounds.width || height != this.shape.bounds.height) {
+					this.shape.bounds.width = width;
+					this.shape.bounds.height = height;
+					this._addDirtyRectangle();
+				}
+				return;
+			}
+			this.shape.bounds.width = width;
+			this.shape.bounds.height = height;
+		}
+	}
 	
 	/**
 	 * indicate that this node is touch sensitive or not
