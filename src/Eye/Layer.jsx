@@ -45,6 +45,8 @@ class Layer {
 	 */
 	var forceRedraw = false;
 	
+	static var _counter = 0;
+	var _id: number;
 	var _isChild = false;
 	var _touchableNodeList = []: DisplayNode[];
 	
@@ -73,6 +75,7 @@ class Layer {
 		this._initialize(width, height, layout);
 	}
 	function _initialize(width: number, height: number, layout: LayoutInformation): void {
+		this._id = Layer._counter++;
 		this.layout = layout;
 		this.width = width;
 		this.height = height;
@@ -287,9 +290,6 @@ class Layer {
 				context.restore();
 			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
-			if(Eye.USE_STREAM) {
-				log Stream.toJson();
-			}
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
@@ -312,6 +312,10 @@ class Layer {
 		
 		//this.root._render(this._ctx);
 		this._dirtyRegions = [] : Array.<Array.<number>>;
+	}
+
+	function appendToStream(): void {
+		Stream.appendLayer(this._id, this.width, this.height, this._alpha, this._compositeOperation);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
@@ -369,7 +373,9 @@ class Layer {
 	function setAlpha(alpha: number): void {
 		if(this._alpha != alpha) {
 			this._alpha = alpha;
-			this._ctx.globalAlpha = alpha;
+			if(!Eye.USE_STREAM) {
+				this._ctx.globalAlpha = alpha;
+			}
 		}
 	}
 
@@ -379,7 +385,9 @@ class Layer {
 		}
 		if(this._compositeOperation != compositeOperation) {
 			this._compositeOperation = compositeOperation;
-			this._ctx.globalCompositeOperation = compositeOperation;
+			if(!Eye.USE_STREAM) {
+				this._ctx.globalCompositeOperation = compositeOperation;
+			}
 		}
 	}
 

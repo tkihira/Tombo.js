@@ -6,6 +6,7 @@
 
 import "js/web.jsx";
 
+import "Stream.jsx";
 import "Layer.jsx";
 import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
@@ -163,8 +164,10 @@ class Eye {
 	function render(): void {
 		// todo: render only if any layer is dirty
 		
-		// todo: check background-color
-		this._ctx.clearRect(0, 0, this._width, this._height - 1);
+		if(!Eye.USE_STREAM) {
+			// todo: check background-color
+			this._ctx.clearRect(0, 0, this._width, this._height - 1);
+		}
 		
 		// for debug
 		if(Eye.DEBUG) {
@@ -174,20 +177,28 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			// todo: check dirty flag
-			layer._render();
-			
-			// check layout and set proper transform
-			var width = layer.layout.clientWidth;
-			var height = layer.layout.clientHeight;
-			if(!width || !height) {
-				Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
+			if(Eye.USE_STREAM) {
+				layer.appendToStream();
+				layer._render();
+			} else {
+				// todo: check dirty flag
+				layer._render();
+				
+				// check layout and set proper transform
+				var width = layer.layout.clientWidth;
+				var height = layer.layout.clientHeight;
+				if(!width || !height) {
+					Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
+				}
+				
+				// draw
+				var transform = this._calculateLayoutTransform(layer);
+				this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
+				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 			}
-			
-			// draw
-			var transform = this._calculateLayoutTransform(layer);
-			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
-			this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
+		}
+		if(Eye.USE_STREAM) {
+			log Stream.toJson();
 		}
 	}
 }
