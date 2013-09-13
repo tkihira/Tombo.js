@@ -55,7 +55,19 @@ class _Main {
 		okNode.setTouchable(true);
 		dialog.appendChild(okNode);
 		// create TextShape
-		var textShape = new TextShape(444, 268, "お知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキストお知らせテキスト");
+		var textShape = new TextShape(444, 268,
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8" +
+			"\u304A\u77E5\u3089\u305B\u30C6\u30AD\u30B9\u30C8");
 		var option = new TextShape.Option();
 		option.align = TextShape.LEFT;
 		option.multiline = true;
