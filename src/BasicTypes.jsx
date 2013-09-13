@@ -17,6 +17,9 @@ class Rect {
 		}
 		return true;
 	}
+	function join(): string {
+		return [this.left, this.top, this.width, this.height].join();
+	}
 }
 
 class Tetragon extends Rect {

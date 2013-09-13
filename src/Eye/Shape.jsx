@@ -18,4 +18,7 @@ interface Shape {
 	
 	/** draw shape on the context */
 	function draw(ctx: CanvasRenderingContext2D, color: number): void;
+
+	/** jsonize shape */
+	function toJsonObject(color: number): Array.<variant>;
 }

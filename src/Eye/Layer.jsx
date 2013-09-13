@@ -4,6 +4,8 @@ import "js.jsx";
 import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
+import "Eye.jsx";
+import "Stream.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -37,6 +39,11 @@ class Layer {
 	 * READONLY: layout information which is belonged to this layer
 	 */
 	var layout: LayoutInformation;
+	
+	/**
+	 * READONLY: redraw all nodes
+	 */
+	var forceRedraw = false;
 	
 	var _isChild = false;
 	var _touchableNodeList = []: DisplayNode[];
@@ -91,8 +98,10 @@ class Layer {
 		this._canvas.height = height;
 		this.layout.clientWidth = width;
 		this.layout.clientHeight = height;
-		this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
-		this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
+		if(!Eye.USE_STREAM) {
+			this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
+			this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
+		}
 	}
 	function _setLayoutScale(scale: number): void {
 		this.layout.scale = scale;
@@ -223,6 +232,9 @@ class Layer {
 			this._modifyCanvas();
 		}
 		if(Layer.USE_NEW_RENDERER) {
+			if(this.forceRedraw) {
+				this._dirtyRegions = [[0, 0, this.width, this.height]];
+			}
 			// Erase the region covered by the dirty rectangles and redraw
 			// objects that have intersections with the rectangles.
 			if(this._dirtyRegions.length == 0) {
@@ -237,8 +249,10 @@ class Layer {
 				this._dirtyRegions = [] : Array.<Array.<number>>;
 				return;
 			}
-			context.save();
-			context.beginPath();
+			if(!Eye.USE_STREAM) {
+				context.save();
+				context.beginPath();
+			}
 			var length = this._dirtyRegions.length;
 			for(var i = 0; i < length; ++i) {
 				var region = this._dirtyRegions[i];
@@ -246,10 +260,14 @@ class Layer {
 				var y  = region[1];
 				var width = region[2] - x;
 				var height = region[3] - y;
-				context.clearRect(x, y, width, height);
-				context.rect(x, y, width, height);
+				if(!Eye.USE_STREAM) {
+					context.clearRect(x, y, width, height);
+					context.rect(x, y, width, height);
+				}
 			}
-			context.clip();
+			if(!Eye.USE_STREAM) {
+				context.clip();
+			}
 			if (this._dirtyOrderDrawBins) {
 				this._orderDrawBins.sort((a, b) -> { return a - b; });
 				this._dirtyOrderDrawBins = false;
@@ -265,8 +283,13 @@ class Layer {
 					bin[j]._render(this._ctx);
 				}
 			}
-			context.restore();
+			if(!Eye.USE_STREAM) {
+				context.restore();
+			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
+			if(Eye.USE_STREAM) {
+				log Stream.toJson();
+			}
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
@@ -289,6 +312,10 @@ class Layer {
 		
 		//this.root._render(this._ctx);
 		this._dirtyRegions = [] : Array.<Array.<number>>;
+	}
+
+	function setForceRedraw(forceRedraw: boolean): void {
+		this.forceRedraw = forceRedraw;
 	}
 
 	function addDirtyRectangle(rectangle: Rect) : void {

@@ -1,8 +1,10 @@
 import "js/web.jsx";
 import "js.jsx";
 
+import "Stream.jsx";
 import "Shape.jsx";
 import "Layer.jsx";
+import "Eye.jsx";
 import "DisplayGroup.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
@@ -54,6 +56,7 @@ class DisplayNode {
 	var _oldOperation = "";
 	var _renderTransform: Transform;
 	static const USE_RENDER_TRANSFORM = false;
+	var _json : Array.<variant>;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -465,92 +468,118 @@ class DisplayNode {
 			this._layer.setTransform(this._getRenderTransform());
 			return;
 		}
-		context.save();
-		this._oldOperation = this._compositeOperation? context.globalCompositeOperation: "";
-		if(this._compositeOperation) {
-			context.globalCompositeOperation = this._compositeOperation;
+		if(Eye.USE_STREAM) {
+			this._json.push("save:");
+			if(this._compositeOperation) {
+				this._json.push("compositeOperation:" + this._compositeOperation);
+			}
+			var matrix = this.getCompositeTransform().getMatrix();
+			this._json.push("matrix:" + matrix.join());
+			if(this._anchorX || this._anchorY) {
+				this._json.push("matrix:" + [1, 0, 0, 1, -this._anchorX, -this._anchorY].join());
+			}
+			this._json.push("alpha:" + this._getCompositeAlpha() as string);
+		} else {
+			context.save();
+			this._oldOperation = this._compositeOperation? context.globalCompositeOperation: "";
+			if(this._compositeOperation) {
+				context.globalCompositeOperation = this._compositeOperation;
+			}
+			var matrix = this.getCompositeTransform().getMatrix();
+			js.invoke(context, "transform", matrix as __noconvert__ variant[]);
+			if(this._anchorX || this._anchorY) {
+				context.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
+			}
+			context.globalAlpha = this._getCompositeAlpha();
 		}
-		var matrix = this.getCompositeTransform().getMatrix();
-		js.invoke(context, "transform", matrix as __noconvert__ variant[]);
-		if(this._anchorX || this._anchorY) {
-			context.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
-		}
-		context.globalAlpha = this._getCompositeAlpha();
 	}
 
 	function _endPaint(context: CanvasRenderingContext2D): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			return;
 		}
-		if(this._compositeOperation) {
-			context.globalCompositeOperation = this._oldOperation;
+		if(Eye.USE_STREAM) {
+			if(this._compositeOperation) {
+				this._json.push("compositeOperation:" + this._oldOperation);
+			}
+			this._json.push("restore:");
+		} else {
+			if(this._compositeOperation) {
+				context.globalCompositeOperation = this._oldOperation;
+			}
+			context.restore();
 		}
-		context.restore();
 	}
 
 	function _render(ctx: CanvasRenderingContext2D): void {
 		if(!this._visible) {
 			return;
 		}
+		this._json = []: variant[];
+		this._json.push("node:" + this._id as string);
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
-			// TODO: caching
-			var width = this.shape.bounds.width;
-			var height = this.shape.bounds.height;
-			
-			var canvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
-			canvas.width = width;
-			canvas.height = height;
-			var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-			this.shape.draw(cctx, color);
-			
-			// create alpha canvas
-			var ac = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
-			ac.width = width;
-			ac.height = height;
-			var actx = ac.getContext("2d") as CanvasRenderingContext2D;
-			actx.drawImage(canvas, 0, 0);
-			actx.globalCompositeOperation = "source-atop";
-			actx.fillStyle = "rgba(255,255,255,1)";
-			actx.fillRect(0, 0, width, height);
-			
-			// create ouput canvas
-			var oc = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
-			oc.width = width;
-			oc.height = height;
-			var octx = oc.getContext("2d") as CanvasRenderingContext2D;
-			octx.globalCompositeOperation = "lighter";
-			
-			// breakdown RGB and compose
-			var filters = [Color.createRGB(0, 0, 255), Color.createRGB(0, 255, 0), Color.createRGB(255, 0, 0)]; // order (B-> G-> R) is important
-			
-			for(var i = 0; i < 3; i++) {
-				var ec = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
-				ec.width = width;
-				ec.height = height;
-				var ectx = ec.getContext("2d") as CanvasRenderingContext2D;
-				ectx.drawImage(canvas, 0, 0);
+			if(Eye.USE_STREAM) {
+				this._json.push("transcolor:TODO");
+			} else {
+				// TODO: caching
+				var width = this.shape.bounds.width;
+				var height = this.shape.bounds.height;
 				
-				ectx.globalCompositeOperation = "darker";
-				ectx.fillStyle = Color.stringify(filters[i]);
-				ectx.fillRect(0, 0, width, height);
+				var canvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+				canvas.width = width;
+				canvas.height = height;
+				var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+				this.shape.draw(cctx, color);
 				
-				color >>= 8;
-				var alpha = 1 - (color & 0xFF) / 255;
-				ectx.globalCompositeOperation = "source-over";
-				ectx.globalAlpha = alpha;
-				ectx.fillStyle = "#000";
-				ectx.fillRect(0, 0, width, height);
+				// create alpha canvas
+				var ac = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+				ac.width = width;
+				ac.height = height;
+				var actx = ac.getContext("2d") as CanvasRenderingContext2D;
+				actx.drawImage(canvas, 0, 0);
+				actx.globalCompositeOperation = "source-atop";
+				actx.fillStyle = "rgba(255,255,255,1)";
+				actx.fillRect(0, 0, width, height);
 				
-				octx.drawImage(ec, 0, 0); // with lighter
+				// create ouput canvas
+				var oc = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+				oc.width = width;
+				oc.height = height;
+				var octx = oc.getContext("2d") as CanvasRenderingContext2D;
+				octx.globalCompositeOperation = "lighter";
+				
+				// breakdown RGB and compose
+				var filters = [Color.createRGB(0, 0, 255), Color.createRGB(0, 255, 0), Color.createRGB(255, 0, 0)]; // order (B-> G-> R) is important
+				
+				for(var i = 0; i < 3; i++) {
+					var ec = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+					ec.width = width;
+					ec.height = height;
+					var ectx = ec.getContext("2d") as CanvasRenderingContext2D;
+					ectx.drawImage(canvas, 0, 0);
+					
+					ectx.globalCompositeOperation = "darker";
+					ectx.fillStyle = Color.stringify(filters[i]);
+					ectx.fillRect(0, 0, width, height);
+					
+					color >>= 8;
+					var alpha = 1 - (color & 0xFF) / 255;
+					ectx.globalCompositeOperation = "source-over";
+					ectx.globalAlpha = alpha;
+					ectx.fillStyle = "#000";
+					ectx.fillRect(0, 0, width, height);
+					
+					octx.drawImage(ec, 0, 0); // with lighter
+				}
+				// alpha mask
+				octx.globalCompositeOperation = "destination-in";
+				octx.globalAlpha = 1;
+				octx.drawImage(ac, 0, 0);
+				
+				canvas = oc;
 			}
-			// alpha mask
-			octx.globalCompositeOperation = "destination-in";
-			octx.globalAlpha = 1;
-			octx.drawImage(ac, 0, 0);
-			
-			canvas = oc;
 		}
 
 		if(Layer.USE_NEW_RENDERER) {
@@ -569,11 +598,21 @@ class DisplayNode {
 			this._dirty = false;
 			this._beginPaint(ctx);
 			if(canvas) {
-				ctx.drawImage(canvas, 0, 0);
+				if(!Eye.USE_STREAM) {
+					ctx.drawImage(canvas, 0, 0);
+				}
 			} else {
-				this.shape.draw(ctx, color);
+				if(Eye.USE_STREAM) {
+					this._json.push(this.shape.toJsonObject(color));
+				} else {
+					this.shape.draw(ctx, color);
+				}
 			}
 			this._endPaint(ctx);
+			if(Eye.USE_STREAM) {
+				Stream.append(this._json);
+				this._json = null;
+			}
 			return;
 		}
 		ctx.save();

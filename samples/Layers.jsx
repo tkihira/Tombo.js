@@ -1,5 +1,6 @@
 import "js/web.jsx";
 
+import "Stream.jsx";
 import "Eye/Eye.jsx";
 import "Eye/Layer.jsx";
 import "Eye/LayoutInformation.jsx";
@@ -79,6 +80,9 @@ class _Main {
 		dialog.appendChild(textNode);
 		
 		// you got everything prepared. just render!
+		eye.render();
+		log "======================";
+		topLayer.setForceRedraw(true);
 		eye.render();
 		
 		var status = "normal";

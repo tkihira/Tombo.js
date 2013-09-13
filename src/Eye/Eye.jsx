@@ -27,6 +27,8 @@ class Eye {
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
+	static const USE_STREAM = true;
+	static var _shapeCounter = 0;
 	
 	/**
 	 * create instance with prepared canvas

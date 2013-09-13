@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "../Eye.jsx";
 import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
@@ -14,6 +15,7 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = false;
+	var _id: number;
 	
 	/** Whether to cache rendered text. */
 	static const USE_CACHE = true;
@@ -62,6 +64,21 @@ class TextShape implements Shape {
 		var valign = TextShape.TOP;
 		/** fontHeight: default 30 */
 		var fontHeight = 30;
+		function serialize(json: Array.<variant>): void {
+			json.push("wordWrap:", this.wordWrap as string);
+			json.push("multiline:", this.multiline as string);
+			json.push("border:", this.border as string);
+			json.push("textColor:", this.textColor as string);
+			json.push("borderColor:", this.borderColor as string);
+			json.push("borderWidth:", this.borderWidth as string);
+			json.push("maxLength:", this.maxLength as string);
+			json.push("font:", this.font as string);
+			json.push("leftMargin:", this.leftMargin as string);
+			json.push("rightMargin:", this.rightMargin as string);
+			json.push("align:", this.align as string);
+			json.push("valign:", this.valign as string);
+			json.push("fontHeight:", this.fontHeight as string);
+		}
 	}
 	
 	var _text: string;
@@ -76,6 +93,7 @@ class TextShape implements Shape {
 	 */
 	function constructor(width: number, height: number, text: string) {
 		this.bounds = new Rect(0, 0, width, height);
+		this._id = Eye._shapeCounter++;
 		this._text = text;
 		this._textCanvas = null;
 		this._textWidth = 0;
@@ -319,5 +337,15 @@ class TextShape implements Shape {
 		}
 		
 		ctx.restore();
+	}
+	
+	override function toJsonObject(color: number): Array.<variant> {
+		var json = []: Array.<variant>;
+		json.push("id:" + this._id as string);
+		json.push("shape:TextShape");
+		json.push("bounds:" + this.bounds.join());
+		json.push("text:" + this._text);
+		this._option.serialize(json);
+		return json;
 	}
 }
