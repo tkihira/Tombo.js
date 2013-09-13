@@ -217,6 +217,18 @@ class Layer {
 		return null;
 	}
 	
+	function _renderDirtyRegion(context: CanvasRenderingContext2D): void {
+		var length = this._dirtyRegions.length;
+		for(var i = 0; i < length; ++i) {
+			var region = this._dirtyRegions[i];
+			var x = region[0];
+			var y  = region[1];
+			var width = region[2] - x;
+			var height = region[3] - y;
+			context.strokeRect(x, y, width, height);
+		}
+	}
+
 	function _render(): void {
 		if(!this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");

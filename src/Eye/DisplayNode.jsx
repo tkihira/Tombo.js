@@ -566,6 +566,7 @@ class DisplayNode {
 			} else if(!this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
+			Tombo.addPaintedRegion(this._renderRect.left, this._renderRect.top, this._renderRect.width, this._renderRect.height);
 			this._dirty = false;
 			this._beginPaint(ctx);
 			if(canvas) {

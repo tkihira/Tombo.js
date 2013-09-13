@@ -26,6 +26,10 @@ class Eye {
 	var _ctx: CanvasRenderingContext2D;
 	
 	var _layerList: Array.<Layer>;
+	static var _layerMask = 0xffff;
+	static var _clearDebugCanvas = true;
+	var _debugCanvas: HTMLCanvasElement;
+	var _debugContext: CanvasRenderingContext2D;
 	static var DEBUG = false;
 	
 	/**
@@ -66,6 +70,10 @@ class Eye {
 		this._width = canvas.width;
 		this._height = canvas.height;
 		this._ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+		if(Tombo.DRAW_DIRTY_REGION) {
+			this._debugCanvas = null;
+			this._debugContext = null;
+		}
 		
 		// todo: recalculate all layer's layout
 	}
@@ -169,11 +177,42 @@ class Eye {
 			this._ctx.fillStyle = "#505050";
 			this._ctx.fillRect(0, 0, this._width, this._height);
 		}
+		if(Tombo.DRAW_DIRTY_REGION) {
+			if(!this._debugCanvas) {
+				this._debugCanvas = dom.createElement("canvas") as HTMLCanvasElement;
+				this._debugCanvas.width = this._width;
+				this._debugCanvas.height = this._height;
+				this._debugContext = this._debugCanvas.getContext("2d") as CanvasRenderingContext2D;
+				this._debugContext.lineWidth = 1;
+				dom.document.body.addEventListener('keyup', function(event) {
+					var code = (event as KeyboardEvent).keyCode;
+					if(0x30 <= code && code <= 0x39) {
+						Eye._layerMask ^= 1 << (code - 0x30);
+					} else if(code == 0x41) {
+						Eye._clearDebugCanvas = !Eye._clearDebugCanvas;
+					}
+				}, false);
+			}
+			if(Eye._clearDebugCanvas) {
+				this._debugContext.clearRect(0, 0, this._width, this._height);
+			}
+			this._debugContext.strokeStyle = '#f00';
+			for(var i = 0; i < this._layerList.length; i++) {
+				var layer = this._layerList[i];
+				layer._renderDirtyRegion(this._debugContext);
+			}
+		}
+		var counts = [] : Array.<number>;
 		
 		for(var i = 0; i < this._layerList.length; i++) {
+			Tombo.count = 0;
+			if((Eye._layerMask & (1 << i)) == 0) {
+				continue;
+			}
 			var layer = this._layerList[i];
 			// todo: check dirty flag
 			layer._render();
+			counts.push(Tombo.count);
 			
 			// check layout and set proper transform
 			var width = layer.layout.clientWidth;
@@ -186,6 +225,23 @@ class Eye {
 			var transform = this._calculateLayoutTransform(layer);
 			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
 			this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
+		}
+		if(Tombo.DRAW_DIRTY_REGION) {
+			if(Tombo.paintedRegion.length > 0) {
+				this._debugContext.strokeStyle = '#00f';
+				for(var i = 0; i < Tombo.paintedRegion.length; i += 4) {
+					var x = Tombo.paintedRegion[i];
+					var y = Tombo.paintedRegion[i + 1];
+					var width = Tombo.paintedRegion[i + 2];
+					var height = Tombo.paintedRegion[i + 3];
+					this._debugContext.strokeRect(x, y, width, height);
+				}
+				Tombo.paintedRegion = [] : Array.<number>;
+				this._debugContext.fillStyle = '#f00';
+				this._debugContext.font = '16px Arial';
+				this._debugContext.fillText('[' + counts.join() + ']', 0, 16);
+			}
+			this._ctx.drawImage(this._debugCanvas, 0, 0);
 		}
 	}
 }
