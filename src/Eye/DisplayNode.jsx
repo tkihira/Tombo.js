@@ -1,7 +1,7 @@
 import "js/web.jsx";
 import "js.jsx";
 
-import "Stream.jsx";
+import "../Stream.jsx";
 import "Shape.jsx";
 import "Layer.jsx";
 import "Eye.jsx";
@@ -11,7 +11,7 @@ import "../BasicTypes.jsx";
 
 /**
  * DisplayNode class
- * 
+ *
  * <p>The DOM-structure node class.
  * Node always has one shape which will be drawn when render is called.
  * Node is just shape container. You can control position, scale, rotation of the Node.</p>
@@ -19,28 +19,28 @@ import "../BasicTypes.jsx";
  * @author Takuo KIHIRA <t-kihira@broadtail.jp>
  */
 class DisplayNode {
-	
+
 	var _clientRect: Rect;
 	var _renderRect: Rect;
 	var _compositeTransform: Transform;
 	var _compositeColor = -1; // -1 if not initialized
 	var _compositeAlpha = -1; // -1 if not initialized
-	
+
 	/** READONLY: the associated shape */
 	var shape: Shape;
 	/** READONLY: parent node group */
 	var parent = null: DisplayGroup;
-	
+
 	var _color = Color.createRGB(255, 255, 255);
 	var _alpha = 1;
-	
+
 	var _drawBin = 0 as int;
 	var _drawOrder = 0 as number;
-	
+
 	var _layer = null: Layer;
 	var _isTouchable = false;
 	var _transform: Transform;
-	
+
 	var _dirtyRect = true;
 	var _dirty = true;
 
@@ -108,7 +108,7 @@ class DisplayNode {
 		this._id = DisplayNode._counter++;
 		this._renderTransform = null;
 	}
-	
+
 	/**
 	 * set visible of the node
 	 */
@@ -180,7 +180,7 @@ class DisplayNode {
 		this._setDirtyRect(true);
 		this._addDirtyRectangle();
 	}
-	
+
 	function _setLayer(layer: Layer): void {
 		if(this._layer == layer) {
 			return;
@@ -218,7 +218,7 @@ class DisplayNode {
 			this._compositeTransform = null;
 		}
 	}
-	
+
 	/**
 	 * set the primary z-order
 	 * @param value the primary z-order value. the smaller, the more behind
@@ -261,7 +261,7 @@ class DisplayNode {
 	function getDrawOrder(): number {
 		return this._drawOrder;
 	}
-	
+
 	/**
 	 * get node color
 	 */
@@ -286,7 +286,7 @@ class DisplayNode {
 	function _clearCompositeColor(): void {
 		this._compositeColor = -1;
 	}
-	
+
 	/**
 	 * get node alpha value
 	 */
@@ -308,11 +308,11 @@ class DisplayNode {
 		this._clearCompositeAlpha();
 		this._alpha = value;
 	}
-	
+
 	function _clearCompositeAlpha(): void {
 		this._compositeAlpha = -1;
 	}
-	
+
 	/**
 	 * set scale of the node
 	 */
@@ -346,7 +346,7 @@ class DisplayNode {
 			this.shape.bounds.height = height;
 		}
 	}
-	
+
 	/**
 	 * indicate that this node is touch sensitive or not
 	 */
@@ -403,7 +403,7 @@ class DisplayNode {
 			var r = ((c1 >> 24) & 0xFF) / 255 * ((c2 >> 24) & 0xFF);
 			var g = ((c1 >> 16) & 0xFF) / 255 * ((c2 >> 16) & 0xFF);
 			var b = ((c1 >> 8) & 0xFF) / 255 * ((c2 >> 8) & 0xFF);
-			
+
 			return Color.createRGB(r, g, b);
 		} else {
 			return this._color;
@@ -430,7 +430,7 @@ class DisplayNode {
 		this._clientRect = this.getCompositeTransform().transformRect(this.shape.bounds);
 		this._setDirtyRect(false);
 	}
-	
+
 	function _getRenderTransform(): Transform {
 		if(!this._renderTransform) {
 			var transform = this._calcCompositeTransform();
@@ -456,7 +456,7 @@ class DisplayNode {
 		}
 		this._dirty = true;
 	}
-	
+
 	function _setCompositeOperation(operation: string): void {
 		this._compositeOperation = operation;
 	}
@@ -526,13 +526,13 @@ class DisplayNode {
 				// TODO: caching
 				var width = this.shape.bounds.width;
 				var height = this.shape.bounds.height;
-				
+
 				var canvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 				canvas.width = width;
 				canvas.height = height;
 				var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 				this.shape.draw(cctx, color);
-				
+
 				// create alpha canvas
 				var ac = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 				ac.width = width;
@@ -542,42 +542,42 @@ class DisplayNode {
 				actx.globalCompositeOperation = "source-atop";
 				actx.fillStyle = "rgba(255,255,255,1)";
 				actx.fillRect(0, 0, width, height);
-				
+
 				// create ouput canvas
 				var oc = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 				oc.width = width;
 				oc.height = height;
 				var octx = oc.getContext("2d") as CanvasRenderingContext2D;
 				octx.globalCompositeOperation = "lighter";
-				
+
 				// breakdown RGB and compose
 				var filters = [Color.createRGB(0, 0, 255), Color.createRGB(0, 255, 0), Color.createRGB(255, 0, 0)]; // order (B-> G-> R) is important
-				
+
 				for(var i = 0; i < 3; i++) {
 					var ec = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 					ec.width = width;
 					ec.height = height;
 					var ectx = ec.getContext("2d") as CanvasRenderingContext2D;
 					ectx.drawImage(canvas, 0, 0);
-					
+
 					ectx.globalCompositeOperation = "darker";
 					ectx.fillStyle = Color.stringify(filters[i]);
 					ectx.fillRect(0, 0, width, height);
-					
+
 					color >>= 8;
 					var alpha = 1 - (color & 0xFF) / 255;
 					ectx.globalCompositeOperation = "source-over";
 					ectx.globalAlpha = alpha;
 					ectx.fillStyle = "#000";
 					ectx.fillRect(0, 0, width, height);
-					
+
 					octx.drawImage(ec, 0, 0); // with lighter
 				}
 				// alpha mask
 				octx.globalCompositeOperation = "destination-in";
 				octx.globalAlpha = 1;
 				octx.drawImage(ac, 0, 0);
-				
+
 				canvas = oc;
 			}
 		}
@@ -621,22 +621,22 @@ class DisplayNode {
 			ctx.globalCompositeOperation = this._compositeOperation;
 		}
 		//log ctx.globalCompositeOperation;
-		
-		
+
+
 		var matrix = this.getCompositeTransform().getMatrix();
 		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
-		
+
 		if(this._anchorX || this._anchorY) {
 			ctx.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
 		}
-		
+
 		ctx.globalAlpha = this._getCompositeAlpha();
 		if(canvas) {
 			ctx.drawImage(canvas, 0, 0);
 		} else {
 			this.shape.draw(ctx, color);
 		}
-		
+
 		if(this._compositeOperation) {
 			ctx.globalCompositeOperation = oldOperation;
 		}

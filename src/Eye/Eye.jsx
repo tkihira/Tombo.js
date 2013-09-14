@@ -6,7 +6,7 @@
 
 import "js/web.jsx";
 
-import "Stream.jsx";
+import "../Stream.jsx";
 import "Layer.jsx";
 import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
@@ -26,12 +26,12 @@ class Eye {
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
 	var json = "";
-	
+
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
 	static var USE_STREAM = true;
 	static var _shapeCounter = 0;
-	
+
 	/**
 	 * create instance with prepared canvas
 	 */
@@ -50,7 +50,7 @@ class Eye {
 	function constructor() {
 		this._initialize(640, 960);
 	}
-	
+
 	function _initialize(width: number, height: number): void {
 		if(Eye.USE_STREAM) {
 			this._width = width;
@@ -70,16 +70,16 @@ class Eye {
 		this._setCanvas(canvas);
 		this._layerList = []: Layer[];
 	}
-	
+
 	function _setCanvas(canvas: HTMLCanvasElement): void {
 		this._canvas = canvas;
 		this._width = canvas.width;
 		this._height = canvas.height;
 		this._ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-		
+
 		// todo: recalculate all layer's layout
 	}
-	
+
 	/**
 	 * get a node from canvas position (x, y)
 	 */
@@ -87,7 +87,7 @@ class Eye {
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
 			// todo: check dirty flag
-			
+
 			// check layout and set proper transform
 			var width = layer.layout.clientWidth;
 			var height = layer.layout.clientHeight;
@@ -104,7 +104,7 @@ class Eye {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * append a layer
 	 */
@@ -119,10 +119,10 @@ class Eye {
 		}
 		this._layerList.push(layer);
 		layer._isChild = true;
-		
+
 		// todo: set proper dirty flag
 	}
-	
+
 	/**
 	 * remove a child layer. return true if successfully removed
 	 * @param layer layer which is removed
@@ -139,7 +139,7 @@ class Eye {
 		}
 		return false;
 	}
-	
+
 	static function _calculateLayoutTransform(width: number, height: number, layer: Layer): Transform {
 		// todo: cache the result
 		var cwidth = layer.layout.clientWidth;
@@ -164,24 +164,24 @@ class Eye {
 		}
 		return new Transform(left, top, layer.layout.scale, layer.layout.scale);
 	}
-	
+
 	/**
 	 * render layers
 	 */
 	function render(): void {
 		// todo: render only if any layer is dirty
-		
+
 		if(!Eye.USE_STREAM) {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
 		}
-		
+
 		// for debug
 		if(Eye.DEBUG) {
 			this._ctx.fillStyle = "#505050";
 			this._ctx.fillRect(0, 0, this._width, this._height);
 		}
-		
+
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
 			if(Eye.USE_STREAM) {
@@ -190,14 +190,14 @@ class Eye {
 			} else {
 				// todo: check dirty flag
 				layer._render();
-				
+
 				// check layout and set proper transform
 				var width = layer.layout.clientWidth;
 				var height = layer.layout.clientHeight;
 				if(!width || !height) {
 					Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
 				}
-				
+
 				// draw
 				var transform = Eye._calculateLayoutTransform(this._width, this._height, layer);
 				this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
