@@ -592,7 +592,7 @@ class DisplayNode {
 			// is obviously true.
 			if(this._dirty) {
 				this._calcRenderRect();
-			} else if(!this._layer.hasIntersection(this._renderRect)) {
+			} else if(!this._layer.forceRedraw && !this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
 			this._dirty = false;

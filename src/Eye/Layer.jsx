@@ -43,7 +43,7 @@ class Layer {
 	/**
 	 * READONLY: redraw all nodes
 	 */
-	var forceRedraw = false;
+	var forceRedraw = true;
 	
 	static var _counter = 0;
 	var _id: number;
@@ -64,18 +64,25 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
-	function constructor(width: number, height: number) {
+	function constructor(width: number, height: number, id: number = -1) {
 		var layout = new LayoutInformation();
-		this._initialize(width, height, layout);
+		this._initialize(width, height, layout, id);
 	}
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	function constructor(width: number, height: number, layout: LayoutInformation) {
-		this._initialize(width, height, layout);
+	function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1) {
+		this._initialize(width, height, layout, id);
 	}
-	function _initialize(width: number, height: number, layout: LayoutInformation): void {
-		this._id = Layer._counter++;
+	function _initialize(width: number, height: number, layout: LayoutInformation, id: number): void {
+		if(id < 0) {
+			this._id = Layer._counter++;
+		} else {
+			this._id = id;
+			if(id >= Layer._counter) {
+				Layer._counter = id + 1;
+			}
+		}
 		this.layout = layout;
 		this.width = width;
 		this.height = height;
@@ -86,6 +93,9 @@ class Layer {
 			this._modifyCanvas();
 		}
 		this._dirtyRegions = [] : Array.<Array.<number>>;
+		if(this.forceRedraw) {
+			this._dirtyRegions = [[0, 0, this.width, this.height]];
+		}
 		this._alpha = 1;
 		this._compositeOperation = "source-over";
 	}
@@ -94,11 +104,13 @@ class Layer {
 		var scale = this.layout.scale;
 		var width = scale * this.width;
 		var height = scale * this.height;
-		if(!this._canvas) {
-			this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
+		if(!Eye.USE_STREAM) {
+			if(!this._canvas) {
+				this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
+			}
+			this._canvas.width = width;
+			this._canvas.height = height;
 		}
-		this._canvas.width = width;
-		this._canvas.height = height;
 		this.layout.clientWidth = width;
 		this.layout.clientHeight = height;
 		if(!Eye.USE_STREAM) {
@@ -222,6 +234,7 @@ class Layer {
 			var node = this._touchableNodeList[i];
 			var clientRect = node.getClientRect();
 			//log node.clientRect.left, node.clientRect.top, node.clientRect.width, node.clientRect.height, x, y;
+log clientRect;
 			if(clientRect && transform.transformRect(clientRect).isInside(x, y)) {
 				return node;
 			}
@@ -230,14 +243,11 @@ class Layer {
 	}
 	
 	function _render(): void {
-		if(!this._canvas) {
+		if(!Eye.USE_STREAM && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
 		}
 		if(Layer.USE_NEW_RENDERER) {
-			if(this.forceRedraw) {
-				this._dirtyRegions = [[0, 0, this.width, this.height]];
-			}
 			// Erase the region covered by the dirty rectangles and redraw
 			// objects that have intersections with the rectangles.
 			if(this._dirtyRegions.length == 0) {
@@ -250,6 +260,9 @@ class Layer {
 			if (!this.root.hasChildren()) {
 				context.clearRect(0, 0, this.width, this.height);
 				this._dirtyRegions = [] : Array.<Array.<number>>;
+				if(this.forceRedraw) {
+					this._dirtyRegions = [[0, 0, this.width, this.height]];
+				}
 				return;
 			}
 			if(!Eye.USE_STREAM) {
@@ -290,6 +303,9 @@ class Layer {
 				context.restore();
 			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
+			if(this.forceRedraw) {
+				this._dirtyRegions = [[0, 0, this.width, this.height]];
+			}
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
@@ -312,10 +328,13 @@ class Layer {
 		
 		//this.root._render(this._ctx);
 		this._dirtyRegions = [] : Array.<Array.<number>>;
+		if(this.forceRedraw) {
+			this._dirtyRegions = [[0, 0, this.width, this.height]];
+		}
 	}
 
 	function appendToStream(): void {
-		Stream.appendLayer(this._id, this.width, this.height, this._alpha, this._compositeOperation);
+		Stream.appendLayer(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {

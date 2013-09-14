@@ -15,6 +15,7 @@ class ImageShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
 	var isImage = true;
+	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
@@ -47,11 +48,29 @@ class ImageShape implements Shape {
 		}
 	}
 
+	function constructor(data: Array.<string>, imgMap: Map.<HTMLCanvasElement>) {
+		this._id = data[0].split(":")[1] as number;
+		//var img = (imgMap[data[2].split(":")[1]] as __noconvert__ variant) as __noconvert__ HTMLImageElement;
+		//this._img = img;
+		this._cimg = imgMap[data[2].split(":")[1]] as HTMLCanvasElement;
+		var b = data[3].split(":")[1].split(",");
+		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
+		this._isFixedScale = (data[4] == "true");
+	}
+
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
 		if(this._isFixedScale) {
-			ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
+			if(this._img) {
+				ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
+			} else {
+				ctx.drawImage(this._cimg, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
+			}
 		} else {
-			ctx.drawImage(this._img, 0, 0);
+			if(this._img) {
+				ctx.drawImage(this._img, 0, 0);
+			} else {
+				ctx.drawImage(this._cimg, 0, 0);
+			}
 		}
 	}
 
@@ -59,8 +78,8 @@ class ImageShape implements Shape {
 		var json = []: Array.<variant>;
 		json.push("id:" + this._id as string);
 		json.push("shape:ImageShape");
-		json.push("bounds:" + this.bounds.join());
 		json.push("img:" + this._imgName);
+		json.push("bounds:" + this.bounds.join());
 		json.push("isFixedScale:" + this._isFixedScale as string);
 		return json;
 	}

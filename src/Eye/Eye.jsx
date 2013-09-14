@@ -25,10 +25,11 @@ class Eye {
 	var _width: number;
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
+	var json = "";
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
-	static const USE_STREAM = true;
+	static var USE_STREAM = true;
 	static var _shapeCounter = 0;
 	
 	/**
@@ -51,8 +52,10 @@ class Eye {
 	}
 	
 	function _initialize(width: number, height: number): void {
-		if(!Eye.USE_STREAM) {
-			this._initialize(width, height);
+		if(Eye.USE_STREAM) {
+			this._width = width;
+			this._height = height;
+			this._layerList = []: Layer[];
 		} else {
 			var canvas = dom.createElement("canvas") as HTMLCanvasElement;
 			canvas.width = width;
@@ -65,15 +68,6 @@ class Eye {
 			Tombo.error("[Eye#initialize] Tombo Eye is already initialized");
 		}
 		this._setCanvas(canvas);
-		this._layerList = []: Layer[];
-	}
-	
-	function _initialize(width: number, height: number): void {
-		if(!Eye.USE_STREAM) {
-			Tombo.error("[Eye#initialize] This method is for streaming");
-		}
-		this._width = width;
-		this._width = height;
 		this._layerList = []: Layer[];
 	}
 	
@@ -101,7 +95,7 @@ class Eye {
 				Tombo.warn("[Eye#findTouchedNode] layoutInformation.clientWidth/Height is not initialized");
 			} else {
 				// todo: cache the calculated values
-				var transform = this._calculateLayoutTransform(layer);
+				var transform = Eye._calculateLayoutTransform(this._width, this._height, layer);
 				var node = layer._findTouchedNode(transform, x, y);
 				if(node) {
 					return node;
@@ -146,15 +140,15 @@ class Eye {
 		return false;
 	}
 	
-	function _calculateLayoutTransform(layer: Layer): Transform {
+	static function _calculateLayoutTransform(width: number, height: number, layer: Layer): Transform {
 		// todo: cache the result
-		var width = layer.layout.clientWidth;
-		var height = layer.layout.clientHeight;
+		var cwidth = layer.layout.clientWidth;
+		var cheight = layer.layout.clientHeight;
 		var left = 0;
 		var top = 0;
 		if(layer.layout.layoutMode & LayoutInformation.CENTER) {
-			left = (this._width - width) / 2;
-			top = (this._height - height) / 2;
+			left = (width - cwidth) / 2;
+			top = (height - cheight) / 2;
 		}
 		if(layer.layout.layoutMode & LayoutInformation.LEFT) {
 			left = layer.layout.left;
@@ -163,10 +157,10 @@ class Eye {
 			top = layer.layout.top;
 		}
 		if(layer.layout.layoutMode & LayoutInformation.RIGHT) {
-			left = this._width - width - layer.layout.right;
+			left = width - cwidth - layer.layout.right;
 		}
 		if(layer.layout.layoutMode & LayoutInformation.BOTTOM) {
-			top = this._height - height - layer.layout.bottom;
+			top = height - cheight - layer.layout.bottom;
 		}
 		return new Transform(left, top, layer.layout.scale, layer.layout.scale);
 	}
@@ -205,13 +199,13 @@ class Eye {
 				}
 				
 				// draw
-				var transform = this._calculateLayoutTransform(layer);
+				var transform = Eye._calculateLayoutTransform(this._width, this._height, layer);
 				this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
 				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 			}
 		}
 		if(Eye.USE_STREAM) {
-			log Stream.toJson();
+			this.json = Stream.toJson();
 		}
 	}
 }
