@@ -5,6 +5,7 @@ import "BasicTypes.jsx";
 import "Eye/Eye.jsx";
 import "Eye/Shape.jsx";
 import "Eye/Shapes/ImageShape.jsx";
+import "Eye/Shapes/TextShape.jsx";
 import "Eye/Layer.jsx";
 import "Eye/LayoutInformation.jsx";
 
@@ -45,6 +46,9 @@ class Stream {
 		Stream.imgMap = imgMap;
 		var obj = JSON.parse(json) as Array.<variant>;
 		var canvas = Stream.canvas;
+		var ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+		ctx.fillStyle = "#888888";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		for(var i = 0; i < obj.length; i++) {
 			var layerData = obj[i] as Map.<variant>;
@@ -55,13 +59,14 @@ class Stream {
 				Stream.layers[id]._setLayoutScale(layerData["scale"] as number);
 			}
 			var layer = Stream.layers[id];
+			layer._ctx.clearRect(0, 0, layer.width, layer.height);
 			var nodesData = layerData["nodes"] as Array.<variant>;
 			for(var j = 0; j < nodesData.length; j++) {
 				var nodeData = nodesData[j] as Array.<variant>;
 				Stream.dealNodeData(nodeData, layer._ctx);
 			}
 			var transform = Eye._calculateLayoutTransform(canvas.width, canvas.height, layer);
-			(Stream.canvas.getContext("2d") as CanvasRenderingContext2D).drawImage(layer._canvas, transform.left, transform.top);
+			ctx.drawImage(layer._canvas, transform.left, transform.top);
 		}
 	}
 	static function dealNodeData(nodeData: Array.<variant>, ctx: CanvasRenderingContext2D): void {
@@ -104,7 +109,7 @@ class Stream {
 			case "ImageShape":
 				Stream.shapes[id] = new ImageShape(shapeData, Stream.imgMap); break;
 			case "TextShape":
-				//shapes[id] = new ImageShape(shapeData); break;
+				Stream.shapes[id] = new TextShape(shapeData); break;
 			}
 		}
 		if(Stream.shapes[id]) {

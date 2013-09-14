@@ -39,10 +39,10 @@ class ImageShape implements Shape {
 		}
 	}
 
-	function constructor(img: string, destWidth: number = 0, destHeight: number = 0) {
+	function constructor(img: string, width: number = -1, height: number = -1, destWidth: number = 0, destHeight: number = 0) {
 		this._id = Eye._shapeCounter++;
 		this._imgName = img;
-		this.bounds = new Rect(0, 0, destWidth ?: -1, destHeight ?:-1);
+		this.bounds = new Rect(0, 0, destWidth ?: width, destHeight ?: height);
 		if(destWidth || destHeight) {
 			this._isFixedScale = true;
 		}

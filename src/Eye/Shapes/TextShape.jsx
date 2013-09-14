@@ -65,19 +65,19 @@ class TextShape implements Shape {
 		/** fontHeight: default 30 */
 		var fontHeight = 30;
 		function serialize(json: Array.<variant>): void {
-			json.push("wordWrap:", this.wordWrap as string);
-			json.push("multiline:", this.multiline as string);
-			json.push("border:", this.border as string);
-			json.push("textColor:", this.textColor as string);
-			json.push("borderColor:", this.borderColor as string);
-			json.push("borderWidth:", this.borderWidth as string);
-			json.push("maxLength:", this.maxLength as string);
-			json.push("font:", this.font as string);
-			json.push("leftMargin:", this.leftMargin as string);
-			json.push("rightMargin:", this.rightMargin as string);
-			json.push("align:", this.align as string);
-			json.push("valign:", this.valign as string);
-			json.push("fontHeight:", this.fontHeight as string);
+			json.push("wordWrap:" + this.wordWrap as string);
+			json.push("multiline:" + this.multiline as string);
+			json.push("border:" + this.border as string);
+			json.push("textColor:" + this.textColor as string);
+			json.push("borderColor:" + this.borderColor as string);
+			json.push("borderWidth:" + this.borderWidth as string);
+			json.push("maxLength:" + this.maxLength as string);
+			json.push("font:" + this.font as string);
+			json.push("leftMargin:" + this.leftMargin as string);
+			json.push("rightMargin:" + this.rightMargin as string);
+			json.push("align:" + this.align as string);
+			json.push("valign:" + this.valign as string);
+			json.push("fontHeight:" + this.fontHeight as string);
 		}
 	}
 	
@@ -101,7 +101,38 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 	
-	/**
+	function constructor(data: Array.<string>) {
+		this._id = data[0].split(":")[1] as number;
+		var b = data[2].split(":")[1].split(",");
+		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
+		this._text = data[3].split(":")[1];
+		
+		for(var i = 0; i < data.length; i++) {
+			var command = data[i].split(":");
+			switch(command[0]) {
+				case "wordWrap": this._option.wordWrap = (command[1] == "true"); break;
+				case "multiline": this._option.multiline = (command[1] == "true"); break;
+				case "border": this._option.border = (command[1] == "true"); break;
+				case "textColor": this._option.textColor = command[1] as number; break;
+				case "borderColor": this._option.borderColor = command[1] as number; break;
+				case "borderWidth": this._option.borderWidth = command[1] as number; break;
+				case "maxLength": this._option.maxLength = command[1] as number; break;
+				case "font": this._option.font = command[1]; break;
+				case "leftMargin": this._option.leftMargin = command[1] as number; break;
+				case "rightMargin": this._option.rightMargin = command[1] as number; break;
+				case "align": this._option.align = command[1] as number; break;
+				case "valign": this._option.valign = command[1] as number; break;
+				case "fontHeight": this._option.fontHeight = command[1] as number; break;
+			}
+		}
+		this._textCanvas = null;
+		this._textWidth = 0;
+		this._textHeight = 0;
+		this._textDirty = true;
+	}
+	
+
+		/**
 	 * set option
 	 */
 	function setOption(option: TextShape.Option): void {
@@ -338,6 +369,8 @@ class TextShape implements Shape {
 		
 		ctx.restore();
 	}
+	
+	
 	
 	override function toJsonObject(color: number): Array.<variant> {
 		var json = []: Array.<variant>;
