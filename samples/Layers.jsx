@@ -1,6 +1,5 @@
 import "js/web.jsx";
 
-import "Stream.jsx";
 import "Eye/Eye.jsx";
 import "Eye/Layer.jsx";
 import "Eye/LayoutInformation.jsx";

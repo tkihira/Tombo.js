@@ -51,16 +51,29 @@ class Eye {
 	}
 	
 	function _initialize(width: number, height: number): void {
-		var canvas = dom.createElement("canvas") as HTMLCanvasElement;
-		canvas.width = width;
-		canvas.height = height;
-		this._initialize(canvas);
+		if(!Eye.USE_STREAM) {
+			this._initialize(width, height);
+		} else {
+			var canvas = dom.createElement("canvas") as HTMLCanvasElement;
+			canvas.width = width;
+			canvas.height = height;
+			this._initialize(canvas);
+		}
 	}
 	function _initialize(canvas: HTMLCanvasElement): void {
 		if(this._canvas) {
 			Tombo.error("[Eye#initialize] Tombo Eye is already initialized");
 		}
 		this._setCanvas(canvas);
+		this._layerList = []: Layer[];
+	}
+	
+	function _initialize(width: number, height: number): void {
+		if(!Eye.USE_STREAM) {
+			Tombo.error("[Eye#initialize] This method is for streaming");
+		}
+		this._width = width;
+		this._width = height;
 		this._layerList = []: Layer[];
 	}
 	
