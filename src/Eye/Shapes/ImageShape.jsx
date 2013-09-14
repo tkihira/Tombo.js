@@ -4,9 +4,41 @@ import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
 
+interface _Image {
+	function drawImage(ctx : CanvasRenderingContext2D, width : number, height : number) : void;
+	function drawImage(ctx : CanvasRenderingContext2D) : void;
+
+	function getWidth() : number;
+	function getHeight() : number;
+}
+
+class _ImageHolder.<CanvasOrImageElement> implements _Image {
+	var _img : CanvasOrImageElement;
+
+
+	function constructor(img : CanvasOrImageElement) {
+		this._img = img;
+	}
+
+	override function drawImage(ctx : CanvasRenderingContext2D, width : number, height : number) : void {
+		ctx.drawImage(this._img, 0, 0, this.getWidth(), this.getHeight(), 0, 0, width, height);
+	}
+	override function drawImage(ctx : CanvasRenderingContext2D) : void {
+		ctx.drawImage(this._img, 0, 0);
+	}
+
+	override function getWidth() : number {
+		return this._img.width;
+	}
+
+	override function getHeight() : number {
+		return this._img.height;
+	}
+}
+
 /**
  * ImageShape class
- * 
+ *
  * <p>ImageShape has only one image, and draw the image as is</p>
  *
  * @author Takuo KIHIRA <t-kihira@broadtail.jp>
@@ -15,12 +47,11 @@ class ImageShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
 	var isImage = true;
-	var _cimg: HTMLCanvasElement;
-	var _img: HTMLImageElement;
+	var _img: _Image;
 	var _imgName: string;
 	var _isFixedScale = false;
 	var _id: number;
-	
+
 	/**
 	 * create Shape with Image Element
 	 * @param img the image element which is drawed
@@ -29,7 +60,7 @@ class ImageShape implements Shape {
 	 */
 	function constructor(img: HTMLImageElement, destWidth: number = 0, destHeight: number = 0) {
 		this._id = Eye._shapeCounter++;
-		this._img = img;
+		this._img = new _ImageHolder.<HTMLImageElement>(img);
 		if(!img.width || !img.height) {
 			Tombo.warn("[ImageShape#constructor] image is not initialized");
 		}
@@ -52,25 +83,18 @@ class ImageShape implements Shape {
 		this._id = data[0].split(":")[1] as number;
 		//var img = (imgMap[data[2].split(":")[1]] as __noconvert__ variant) as __noconvert__ HTMLImageElement;
 		//this._img = img;
-		this._cimg = imgMap[data[2].split(":")[1]] as HTMLCanvasElement;
+		var cimg = imgMap[data[2].split(":")[1]];
+		this._img = new _ImageHolder.<HTMLCanvasElement>(cimg);
 		var b = data[3].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
+		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? cimg.width: b[2] as number, (b[3] == "-1")? cimg.height: b[3] as number);
 		this._isFixedScale = (data[4] == "true");
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
 		if(this._isFixedScale) {
-			if(this._img) {
-				ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
-			} else {
-				ctx.drawImage(this._cimg, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
-			}
+			this._img.drawImage(ctx, this.bounds.width, this.bounds.height);
 		} else {
-			if(this._img) {
-				ctx.drawImage(this._img, 0, 0);
-			} else {
-				ctx.drawImage(this._cimg, 0, 0);
-			}
+			this._img.drawImage(ctx);
 		}
 	}
 

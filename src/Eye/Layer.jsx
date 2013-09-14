@@ -5,13 +5,13 @@ import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
 import "Eye.jsx";
-import "Stream.jsx";
+import "../Stream.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
 /**
  * Layer class
- * 
+ *
  * <p>Each layer has one internal on-memory canvas, but you don't need to care the canvas.
  * Layer's stage size is virtual, and the actual canvas's size is determined when the layer is appended.</p>
  *
@@ -20,7 +20,7 @@ import "../BasicTypes.jsx";
 class Layer {
 	var _canvas: HTMLCanvasElement;
 	var _ctx: CanvasRenderingContext2D;
-	
+
 	/**
 	 * READONLY: the width of layer stage size
 	 */
@@ -29,30 +29,30 @@ class Layer {
 	 * READONLY: the height of layer stage size
 	 */
 	var height: number; // final
-	
+
 	/**
 	 * READONLY: the root group. you can add DisplayNodes into this.
 	 */
 	var root: DisplayGroup = new DisplayGroup(0, 0);
-	
+
 	/**
 	 * READONLY: layout information which is belonged to this layer
 	 */
 	var layout: LayoutInformation;
-	
+
 	/**
 	 * READONLY: redraw all nodes
 	 */
 	var forceRedraw = true;
-	
+
 	static var _counter = 0;
 	var _id: number;
 	var _isChild = false;
 	var _touchableNodeList = []: DisplayNode[];
-	
+
 	var _dirtyRegions : Array.<Array.<number>>;
 	static const USE_NEW_RENDERER = true;
-	
+
 	var _drawBins = {}: Map.<Array.<DisplayNode>>;
 	var _orderDrawBins = []: Array.<int>;
 	var _dirtyDrawBins = {}: Map.<boolean>;
@@ -60,7 +60,7 @@ class Layer {
 
 	var _alpha: number;
 	var _compositeOperation: string;
-	
+
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
@@ -87,7 +87,7 @@ class Layer {
 		this.width = width;
 		this.height = height;
 		this.root._setLayer(this);
-		
+
 		if(layout.layoutMode & LayoutInformation.FIXED_SCALE) {
 			// create canvas now
 			this._modifyCanvas();
@@ -99,7 +99,7 @@ class Layer {
 		this._alpha = 1;
 		this._compositeOperation = "source-over";
 	}
-	
+
 	function _modifyCanvas(): void {
 		var scale = this.layout.scale;
 		var width = scale * this.width;
@@ -213,7 +213,7 @@ class Layer {
 	function _dirtyDrawBin(index: int): void {
 		this._dirtyDrawBins[index as string] = true;
 	}
-	
+
 	function _addTouchableNode(node: DisplayNode): void {
 		this._touchableNodeList.push(node);
 	}
@@ -241,7 +241,7 @@ log clientRect;
 		}
 		return null;
 	}
-	
+
 	function _render(): void {
 		if(!Eye.USE_STREAM && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
@@ -309,7 +309,7 @@ log clientRect;
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
-		
+
 		if (this._dirtyOrderDrawBins) {
 			this._orderDrawBins.sort((a, b) -> { return a - b; });
 			this._dirtyOrderDrawBins = false;
@@ -325,7 +325,7 @@ log clientRect;
 				bin[j]._render(this._ctx);
 			}
 		}
-		
+
 		//this.root._render(this._ctx);
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		if(this.forceRedraw) {
