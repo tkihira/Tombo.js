@@ -134,6 +134,7 @@ class Eye {
 		for(var i = 0; i < this._layerList.length; i++) {
 			if(this._layerList[i] == layer) {
 				this._layerList.splice(i, 1);
+				layer._isChild = false;
 				return true;
 			}
 		}
