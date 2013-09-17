@@ -4,10 +4,13 @@ import "js.jsx";
 import "BasicTypes.jsx";
 import "Eye/Eye.jsx";
 import "Eye/Shape.jsx";
-import "Eye/Shapes/ImageShape.jsx";
-import "Eye/Shapes/TextShape.jsx";
 import "Eye/Layer.jsx";
 import "Eye/LayoutInformation.jsx";
+
+import "Eye/Shapes/AnimationImageShape.jsx";
+import "Eye/Shapes/ImageShape.jsx";
+import "Eye/Shapes/TextShape.jsx";
+
 
 class Stream {
 	// sender
@@ -102,12 +105,14 @@ class Stream {
 	static function drawShape(shapeData: Array.<string>, ctx: CanvasRenderingContext2D): void {
 		var id = shapeData[0].split(":")[1] as number;
 		if(Stream.shapes[id]) {
-			//shapes[id].update(shapeData);
+			Stream.shapes[id].update(shapeData);
 		} else {
 			// TODO: make it factory
 			switch(shapeData[1].split(":")[1]) {
 			case "ImageShape":
 				Stream.shapes[id] = new ImageShape(shapeData, Stream.imgMap); break;
+			case "AnimationImageShape":
+				Stream.shapes[id] = new AnimationImageShape(shapeData, Stream.imgMap); break;
 			case "TextShape":
 				Stream.shapes[id] = new TextShape(shapeData); break;
 			}

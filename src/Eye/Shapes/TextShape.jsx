@@ -131,8 +131,12 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 	
+	override function update(data: Array.<string>): void {
+		// TODO: update
+	}
 
-		/**
+
+	/**
 	 * set option
 	 */
 	function setOption(option: TextShape.Option): void {

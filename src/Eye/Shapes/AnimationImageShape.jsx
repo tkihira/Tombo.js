@@ -5,21 +5,28 @@ import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
 
 /**
- * ImageShape class
+ * AnimationImageShape class
  * 
- * <p>ImageShape has only one image, and draw the image as is</p>
+ * <p>AnimationImageShape has only one image which contains animation frames, and draw the specified frame's image </p>
  *
  * @author Takuo KIHIRA <t-kihira@broadtail.jp>
  */
-class ImageShape implements Shape {
+class AnimationImageShape implements Shape {
 	var bounds: Rect;
-	var isMutable = false;
+	var isMutable = true;
 	var isImage = true;
 	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
 	var _id: number;
+	var _frame = 0;
+	
+	var _cols: number;
+	var _rows: number;
+	
+	var _partialWidth: number;
+	var _partialHeight: number;
 	
 	/**
 	 * create Shape with Image Element
@@ -27,7 +34,7 @@ class ImageShape implements Shape {
 	 * //@param destWidth the fixed width size of the destination image (optional)
 	 * //@param destHeight the fixed height size of the destination image (optional)
 	 */
-	function constructor(img: HTMLImageElement, destWidth: number = 0, destHeight: number = 0) {
+	function constructor(img: HTMLImageElement, frameCols: number, frameRows: number, destWidth: number = 0, destHeight: number = 0) {
 		this._id = Eye._shapeCounter++;
 		this._img = img;
 		if(!img.width || !img.height) {
@@ -37,15 +44,21 @@ class ImageShape implements Shape {
 		if(destWidth || destHeight) {
 			this._isFixedScale = true;
 		}
+		this._cols = frameCols;
+		this._rows = frameRows;
+		this._partialWidth = img.width / this._cols;
+		this._partialHeight = img.height / this._rows;
 	}
 
-	function constructor(img: string, width: number = -1, height: number = -1, destWidth: number = 0, destHeight: number = 0) {
+	function constructor(img: string, frameCols: number, frameRows: number, width: number = -1, height: number = -1, destWidth: number = 0, destHeight: number = 0) {
 		this._id = Eye._shapeCounter++;
 		this._imgName = img;
 		this.bounds = new Rect(0, 0, destWidth ?: width, destHeight ?: height);
 		if(destWidth || destHeight) {
 			this._isFixedScale = true;
 		}
+		this._cols = frameCols;
+		this._rows = frameRows;
 	}
 
 	function constructor(data: Array.<string>, imgMap: Map.<HTMLCanvasElement>) {
@@ -56,36 +69,53 @@ class ImageShape implements Shape {
 		var b = data[3].split(":")[1].split(",");
 		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
 		this._isFixedScale = (data[4] == "true");
-	}
-
-	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
-		if(this._isFixedScale) {
-			if(this._img) {
-				ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
-			} else {
-				ctx.drawImage(this._cimg, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
-			}
-		} else {
-			if(this._img) {
-				ctx.drawImage(this._img, 0, 0);
-			} else {
-				ctx.drawImage(this._cimg, 0, 0);
-			}
-		}
+		this._cols = data[5].split(":")[1] as number;
+		this._rows = data[6].split(":")[1] as number;
+		this._frame = data[7].split(":")[1] as number;
+		this._partialWidth = this._cimg.width / this._cols;
+		this._partialHeight = this._cimg.height / this._rows;
 	}
 
 	override function update(data: Array.<string>): void {
-		// do nothing because there is no memebr to be updated
+		this._frame = data[7].split(":")[1] as number;
 	}
 
+	function setFrame(frame: number): void {
+		this._frame = frame;
+	}
+	function getFrame(): number{
+		return this._frame;
+	}
 
+	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
+		var x = (this._frame % this._cols) * this._partialWidth;
+		var y = ((this._frame / this._cols) as int) * this._partialHeight;
+		
+		if(this._isFixedScale) {
+			if(this._img) {
+				ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+			} else {
+				ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+			}
+		} else {
+			if(this._img) {
+				ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+			} else {
+				ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+			}
+		}
+	}
+	
 	override function toJsonObject(color: number): Array.<variant> {
 		var json = []: Array.<variant>;
 		json.push("id:" + this._id as string);
-		json.push("shape:ImageShape");
+		json.push("shape:AnimationImageShape");
 		json.push("img:" + this._imgName);
 		json.push("bounds:" + this.bounds.join());
 		json.push("isFixedScale:" + this._isFixedScale as string);
+		json.push("cols:" + this._cols as string);
+		json.push("rows:" + this._rows as string);
+		json.push("frame:" + this._frame as string);
 		return json;
 	}
 }
