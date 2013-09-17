@@ -258,7 +258,9 @@ log clientRect;
 			// the context if it does not have any nodes. (It is better to avoid
 			// unnecessary calls for Canvas APIs.)
 			if (!this.root.hasChildren()) {
-				context.clearRect(0, 0, this.width, this.height);
+				if(!Eye.USE_STREAM) {
+					context.clearRect(0, 0, this.width, this.height);
+				}
 				this._dirtyRegions = [] : Array.<Array.<number>>;
 				if(this.forceRedraw) {
 					this._dirtyRegions = [[0, 0, this.width, this.height]];
