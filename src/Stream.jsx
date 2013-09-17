@@ -10,6 +10,7 @@ import "Eye/LayoutInformation.jsx";
 import "Eye/Shapes/AnimationImageShape.jsx";
 import "Eye/Shapes/ImageShape.jsx";
 import "Eye/Shapes/TextShape.jsx";
+import "Eye/Shapes/RectShape.jsx";
 
 
 class Stream {
@@ -115,6 +116,8 @@ class Stream {
 				Stream.shapes[id] = new AnimationImageShape(shapeData, Stream.imgMap); break;
 			case "TextShape":
 				Stream.shapes[id] = new TextShape(shapeData); break;
+			case "RectShape":
+				Stream.shapes[id] = new RectShape(shapeData); break;
 			}
 		}
 		if(Stream.shapes[id]) {
