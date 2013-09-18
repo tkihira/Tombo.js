@@ -810,7 +810,7 @@ class WebGLRenderFrame extends WebGLRenderShape {
 		if (blend) {
 			this.context.enable(WebGL.BLEND);
 			this.context.blendEquation(WebGL.FUNC_ADD);
-			this.context.blendFunc(WebGL.SRC_COLOR, WebGL.DST_COLOR);
+			this.context.blendFunc(blend["source"], blend["destination"]);
 		}
 		y = screenHeight - this._height - y;
 		// Copy this frame buffer to the global context.
@@ -1174,21 +1174,19 @@ class WebGLRenderLayer implements RenderLayer {
 
 	function _getBlend(compositeOperation: string): Map.<number> {
 		var blend = {
-			"source-atop": {equation: 0, source: 0, destination: 0},
-			"source-in": {equation: 0, source: 0, destination: 0},
-			"source-out": {equation: 0, source: 0, destination: 0},
-			"destination-over": {equation: 0, source: 0, destination: 0},
-			"destination-atop": {equation: 0, source: 0, destination: 0},
-			"destination-in": {equation: 0, source: 0, destination: 0},
-			"destination-out": {equation: 0, source: 0, destination: 0},
-			"lighter": {equation: WebGL.FUNC_ADD, source: WebGL.SRC_COLOR, destination: WebGL.DST_COLOR},
-			"copy": {equation: 0, source: 0, destination: 0},
-			"xor": {equation: 0, source: 0, destination: 0}
+			"source-atop": { "destination": WebGL.ONE_MINUS_DST_ALPHA, "source": WebGL.SRC_ALPHA },
+			"source-in": { "destination": WebGL.DST_ALPHA, "source": WebGL.ZERO },
+			"source-out": { "destination": WebGL.ONE_MINUS_DST_ALPHA, "source": WebGL.ZERO },
+			"destination-over": { "destination": WebGL.ONE_MINUS_DST_ALPHA, "source": WebGL.ONE },
+			"destination-atop": { "destination": WebGL.DST_ALPHA, "source": WebGL.ONE_MINUS_SRC_ALPHA },
+			"destination-in": { "destination": WebGL.ZERO, "source": WebGL.SRC_ALPHA },
+			"destination-out": { "destination": WebGL.ZERO, "source": WebGL.ONE_MINUS_SRC_ALPHA },
+			"lighter": { "destination": WebGL.ONE, "source": WebGL.ONE },
+			"copy": { "destination": WebGL.ZERO, "source": WebGL.ONE },
+			"xor": { "destination": WebGL.ONE_MINUS_DST_ALPHA, "source": WebGL.ONE_MINUS_SRC_ALPHA },
+			"darker": { "destination": WebGL.SRC_COLOR, "source": WebGL.ZERO }
 		};
-		if (compositeOperation && blend[compositeOperation]) {
-			return blend[compositeOperation];
-		}
-		return null;
+		return (compositeOperation && blend[compositeOperation]) ? blend[compositeOperation] : null;
 	}
 }
 
