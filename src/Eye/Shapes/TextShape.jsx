@@ -105,7 +105,7 @@ class TextShape implements Shape {
 		this._id = data[0].split(":")[1] as number;
 		var b = data[2].split(":")[1].split(",");
 		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
-		this._text = data[3].split(":")[1];
+		this._text = data[3].split(":").slice(1).join(":");
 		
 		for(var i = 0; i < data.length; i++) {
 			var command = data[i].split(":");
@@ -132,7 +132,33 @@ class TextShape implements Shape {
 	}
 	
 	override function update(data: Array.<string>): void {
-		// TODO: update
+		//this._id = data[0].split(":")[1] as number;
+		var b = data[2].split(":")[1].split(",");
+		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
+		this._text = data[3].split(":").slice(1).join(":");
+		
+		for(var i = 0; i < data.length; i++) {
+			var command = data[i].split(":");
+			switch(command[0]) {
+				case "wordWrap": this._option.wordWrap = (command[1] == "true"); break;
+				case "multiline": this._option.multiline = (command[1] == "true"); break;
+				case "border": this._option.border = (command[1] == "true"); break;
+				case "textColor": this._option.textColor = command[1] as number; break;
+				case "borderColor": this._option.borderColor = command[1] as number; break;
+				case "borderWidth": this._option.borderWidth = command[1] as number; break;
+				case "maxLength": this._option.maxLength = command[1] as number; break;
+				case "font": this._option.font = command[1]; break;
+				case "leftMargin": this._option.leftMargin = command[1] as number; break;
+				case "rightMargin": this._option.rightMargin = command[1] as number; break;
+				case "align": this._option.align = command[1] as number; break;
+				case "valign": this._option.valign = command[1] as number; break;
+				case "fontHeight": this._option.fontHeight = command[1] as number; break;
+			}
+		}
+		this._textCanvas = null;
+		this._textWidth = 0;
+		this._textHeight = 0;
+		this._textDirty = true;
 	}
 
 
