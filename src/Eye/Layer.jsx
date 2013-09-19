@@ -236,7 +236,16 @@ class Layer {
 			//log node.clientRect.left, node.clientRect.top, node.clientRect.width, node.clientRect.height, x, y;
 log clientRect;
 			if(clientRect && transform.transformRect(clientRect).isInside(x, y)) {
-				return node;
+				var ret = node;
+				while(node) {
+					if(!node._visible) {
+						break;
+					}
+					node = node.parent;
+				}
+				if(!node) {
+					return ret;
+				}
 			}
 		}
 		return null;

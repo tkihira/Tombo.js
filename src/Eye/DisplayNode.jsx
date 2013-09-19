@@ -512,8 +512,12 @@ class DisplayNode {
 	}
 
 	function _render(ctx: CanvasRenderingContext2D): void {
-		if(!this._visible) {
-			return;
+		var node = this;
+		while(node) {
+			if(!node._visible) {
+				return;
+			}
+			node = node.parent;
 		}
 		this._json = []: variant[];
 		this._json.push("node:" + this._id as string);
