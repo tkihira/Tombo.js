@@ -35,7 +35,14 @@ class RectShape implements Shape {
 	}
 
 	override function update(data: Array.<string>): void {
-		// do nothing because there is no memebr to be updated
+		this._color = data[3].split(":")[1] as number;
+	}
+
+	function setColor(color: number): void {
+		if(this._color != color) {
+			this._color = color;
+			// TODO: set dirty flag
+		}
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
