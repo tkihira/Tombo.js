@@ -62,10 +62,10 @@ class DisplayGroup extends DisplayNode {
 		node._setLayer(this._layer);
 		
 		if(this._groupDrawBin && !node._drawBin) {
-			node._drawBin = this._groupDrawBin;
+			node.setDrawBin(this._groupDrawBin);
 		}
 		if(this._groupDrawOrder && !node._drawOrder) {
-			node._drawOrder = this._groupDrawOrder;
+			node.setDrawOrder(this._groupDrawOrder);
 		}
 	}
 	/**
