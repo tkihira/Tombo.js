@@ -50,6 +50,9 @@ class DisplayGroup extends DisplayNode {
 		super(null);
 	}
 	
+	var _groupDrawBin = 0;
+	var _groupDrawOrder = 0;
+	
 	/**
 	 * append child. You can also append DisplayGroup
 	 */
@@ -58,11 +61,11 @@ class DisplayGroup extends DisplayNode {
 		node._setParent(this);
 		node._setLayer(this._layer);
 		
-		if(this._drawBin && !node._drawBin) {
-			node._drawBin = this._drawBin;
+		if(this._groupDrawBin && !node._drawBin) {
+			node._drawBin = this._groupDrawBin;
 		}
-		if(this._drawOrder && !node._drawOrder) {
-			node._drawOrder = this._drawOrder;
+		if(this._groupDrawOrder && !node._drawOrder) {
+			node._drawOrder = this._groupDrawOrder;
 		}
 	}
 	/**
@@ -109,7 +112,7 @@ class DisplayGroup extends DisplayNode {
 	 * @param value the primary z-order value. the smaller, the more behind
 	 */
 	override function setDrawBin(value: int): void {
-		this._drawBin = value;
+		this._groupDrawBin = value;
 		for(var i = 0; i < this._children.length; i++) {
 			this._children[i].setDrawBin(value);
 		}
@@ -119,7 +122,7 @@ class DisplayGroup extends DisplayNode {
 	 * @param value the secondary z-order value. the smaller, the more behind
 	 */
 	override function setDrawOrder(value: number): void {
-		this._drawOrder = value;
+		this._groupDrawOrder = value;
 		for(var i = 0; i < this._children.length; i++) {
 			this._children[i].setDrawOrder(value);
 		}
