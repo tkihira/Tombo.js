@@ -276,4 +276,5 @@ class Color {
 		var a = (color & 0xFF) as number;
 		return "rgba(" + (r as string) + "," + (g as string) + "," + (b as string) + "," + ((a / 255) as string) + ")";
 	}
+	static const WHITE = Color.createRGB(255, 255, 255);
 }

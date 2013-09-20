@@ -305,8 +305,13 @@ class TextShape implements Shape {
 	}
 	
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
-		if(this._option.textColor != color) {
-			this._option.textColor = color;
+		if(this._option.textColor != color && color != Color.WHITE) {
+			if(this._option.textColor == Color.WHITE) {
+				this._option.textColor = color;
+			} else {
+				// TODO: multiply color value
+				this._option.textColor = color;
+			}
 			this._textDirty = true;
 		}
 		if(TextShape.USE_CACHE) {
