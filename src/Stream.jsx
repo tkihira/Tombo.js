@@ -12,6 +12,10 @@ import "Eye/Shapes/ImageShape.jsx";
 import "Eye/Shapes/TextShape.jsx";
 import "Eye/Shapes/RectShape.jsx";
 
+interface Sink {
+	function sendLayerCount(layerCount: number): void;
+	function sendLayerInfo(id: number, width: number, height: number, layoutScale: number): void;
+}
 
 class Stream {
 	// sender
@@ -37,7 +41,30 @@ class Stream {
 		Stream.json = []: Array.<variant>;
 		return ret;
 	}
-	
+
+	static var _sink: Sink;
+	static function setSink(sink: Sink): void {
+		assert Stream._sink == null;
+		Stream._sink = sink;
+	}
+
+	static function sendLayerCount(layerCount: number): void {
+		if (! Stream._sink) {
+			log 'sendLayerCount: Sink not set';
+			return;
+		}
+		Stream._sink.sendLayerCount(layerCount);
+	}
+
+	static function sendLayerInfo(id: number, width: number, height: number, scale: number): void {
+		if (! Stream._sink) {
+			log 'sendLayerInfo: Sink not set';
+			return;
+		}
+		Stream._sink.sendLayerInfo(id, width, height, scale);
+	}
+
+
 	// receiver
 	static var canvas: HTMLCanvasElement = null;
 	static var layers = []: Array.<Layer>;

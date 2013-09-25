@@ -207,6 +207,8 @@ class Eye {
 		}
 		if(Eye.USE_STREAM) {
 			this.json = Stream.toJson();
+
+			Stream.sendLayerCount(this._layerList.length);
 		}
 	}
 }

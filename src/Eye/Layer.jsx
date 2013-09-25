@@ -255,6 +255,8 @@ log clientRect;
 		if(!Eye.USE_STREAM && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
+		} else {
+			Stream.sendLayerInfo(this._id, this.width, this.height, this.layout.scale);
 		}
 		if(Layer.USE_NEW_RENDERER) {
 			// Erase the region covered by the dirty rectangles and redraw
