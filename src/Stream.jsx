@@ -14,7 +14,7 @@ import "Eye/Shapes/RectShape.jsx";
 
 interface Sink {
 	function sendLayerCount(layerCount: number): void;
-	function sendLayerInfo(id: number, width: number, height: number, layoutScale: number): void;
+	function sendLayerInfo(id: number, width: number, height: number, alpha: number, compositeOperation: string, layoutMode: int, layoutScale: number): void;
 }
 
 class Stream {
@@ -56,12 +56,12 @@ class Stream {
 		Stream._sink.sendLayerCount(layerCount);
 	}
 
-	static function sendLayerInfo(id: number, width: number, height: number, scale: number): void {
+	static function sendLayerInfo(layer: Layer): void {
 		if (! Stream._sink) {
 			log 'sendLayerInfo: Sink not set';
 			return;
 		}
-		Stream._sink.sendLayerInfo(id, width, height, scale);
+		Stream._sink.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
 	}
 
 
