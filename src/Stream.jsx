@@ -19,26 +19,18 @@ interface Sink {
 
 class Stream {
 	// sender
-	static var json = []: Array.<variant>;
+	static var nodesInLayers = []: Array.<variant>;
 
-	static function append(value: Array.<variant>): void {
-		(Stream.json[Stream.json.length - 1]["nodes"] as Array.<variant>).push(value);
-	}
-	static function appendLayer(id: number, width:number, height: number, alpha: number, compositeOperation: string, layoutMode: int, scale: number): void {
-		var layer = {}: Map.<variant>;
-		layer["id"] = id;
-		layer["width"] = width;
-		layer["height"] = height;
-		layer["alpha"] = alpha;
-		layer["compositeOperation"] = compositeOperation;
-		layer["nodes"] = []: Array.<variant>;
-		layer["layoutMode"] = layoutMode;
-		layer["scale"] = scale;
-		Stream.json.push(layer);
+	static function append(layerId: number, value: Array.<variant>): void {
+		if (! Stream.nodesInLayers[layerId]) {
+			Stream.nodesInLayers[layerId] = []: Array.<variant>;
+		}
+
+		(Stream.nodesInLayers[layerId] as Array.<variant>).push(value);
 	}
 	static function toJson(): string {
-		var ret = JSON.stringify(Stream.json);
-		Stream.json = []: Array.<variant>;
+		var ret = JSON.stringify(Stream.nodesInLayers);
+		Stream.nodesInLayers = []: Array.<variant>;
 		return ret;
 	}
 
@@ -73,25 +65,19 @@ class Stream {
 	}
 	static var imgMap: Map.<HTMLCanvasElement>;
 	static function build(json: string, imgMap: Map.<HTMLCanvasElement>): void {
-		Eye.USE_STREAM = false;
 		Stream.imgMap = imgMap;
-		var obj = JSON.parse(json) as Array.<variant>;
+		var nodesInLayers = JSON.parse(json) as Array.<variant>;
 		var canvas = Stream.canvas;
 		var ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.fillStyle = "#888888";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
-		for(var i = 0; i < obj.length; i++) {
-			var layerData = obj[i] as Map.<variant>;
-			var id = layerData["id"] as number;
-			if(!Stream.layers[id]) {
-				var layout = new LayoutInformation(layerData["layoutMode"] as int);
-				Stream.layers[id] = new Layer(layerData["width"] as number, layerData["height"] as number, layout, id);
-				Stream.layers[id]._setLayoutScale(layerData["scale"] as number);
-			}
-			var layer = Stream.layers[id];
+		for(var i = 0; i < nodesInLayers.length; i++) {
+			var layer = Stream.layers[i];
+			assert layer != null;
 			layer._ctx.clearRect(0, 0, layer.width, layer.height);
-			var nodesData = layerData["nodes"] as Array.<variant>;
+
+			var nodesData = nodesInLayers[i] as Array.<variant>;
 			for(var j = 0; j < nodesData.length; j++) {
 				var nodeData = nodesData[j] as Array.<variant>;
 				Stream.dealNodeData(nodeData, layer._ctx);

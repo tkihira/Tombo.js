@@ -614,7 +614,7 @@ class DisplayNode {
 			}
 			this._endPaint(ctx);
 			if(Eye.USE_STREAM) {
-				Stream.append(this._json);
+				Stream.append(this._layer._id, this._json);
 				this._json = null;
 			}
 			return;
