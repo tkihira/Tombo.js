@@ -469,16 +469,22 @@ class DisplayNode {
 			return;
 		}
 		if(Eye.USE_STREAM) {
-			this._json.push("save:");
+			// this._json.push("save:");
+			Stream.sendSave(this);
 			if(this._compositeOperation) {
-				this._json.push("compositeOperation:" + this._compositeOperation);
+				// this._json.push("compositeOperation:" + this._compositeOperation);
+				Stream.sendCompositeOperation(this);
 			}
 			var matrix = this.getCompositeTransform().getMatrix();
-			this._json.push("matrix:" + matrix.join());
+
+			// this._json.push("matrix:" + matrix.join());
+			Stream.sendMatrix(this, matrix);
 			if(this._anchorX || this._anchorY) {
-				this._json.push("matrix:" + [1, 0, 0, 1, -this._anchorX, -this._anchorY].join());
+				// this._json.push("matrix:" + [1, 0, 0, 1, -this._anchorX, -this._anchorY].join());
+				Stream.sendMatrix(this, [1, 0, 0, 1, -this._anchorX, -this._anchorY]);
 			}
-			this._json.push("alpha:" + this._getCompositeAlpha() as string);
+			// this._json.push("alpha:" + this._getCompositeAlpha() as string);
+			Stream.sendAlpha(this, this._getCompositeAlpha());
 		} else {
 			context.save();
 			this._oldOperation = this._compositeOperation? context.globalCompositeOperation: "";
@@ -500,9 +506,11 @@ class DisplayNode {
 		}
 		if(Eye.USE_STREAM) {
 			if(this._compositeOperation) {
-				this._json.push("compositeOperation:" + this._oldOperation);
+				// this._json.push("compositeOperation:" + this._oldOperation);
+				Stream.sendCompositeOperation(this);
 			}
-			this._json.push("restore:");
+			// this._json.push("restore:");
+			Stream.sendRestore(this);
 		} else {
 			if(this._compositeOperation) {
 				context.globalCompositeOperation = this._oldOperation;

@@ -11,10 +11,17 @@ import "Eye/Shapes/AnimationImageShape.jsx";
 import "Eye/Shapes/ImageShape.jsx";
 import "Eye/Shapes/TextShape.jsx";
 import "Eye/Shapes/RectShape.jsx";
+import "Eye/DisplayNode.jsx";
 
 interface Sink {
 	function sendLayerCount(layerCount: number): void;
 	function sendLayerInfo(id: number, width: number, height: number, alpha: number, compositeOperation: string, layoutMode: int, layoutScale: number): void;
+
+	function sendSave(layerId: number): void;
+	function sendMatrix(layerId: number, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
+	function sendCompositeOperation(layerId: number, operation: string): void;
+	function sendAlpha(layerId: number, alpha: number): void;
+	function sendRestore(layerId: number): void;
 }
 
 class Stream {
@@ -40,6 +47,7 @@ class Stream {
 		Stream._sink = sink;
 	}
 
+	//  for Layer
 	static function sendLayerCount(layerCount: number): void {
 		if (! Stream._sink) {
 			log 'sendLayerCount: Sink not set';
@@ -54,6 +62,27 @@ class Stream {
 			return;
 		}
 		Stream._sink.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+	}
+
+	// for DisplayNode
+	static function sendSave(node: DisplayNode): void {
+		Stream._sink.sendSave(node._layer._id);
+	}
+
+	static function sendMatrix(node: DisplayNode, matrix: Array.<number>): void {
+		Stream._sink.sendMatrix(node._layer._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+	}
+
+	static function sendCompositeOperation(node: DisplayNode): void {
+		Stream._sink.sendCompositeOperation(node._layer._id, node._compositeOperation);
+	}
+
+	static function sendAlpha(node: DisplayNode, alpha: number): void {
+		Stream._sink.sendAlpha(node._layer._id, alpha);
+	}
+
+	static function sendRestore(node: DisplayNode): void {
+		Stream._sink.sendRestore(node._layer._id);
 	}
 
 
@@ -89,27 +118,7 @@ class Stream {
 	static function dealNodeData(nodeData: Array.<variant>, ctx: CanvasRenderingContext2D): void {
 		for(var i = 0; i < nodeData.length; i++) {
 			var data = nodeData[i];
-			if(typeof data == "string") {
-				var command = (data as string).split(":");
-				switch(command[0]) {
-				case "save":
-					ctx.save();
-					break;
-				case "matrix":
-					js.invoke(ctx, "transform", command[1].split(",") as __noconvert__ variant[]);
-					break;
-				case "alpha":
-					ctx.globalAlpha = command[1] as number;
-					break;
-				case "restore":
-					ctx.restore();
-					break;
-				case "node":
-					break;
-				default:
-					log "unknown command:" + command[0];
-				}
-			} else {
+			if(typeof data != "string") {
 				var shapeData = data as Array.<string>;
 				Stream.drawShape(shapeData, ctx);
 			}
