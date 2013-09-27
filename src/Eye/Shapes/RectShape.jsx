@@ -34,6 +34,12 @@ class RectShape implements Shape {
 		this._color = data[3].split(":")[1] as number;
 	}
 
+	function constructor(id: number, bounds: Rect, color: number) {
+		this._id = id;
+		this.bounds = bounds;
+		this._color = color;
+    }
+
 	override function update(data: Array.<string>): void {
 		this._color = data[3].split(":")[1] as number;
 	}
@@ -64,6 +70,9 @@ class RectShape implements Shape {
 	override function serialize(color: number): Array.<variant> {
 		var ret = [] : Array.<variant>;
 		ret.push("RectShape");
+		ret.push(this._id);
+		ret.push(this.bounds);
+		ret.push(this._color);
 		return ret;
 	}
 }
