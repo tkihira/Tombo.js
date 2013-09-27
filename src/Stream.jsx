@@ -28,21 +28,6 @@ interface Sink {
 
 class Stream {
 	// sender
-	static var nodesInLayers = []: Array.<variant>;
-
-	static function append(layerId: number, value: Array.<variant>): void {
-		if (! Stream.nodesInLayers[layerId]) {
-			Stream.nodesInLayers[layerId] = []: Array.<variant>;
-		}
-
-		(Stream.nodesInLayers[layerId] as Array.<variant>).push(value);
-	}
-	static function toJson(): string {
-		var ret = JSON.stringify(Stream.nodesInLayers);
-		Stream.nodesInLayers = []: Array.<variant>;
-		return ret;
-	}
-
 	static var _sink: Sink;
 	static function setSink(sink: Sink): void {
 		assert Stream._sink == null;

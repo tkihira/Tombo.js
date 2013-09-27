@@ -209,9 +209,5 @@ class Eye {
 				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 			}
 		}
-		if(Eye.USE_STREAM) {
-			this.json = Stream.toJson();
-			// Stream.sendLayerCount(this._layerList.length);
-		}
 	}
 }
