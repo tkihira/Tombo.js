@@ -25,5 +25,6 @@ interface Shape {
 	/** jsonize shape */
 	function toJsonObject(color: number): Array.<variant>;
 
-	function serialize(color: number): Array.<variant>;
+	/** since JSX does not have reflection */
+	function getType(): string;
 }

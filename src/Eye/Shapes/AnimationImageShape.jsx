@@ -138,16 +138,7 @@ class AnimationImageShape implements Shape {
 		return json;
 	}
 
-	override function serialize(color: number): Array.<variant> {
-		var ret = []: Array.<variant>;
-		ret.push("AnimationImageShape");
-		ret.push(this._id);
-		ret.push(this._imgName);
-		ret.push(this.bounds);
-		ret.push(this._isFixedScale);
-		ret.push(this._cols);
-		ret.push(this._rows);
-		ret.push(this._frame);
-		return ret;
+	override function getType(): string {
+		return "AnimationImageShape";
 	}
 }

@@ -99,13 +99,7 @@ class ImageShape implements Shape {
 		return json;
 	}
 
-	override function serialize(color: number): Array.<variant> {
-		var ret = []: Array.<variant>;
-		ret.push('ImageShape');
-		ret.push(this._id);
-		ret.push(this._imgName);
-		ret.push(this.bounds);
-		ret.push(this._isFixedScale);
-		return ret;
+	override function getType(): string {
+		return "ImageShape";
 	}
 }

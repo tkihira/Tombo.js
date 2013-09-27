@@ -449,19 +449,7 @@ class TextShape implements Shape {
 		return json;
 	}
 
-	override function serialize(color: number): Array.<variant> {
-		var ret = [] : Array.<variant>;
-		ret.push("TextShape");
-        ret.push(this._id);
-        ret.push(this.bounds);
-        ret.push(this._text);
-
-        // FIXME: how do we serialize options?
-        var optionArray = [] : Array.<variant>;
-        this._option.serialize(optionArray);
-        var optionStr = JSON.stringify(optionArray);
-        ret.push(optionStr);
-
-		return ret;
+	override function getType(): string {
+		return "TextShape";
 	}
 }
