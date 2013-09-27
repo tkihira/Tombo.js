@@ -180,9 +180,9 @@ class TextShape implements Shape {
 		var textHeight = fontHeight * stringArray.length;
 		if(this._textWidth != textWidth || this._textHeight != textHeight) {
 			this._textWidth = textWidth;
-			this._textCanvas.width = textWidth;
+			this._textCanvas.width = textWidth + this._option.rightMargin + 2;
 			this._textHeight = textHeight;
-			this._textCanvas.height = textHeight;
+			this._textCanvas.height = textHeight + 2;
 		}
 		var ctx = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
