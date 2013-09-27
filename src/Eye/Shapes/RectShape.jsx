@@ -60,4 +60,10 @@ class RectShape implements Shape {
 		json.push("color:" + this._color as string);
 		return json;
 	}
+
+	override function serialize(color: number): Array.<variant> {
+		var ret = [] : Array.<variant>;
+		ret.push("RectShape");
+		return ret;
+	}
 }

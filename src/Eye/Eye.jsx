@@ -171,8 +171,11 @@ class Eye {
 	 */
 	function render(): void {
 		// todo: render only if any layer is dirty
-		
-		if(!Eye.USE_STREAM) {
+
+		if(Eye.USE_STREAM) {
+			// send Eye.renderBegin message to sink.
+			Stream.sendLayerCount(this._layerList.length);
+		} else {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
 		}
@@ -188,6 +191,7 @@ class Eye {
 			if(Eye.USE_STREAM) {
 				layer.appendToStream();
 				layer._render();
+				layer.endStream();
 			} else {
 				// todo: check dirty flag
 				layer._render();
@@ -207,8 +211,7 @@ class Eye {
 		}
 		if(Eye.USE_STREAM) {
 			this.json = Stream.toJson();
-
-			Stream.sendLayerCount(this._layerList.length);
+			// Stream.sendLayerCount(this._layerList.length);
 		}
 	}
 }

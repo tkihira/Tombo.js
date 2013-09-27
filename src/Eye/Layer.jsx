@@ -348,6 +348,10 @@ log clientRect;
 		Stream.sendLayerInfo(this);
 	}
 
+	function endStream(): void {
+		Stream.endLayer(this);
+	}
+
 	function setForceRedraw(forceRedraw: boolean): void {
 		this.forceRedraw = forceRedraw;
 	}

@@ -16,12 +16,14 @@ import "Eye/DisplayNode.jsx";
 interface Sink {
 	function sendLayerCount(layerCount: number): void;
 	function sendLayerInfo(id: number, width: number, height: number, alpha: number, compositeOperation: string, layoutMode: int, layoutScale: number): void;
+	function endLayer(id: number): void;
 
 	function sendSave(layerId: number): void;
 	function sendMatrix(layerId: number, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
 	function sendCompositeOperation(layerId: number, operation: string): void;
 	function sendAlpha(layerId: number, alpha: number): void;
 	function sendRestore(layerId: number): void;
+	function sendShape(layerId: number, shape: Shape): void;
 }
 
 class Stream {
@@ -64,6 +66,14 @@ class Stream {
 		Stream._sink.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
 	}
 
+	static function endLayer(layer: Layer): void {
+		if (! Stream._sink) {
+			log 'endLayer: Sink not set';
+			return;
+		}
+		Stream._sink.endLayer(layer._id);
+	}
+
 	// for DisplayNode
 	static function sendSave(node: DisplayNode): void {
 		Stream._sink.sendSave(node._layer._id);
@@ -85,6 +95,11 @@ class Stream {
 		Stream._sink.sendRestore(node._layer._id);
 	}
 
+	// for Shape
+	static function sendShape(node: DisplayNode, shape: Shape): void {
+		Stream._sink.sendShape(node._layer._id, shape);
+	}
+
 
 	// receiver
 	static var canvas: HTMLCanvasElement = null;
@@ -94,25 +109,25 @@ class Stream {
 	}
 	static var imgMap: Map.<HTMLCanvasElement>;
 	static function build(json: string, imgMap: Map.<HTMLCanvasElement>): void {
-		Stream.imgMap = imgMap;
+		// Stream.imgMap = imgMap;
 		var nodesInLayers = JSON.parse(json) as Array.<variant>;
 		var canvas = Stream.canvas;
 		var ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-		ctx.fillStyle = "#888888";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		// ctx.fillStyle = "#888888";
+		// ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		for(var i = 0; i < nodesInLayers.length; i++) {
 			var layer = Stream.layers[i];
 			assert layer != null;
-			layer._ctx.clearRect(0, 0, layer.width, layer.height);
+			// layer._ctx.clearRect(0, 0, layer.width, layer.height);
 
 			var nodesData = nodesInLayers[i] as Array.<variant>;
 			for(var j = 0; j < nodesData.length; j++) {
 				var nodeData = nodesData[j] as Array.<variant>;
 				Stream.dealNodeData(nodeData, layer._ctx);
 			}
-			var transform = Eye._calculateLayoutTransform(canvas.width, canvas.height, layer);
-			ctx.drawImage(layer._canvas, transform.left, transform.top);
+			// var transform = Eye._calculateLayoutTransform(canvas.width, canvas.height, layer);
+			// ctx.drawImage(layer._canvas, transform.left, transform.top);
 		}
 	}
 	static function dealNodeData(nodeData: Array.<variant>, ctx: CanvasRenderingContext2D): void {
@@ -133,7 +148,7 @@ class Stream {
 			// TODO: make it factory
 			switch(shapeData[1].split(":")[1]) {
 			case "ImageShape":
-				Stream.shapes[id] = new ImageShape(shapeData, Stream.imgMap); break;
+				// Stream.shapes[id] = new ImageShape(shapeData, Stream.imgMap); break;
 			case "AnimationImageShape":
 				Stream.shapes[id] = new AnimationImageShape(shapeData, Stream.imgMap); break;
 			case "TextShape":

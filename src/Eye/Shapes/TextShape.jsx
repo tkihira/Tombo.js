@@ -416,4 +416,10 @@ class TextShape implements Shape {
 		this._option.serialize(json);
 		return json;
 	}
+
+	override function serialize(color: number): Array.<variant> {
+		var ret = [] : Array.<variant>;
+		ret.push("TextShape");
+		return ret;
+	}
 }

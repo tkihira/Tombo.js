@@ -615,14 +615,16 @@ class DisplayNode {
 				}
 			} else {
 				if(Eye.USE_STREAM) {
-					this._json.push(this.shape.toJsonObject(color));
+					// serialize the Shape, send it to Sink
+					Stream.sendShape(this, this.shape);
+					// this._json.push(this.shape.toJsonObject(color));
 				} else {
 					this.shape.draw(ctx, color);
 				}
 			}
 			this._endPaint(ctx);
 			if(Eye.USE_STREAM) {
-				Stream.append(this._layer._id, this._json);
+				// Stream.append(this._layer._id, this._json);
 				this._json = null;
 			}
 			return;
