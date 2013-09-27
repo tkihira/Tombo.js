@@ -38,7 +38,7 @@ class RectShape implements Shape {
 		this._id = id;
 		this.bounds = bounds;
 		this._color = color;
-    }
+	}
 
 	override function update(data: Array.<string>): void {
 		this._color = data[3].split(":")[1] as number;
