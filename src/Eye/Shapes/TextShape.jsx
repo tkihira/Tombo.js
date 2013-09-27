@@ -131,6 +131,38 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 	
+	function constructor(id: number, bounds: Rect, text: string, option: string) {
+		this._id = id;
+		this.bounds = bounds;
+		this._text = text;
+
+		var data = JSON.parse(option) as Array.<string>;
+
+		for(var i = 0; i < data.length; i++) {
+			var command = data[i].split(":");
+			switch(command[0]) {
+				case "wordWrap": this._option.wordWrap = (command[1] == "true"); break;
+				case "multiline": this._option.multiline = (command[1] == "true"); break;
+				case "border": this._option.border = (command[1] == "true"); break;
+				case "textColor": this._option.textColor = command[1] as number; break;
+				case "borderColor": this._option.borderColor = command[1] as number; break;
+				case "borderWidth": this._option.borderWidth = command[1] as number; break;
+				case "maxLength": this._option.maxLength = command[1] as number; break;
+				case "font": this._option.font = command[1]; break;
+				case "leftMargin": this._option.leftMargin = command[1] as number; break;
+				case "rightMargin": this._option.rightMargin = command[1] as number; break;
+				case "align": this._option.align = command[1] as number; break;
+				case "valign": this._option.valign = command[1] as number; break;
+				case "fontHeight": this._option.fontHeight = command[1] as number; break;
+			}
+		}
+
+		this._textCanvas = null;
+		this._textWidth = 0;
+		this._textHeight = 0;
+		this._textDirty = true;
+	}
+
 	override function update(data: Array.<string>): void {
 		//this._id = data[0].split(":")[1] as number;
 		var b = data[2].split(":")[1].split(",");
@@ -420,6 +452,16 @@ class TextShape implements Shape {
 	override function serialize(color: number): Array.<variant> {
 		var ret = [] : Array.<variant>;
 		ret.push("TextShape");
+        ret.push(this._id);
+        ret.push(this.bounds);
+        ret.push(this._text);
+
+        // FIXME: how do we serialize options?
+        var optionArray = [] : Array.<variant>;
+        this._option.serialize(optionArray);
+        var optionStr = JSON.stringify(optionArray);
+        ret.push(optionStr);
+
 		return ret;
 	}
 }
