@@ -51,11 +51,16 @@ class TextShape implements Shape {
 		var font = "";
 		//** fontClass: font class name*/
 		//var fontClass = "";
-		//var autoSize = false;
+		/** autoSize: default false */
+		var autoSize = false;
 		/** leftMargin: default 0 */
 		var leftMargin = 0;
 		/** rightMargin: default 0 */
 		var rightMargin = 0;
+		/** topMargin: default 0 */
+		var topMargin = 0;
+		/** bottomMargin: default 0 */
+		var bottomMargin = 0;
 		/** align: default TextShape.LEFT */
 		var align = TextShape.LEFT;
 		/** valign: default TextShape.TOP */
@@ -89,6 +94,13 @@ class TextShape implements Shape {
 	function setOption(option: TextShape.Option): void {
 		this._option = option;
 		this._textDirty = true;
+		if(this._option.autoSize && this._option.wordWrap) {
+			Tombo.warn("It is not allowed to enable both the autoSize option and the wordWrap one.");
+			this._option.autoSize = false;
+		}
+		if(this._option.autoSize) {
+			this._measureTextSize();
+		}
 	}
 	
 	/**
@@ -98,9 +110,38 @@ class TextShape implements Shape {
 		if(this._text != text) {
 			this._text = text;
 			this._textDirty = true;
+			if(this._option.autoSize) {
+				this._measureTextSize();
+			}
 		}
 	}
 	
+	/**
+	 * Measures the text width of this object and changes its bounding box to
+	 * fit the text in it.
+	 */
+	function _measureTextSize(): void {
+		if(!this._textCanvas) {
+			this._textCanvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+		}
+		var context = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
+		var fontHeight = this._option.fontHeight;
+		context.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
+		var textWidth = 0;
+		var textHeight = this._option.fontHeight;
+		if(this._option.multiline) {
+			var lines = this._text.split("\n");
+			var length = lines.length;
+			for(var i = 0; i < length; ++i) {
+				textWidth = Math.max(textWidth, context.measureText(lines[i]).width);
+			}
+			textHeight *= length;
+		} else {
+			textWidth = context.measureText(this._text).width;
+		}
+		this.bounds.width = this._option.leftMargin + textWidth + this._option.rightMargin;
+		this.bounds.height = this._option.topMargin + textHeight + this._option.bottomMargin;
+	}
 	static function _splitString(targetString: string, maxLineWidth: number): string[] {
 		targetString = targetString.replace(/\r\n/, "\n").replace(/\r/, "\n");
 		if(maxLineWidth == 0) {
@@ -182,7 +223,7 @@ class TextShape implements Shape {
 			this._textWidth = textWidth;
 			this._textCanvas.width = textWidth + this._option.rightMargin + 2;
 			this._textHeight = textHeight;
-			this._textCanvas.height = textHeight + 2;
+			this._textCanvas.height = this._option.topMargin + textHeight + this._option.bottomMargin + 2;
 		}
 		var ctx = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
@@ -207,7 +248,7 @@ class TextShape implements Shape {
 			ctx.textAlign = "start";
 			break;
 		}
-		var y0 = 0;
+		var y0 = this._option.topMargin;
 		for(var i = 0, y = y0; i < stringArray.length; i++, y += fontHeight) {
 			var str = stringArray[i];
 			if(this._option.maxLength) {
