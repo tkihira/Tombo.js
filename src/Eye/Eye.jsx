@@ -169,12 +169,12 @@ class Eye {
 	/**
 	 * render layers
 	 */
-	function render(): void {
+	function render(sink: Sink = null): void {
 		// todo: render only if any layer is dirty
 
-		if(Eye.USE_STREAM) {
+		if(sink) {
 			// send Eye.renderBegin message to sink.
-			Stream.sendLayerCount(this._layerList.length);
+			sink.sendLayerCount(this._layerList.length);
 		} else {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
@@ -188,10 +188,10 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			if(Eye.USE_STREAM) {
-				layer.appendToStream();
-				layer._render();
-				layer.endStream();
+			if(sink) {
+				layer.appendToStream(sink);
+				layer._render(sink);
+				layer.endStream(sink);
 			} else {
 				// todo: check dirty flag
 				layer._render();

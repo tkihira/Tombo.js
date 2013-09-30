@@ -461,30 +461,25 @@ class DisplayNode {
 		this._compositeOperation = operation;
 	}
 
-	function _beginPaint(context: CanvasRenderingContext2D): void {
+	function _beginPaint(context: CanvasRenderingContext2D, sink: Sink = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			this._layer.setCompositeOperation(this._compositeOperation);
 			this._layer.setAlpha(this._getCompositeAlpha());
 			this._layer.setTransform(this._getRenderTransform());
 			return;
 		}
-		if(Eye.USE_STREAM) {
-			// this._json.push("save:");
-			Stream.sendSave(this);
+		if(sink) {
+			sink.sendSave(this._layer._id);
 			if(this._compositeOperation) {
-				// this._json.push("compositeOperation:" + this._compositeOperation);
-				Stream.sendCompositeOperation(this);
+				sink.sendCompositeOperation(this._layer._id, this._compositeOperation);
 			}
 			var matrix = this.getCompositeTransform().getMatrix();
 
-			// this._json.push("matrix:" + matrix.join());
-			Stream.sendMatrix(this, matrix);
+			sink.sendMatrix(this._layer._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
 			if(this._anchorX || this._anchorY) {
-				// this._json.push("matrix:" + [1, 0, 0, 1, -this._anchorX, -this._anchorY].join());
-				Stream.sendMatrix(this, [1, 0, 0, 1, -this._anchorX, -this._anchorY]);
+				sink.sendMatrix(this._layer._id, 1, 0, 0, 1, -this._anchorX, -this._anchorY);
 			}
-			// this._json.push("alpha:" + this._getCompositeAlpha() as string);
-			Stream.sendAlpha(this, this._getCompositeAlpha());
+			sink.sendAlpha(this._layer._id, this._getCompositeAlpha());
 		} else {
 			context.save();
 			this._oldOperation = this._compositeOperation? context.globalCompositeOperation: "";
@@ -500,17 +495,15 @@ class DisplayNode {
 		}
 	}
 
-	function _endPaint(context: CanvasRenderingContext2D): void {
+	function _endPaint(context: CanvasRenderingContext2D, sink: Sink = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			return;
 		}
-		if(Eye.USE_STREAM) {
+		if(sink) {
 			if(this._compositeOperation) {
-				// this._json.push("compositeOperation:" + this._oldOperation);
-				Stream.sendCompositeOperation(this);
+				sink.sendCompositeOperation(this._layer._id, this._compositeOperation);
 			}
-			// this._json.push("restore:");
-			Stream.sendRestore(this);
+			sink.sendRestore(this._layer._id);
 		} else {
 			if(this._compositeOperation) {
 				context.globalCompositeOperation = this._oldOperation;
@@ -519,7 +512,7 @@ class DisplayNode {
 		}
 	}
 
-	function _render(ctx: CanvasRenderingContext2D): void {
+	function _render(ctx: CanvasRenderingContext2D, sink: Sink = null): void {
 		var node = this;
 		while(node) {
 			if(!node._visible) {
@@ -532,7 +525,7 @@ class DisplayNode {
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
-			if(Eye.USE_STREAM) {
+			if(sink) {
 				this._json.push("transcolor:TODO");
 			} else {
 				// TODO: caching
@@ -608,23 +601,21 @@ class DisplayNode {
 				return;
 			}
 			this._dirty = false;
-			this._beginPaint(ctx);
+			this._beginPaint(ctx, sink);
 			if(canvas) {
-				if(!Eye.USE_STREAM) {
+				if(!sink) {
 					ctx.drawImage(canvas, 0, 0);
 				}
 			} else {
-				if(Eye.USE_STREAM) {
+				if(sink) {
 					// serialize the Shape, send it to Sink
-					Stream.sendShape(this, this.shape);
-					// this._json.push(this.shape.toJsonObject(color));
+					sink.sendShape(this._layer._id, this.shape);
 				} else {
 					this.shape.draw(ctx, color);
 				}
 			}
-			this._endPaint(ctx);
-			if(Eye.USE_STREAM) {
-				// Stream.append(this._layer._id, this._json);
+			this._endPaint(ctx, sink);
+			if(sink) {
 				this._json = null;
 			}
 			return;

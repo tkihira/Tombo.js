@@ -251,8 +251,8 @@ log clientRect;
 		return null;
 	}
 	
-	function _render(): void {
-		if(!Eye.USE_STREAM && !this._canvas) {
+	function _render(sink: Sink = null): void {
+		if(!sink && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
 		}
@@ -267,7 +267,7 @@ log clientRect;
 			// the context if it does not have any nodes. (It is better to avoid
 			// unnecessary calls for Canvas APIs.)
 			if (!this.root.hasChildren()) {
-				if(!Eye.USE_STREAM) {
+				if(!sink) {
 					context.clearRect(0, 0, this.width, this.height);
 				}
 				this._dirtyRegions = [] : Array.<Array.<number>>;
@@ -276,7 +276,7 @@ log clientRect;
 				}
 				return;
 			}
-			if(!Eye.USE_STREAM) {
+			if(!sink) {
 				context.save();
 				context.beginPath();
 			}
@@ -287,12 +287,12 @@ log clientRect;
 				var y  = region[1];
 				var width = region[2] - x;
 				var height = region[3] - y;
-				if(!Eye.USE_STREAM) {
+				if(!sink) {
 					context.clearRect(x, y, width, height);
 					context.rect(x, y, width, height);
 				}
 			}
-			if(!Eye.USE_STREAM) {
+			if(!sink) {
 				context.clip();
 			}
 			if (this._dirtyOrderDrawBins) {
@@ -307,10 +307,10 @@ log clientRect;
 					this._dirtyDrawBins[binIndex] = false;
 				}
 				for(var j = 0; j < bin.length; j++) {
-					bin[j]._render(this._ctx);
+					bin[j]._render(this._ctx, sink);
 				}
 			}
-			if(!Eye.USE_STREAM) {
+			if(!sink) {
 				context.restore();
 			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
@@ -333,7 +333,7 @@ log clientRect;
 				this._dirtyDrawBins[binIndex] = false;
 			}
 			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(this._ctx);
+				bin[j]._render(this._ctx, sink);
 			}
 		}
 		
@@ -344,12 +344,12 @@ log clientRect;
 		}
 	}
 
-	function appendToStream(): void {
-		Stream.sendLayerInfo(this);
+	function appendToStream(sink: Sink = null): void {
+		sink.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
 	}
 
-	function endStream(): void {
-		Stream.endLayer(this);
+	function endStream(sink: Sink = null): void {
+		sink.endLayer(this._id);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
