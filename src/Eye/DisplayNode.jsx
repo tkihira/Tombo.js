@@ -56,7 +56,6 @@ class DisplayNode {
 	var _oldOperation = "";
 	var _renderTransform: Transform;
 	static const USE_RENDER_TRANSFORM = false;
-	var _json : Array.<variant>;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -520,13 +519,11 @@ class DisplayNode {
 			}
 			node = node.parent;
 		}
-		this._json = []: variant[];
-		this._json.push("node:" + this._id as string);
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
 			if(stream) {
-				this._json.push("transcolor:TODO");
+				// this._json.push("transcolor:TODO");
 			} else {
 				// TODO: caching
 				var width = this.shape.bounds.width;
@@ -615,9 +612,6 @@ class DisplayNode {
 				}
 			}
 			this._endPaint(ctx, stream);
-			if(stream) {
-				this._json = null;
-			}
 			return;
 		}
 		ctx.save();

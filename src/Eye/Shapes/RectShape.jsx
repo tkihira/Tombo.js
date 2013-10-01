@@ -58,15 +58,6 @@ class RectShape implements Shape {
 		}
 	}
 
-	override function toJsonObject(color: number): Array.<variant> {
-		var json = []: Array.<variant>;
-		json.push("id:" + this._id as string);
-		json.push("shape:RectShape");
-		json.push("bounds:" + this.bounds.join());
-		json.push("color:" + this._color as string);
-		return json;
-	}
-
 	override function getType(): string {
 		return "RectShape";
 	}

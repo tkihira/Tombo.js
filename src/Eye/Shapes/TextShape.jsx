@@ -437,18 +437,6 @@ class TextShape implements Shape {
 		ctx.restore();
 	}
 	
-	
-	
-	override function toJsonObject(color: number): Array.<variant> {
-		var json = []: Array.<variant>;
-		json.push("id:" + this._id as string);
-		json.push("shape:TextShape");
-		json.push("bounds:" + this.bounds.join());
-		json.push("text:" + this._text);
-		this._option.serialize(json);
-		return json;
-	}
-
 	override function getType(): string {
 		return "TextShape";
 	}

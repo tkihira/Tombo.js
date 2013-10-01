@@ -25,7 +25,6 @@ class Eye {
 	var _width: number;
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
-	var json = "";
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;

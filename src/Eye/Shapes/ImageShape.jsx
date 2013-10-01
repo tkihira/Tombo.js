@@ -88,17 +88,6 @@ class ImageShape implements Shape {
 		// do nothing because there is no memebr to be updated
 	}
 
-
-	override function toJsonObject(color: number): Array.<variant> {
-		var json = []: Array.<variant>;
-		json.push("id:" + this._id as string);
-		json.push("shape:ImageShape");
-		json.push("img:" + this._imgName);
-		json.push("bounds:" + this.bounds.join());
-		json.push("isFixedScale:" + this._isFixedScale as string);
-		return json;
-	}
-
 	override function getType(): string {
 		return "ImageShape";
 	}
