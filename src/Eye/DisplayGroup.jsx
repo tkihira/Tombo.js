@@ -165,7 +165,7 @@ class DisplayGroup extends DisplayNode {
 			this._children[i]._addDirtyRectangle();
 		}
 	}
-	override function _render(ctx: CanvasRenderingContext2D, sink: Sink = null): void {
+	override function _render(ctx: CanvasRenderingContext2D, stream: Stream = null): void {
 		/*
 		if(this.shape) {
 			Tombo.warn("[DisplayGroup#render] not implemented: clipping");

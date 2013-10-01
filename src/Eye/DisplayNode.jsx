@@ -461,25 +461,25 @@ class DisplayNode {
 		this._compositeOperation = operation;
 	}
 
-	function _beginPaint(context: CanvasRenderingContext2D, sink: Sink = null): void {
+	function _beginPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			this._layer.setCompositeOperation(this._compositeOperation);
 			this._layer.setAlpha(this._getCompositeAlpha());
 			this._layer.setTransform(this._getRenderTransform());
 			return;
 		}
-		if(sink) {
-			sink.sendSave(this._layer._id);
+		if(stream) {
+			stream.sendSave(this._layer._id);
 			if(this._compositeOperation) {
-				sink.sendCompositeOperation(this._layer._id, this._compositeOperation);
+				stream.sendCompositeOperation(this._layer._id, this._compositeOperation);
 			}
 			var matrix = this.getCompositeTransform().getMatrix();
 
-			sink.sendMatrix(this._layer._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+			stream.sendMatrix(this._layer._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
 			if(this._anchorX || this._anchorY) {
-				sink.sendMatrix(this._layer._id, 1, 0, 0, 1, -this._anchorX, -this._anchorY);
+				stream.sendMatrix(this._layer._id, 1, 0, 0, 1, -this._anchorX, -this._anchorY);
 			}
-			sink.sendAlpha(this._layer._id, this._getCompositeAlpha());
+			stream.sendAlpha(this._layer._id, this._getCompositeAlpha());
 		} else {
 			context.save();
 			this._oldOperation = this._compositeOperation? context.globalCompositeOperation: "";
@@ -495,15 +495,15 @@ class DisplayNode {
 		}
 	}
 
-	function _endPaint(context: CanvasRenderingContext2D, sink: Sink = null): void {
+	function _endPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			return;
 		}
-		if(sink) {
+		if(stream) {
 			if(this._compositeOperation) {
-				sink.sendCompositeOperation(this._layer._id, this._compositeOperation);
+				stream.sendCompositeOperation(this._layer._id, this._compositeOperation);
 			}
-			sink.sendRestore(this._layer._id);
+			stream.sendRestore(this._layer._id);
 		} else {
 			if(this._compositeOperation) {
 				context.globalCompositeOperation = this._oldOperation;
@@ -512,7 +512,7 @@ class DisplayNode {
 		}
 	}
 
-	function _render(ctx: CanvasRenderingContext2D, sink: Sink = null): void {
+	function _render(ctx: CanvasRenderingContext2D, stream: Stream = null): void {
 		var node = this;
 		while(node) {
 			if(!node._visible) {
@@ -525,7 +525,7 @@ class DisplayNode {
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
-			if(sink) {
+			if(stream) {
 				this._json.push("transcolor:TODO");
 			} else {
 				// TODO: caching
@@ -601,21 +601,21 @@ class DisplayNode {
 				return;
 			}
 			this._dirty = false;
-			this._beginPaint(ctx, sink);
+			this._beginPaint(ctx, stream);
 			if(canvas) {
-				if(!sink) {
+				if(!stream) {
 					ctx.drawImage(canvas, 0, 0);
 				}
 			} else {
-				if(sink) {
-					// serialize the Shape, send it to Sink
-					sink.sendShape(this._layer._id, this.shape);
+				if(stream) {
+					// serialize the Shape, send it to stream
+					stream.sendShape(this._layer._id, this.shape);
 				} else {
 					this.shape.draw(ctx, color);
 				}
 			}
-			this._endPaint(ctx, sink);
-			if(sink) {
+			this._endPaint(ctx, stream);
+			if(stream) {
 				this._json = null;
 			}
 			return;
