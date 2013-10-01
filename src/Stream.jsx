@@ -1,18 +1,6 @@
-import "js/web.jsx";
-import "js.jsx";
-
-import "BasicTypes.jsx";
-import "Eye/Eye.jsx";
 import "Eye/Shape.jsx";
-import "Eye/Layer.jsx";
-import "Eye/LayoutInformation.jsx";
 
-import "Eye/Shapes/AnimationImageShape.jsx";
-import "Eye/Shapes/ImageShape.jsx";
-import "Eye/Shapes/TextShape.jsx";
-import "Eye/Shapes/RectShape.jsx";
-import "Eye/DisplayNode.jsx";
-
+/** Send out serialized Tombo data to stream. */
 interface Sink {
 	function sendLayerCount(layerCount: number): void;
 	function sendLayerInfo(id: number, width: number, height: number, alpha: number, compositeOperation: string, layoutMode: int, layoutScale: number): void;
