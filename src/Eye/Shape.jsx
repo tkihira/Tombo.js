@@ -22,6 +22,6 @@ interface Shape {
 	/** update with JSON */
 	function update(data: Array.<string>): void;
 
-	/** jsonize shape */
-	function toJsonObject(color: number): Array.<variant>;
+	/** since JSX does not have reflection */
+	function getType(): string;
 }

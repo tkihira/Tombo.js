@@ -25,7 +25,6 @@ class Eye {
 	var _width: number;
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
-	var json = "";
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
@@ -169,10 +168,13 @@ class Eye {
 	/**
 	 * render layers
 	 */
-	function render(): void {
+	function render(stream: Stream = null): void {
 		// todo: render only if any layer is dirty
-		
-		if(!Eye.USE_STREAM) {
+
+		if(stream) {
+			// send Eye.renderBegin message to stream.
+			stream.sendLayerCount(this._layerList.length);
+		} else {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
 		}
@@ -185,9 +187,10 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			if(Eye.USE_STREAM) {
-				layer.appendToStream();
-				layer._render();
+			if(stream) {
+				layer.appendToStream(stream);
+				layer._render(stream);
+				layer.endStream(stream);
 			} else {
 				// todo: check dirty flag
 				layer._render();
@@ -204,9 +207,6 @@ class Eye {
 				this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
 				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 			}
-		}
-		if(Eye.USE_STREAM) {
-			this.json = Stream.toJson();
 		}
 	}
 }

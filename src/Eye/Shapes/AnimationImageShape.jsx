@@ -76,8 +76,27 @@ class AnimationImageShape implements Shape {
 		this._partialHeight = this._cimg.height / this._rows;
 	}
 
+	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLCanvasElement>) {
+		log 'AnimationImageShape ctor 2: ';
+		this._id = id;
+		this._cimg = imgMap[imageId] as HTMLCanvasElement;
+		var b = bounds;
+		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
+		this._isFixedScale = isFixedScale;
+		this._cols = cols;
+		this._rows = rows;
+		this._frame = frame;
+
+		this._partialWidth = this._cimg.width / this._cols;
+		this._partialHeight = this._cimg.height / this._rows;
+	}
+
 	override function update(data: Array.<string>): void {
 		this._frame = data[7].split(":")[1] as number;
+	}
+
+	function update(nextFrame: number): void {
+		this._frame = nextFrame;
 	}
 
 	function setFrame(frame: number): void {
@@ -106,16 +125,7 @@ class AnimationImageShape implements Shape {
 		}
 	}
 	
-	override function toJsonObject(color: number): Array.<variant> {
-		var json = []: Array.<variant>;
-		json.push("id:" + this._id as string);
-		json.push("shape:AnimationImageShape");
-		json.push("img:" + this._imgName);
-		json.push("bounds:" + this.bounds.join());
-		json.push("isFixedScale:" + this._isFixedScale as string);
-		json.push("cols:" + this._cols as string);
-		json.push("rows:" + this._rows as string);
-		json.push("frame:" + this._frame as string);
-		return json;
+	override function getType(): string {
+		return "AnimationImageShape";
 	}
 }
