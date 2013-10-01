@@ -99,7 +99,7 @@ class TextShape implements Shape {
 			this._option.autoSize = false;
 		}
 		if(this._option.border) {
-			var width = this.option.borderWidth;
+			var width = this._option.borderWidth;
 			this.bounds = new Rect(-width, -width, this.bounds.width + width, this.bounds.height + width);
 		}
 		if(this._option.autoSize) {
