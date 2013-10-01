@@ -60,6 +60,8 @@ class Layer {
 
 	var _alpha: number;
 	var _compositeOperation: string;
+
+	var _stream: Stream;
 	
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
@@ -71,7 +73,11 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1) {
+	function constructor(width: number, height: number, layout: LayoutInformation, stream: Stream) {
+		this._stream = stream;
+		this._initialize(width, height, layout, -1);
+	}
+	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1) {
 		this._initialize(width, height, layout, id);
 	}
 	function _initialize(width: number, height: number, layout: LayoutInformation, id: number): void {
@@ -104,7 +110,7 @@ class Layer {
 		var scale = this.layout.scale;
 		var width = scale * this.width;
 		var height = scale * this.height;
-		if(!Eye.USE_STREAM) {
+		if(!this._stream) {
 			if(!this._canvas) {
 				this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
 			}
@@ -113,7 +119,7 @@ class Layer {
 		}
 		this.layout.clientWidth = width;
 		this.layout.clientHeight = height;
-		if(!Eye.USE_STREAM) {
+		if(!this._stream) {
 			this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
 			this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
 		}
@@ -251,8 +257,8 @@ log clientRect;
 		return null;
 	}
 	
-	function _render(stream: Stream = null): void {
-		if(!stream && !this._canvas) {
+	function _render(): void {
+		if(!this._stream && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
 		}
@@ -267,7 +273,7 @@ log clientRect;
 			// the context if it does not have any nodes. (It is better to avoid
 			// unnecessary calls for Canvas APIs.)
 			if (!this.root.hasChildren()) {
-				if(!stream) {
+				if(!this._stream) {
 					context.clearRect(0, 0, this.width, this.height);
 				}
 				this._dirtyRegions = [] : Array.<Array.<number>>;
@@ -276,7 +282,7 @@ log clientRect;
 				}
 				return;
 			}
-			if(!stream) {
+			if(!this._stream) {
 				context.save();
 				context.beginPath();
 			}
@@ -287,12 +293,12 @@ log clientRect;
 				var y  = region[1];
 				var width = region[2] - x;
 				var height = region[3] - y;
-				if(!stream) {
+				if(!this._stream) {
 					context.clearRect(x, y, width, height);
 					context.rect(x, y, width, height);
 				}
 			}
-			if(!stream) {
+			if(!this._stream) {
 				context.clip();
 			}
 			if (this._dirtyOrderDrawBins) {
@@ -307,10 +313,10 @@ log clientRect;
 					this._dirtyDrawBins[binIndex] = false;
 				}
 				for(var j = 0; j < bin.length; j++) {
-					bin[j]._render(this._ctx, stream);
+					bin[j]._render(this._ctx, this._stream);
 				}
 			}
-			if(!stream) {
+			if(!this._stream) {
 				context.restore();
 			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
@@ -333,7 +339,7 @@ log clientRect;
 				this._dirtyDrawBins[binIndex] = false;
 			}
 			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(this._ctx, stream);
+				bin[j]._render(this._ctx, this._stream);
 			}
 		}
 		
@@ -344,12 +350,12 @@ log clientRect;
 		}
 	}
 
-	function appendToStream(stream: Stream = null): void {
-		stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
+	function appendToStream(): void {
+		this._stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
 	}
 
-	function endStream(stream: Stream = null): void {
-		stream.endLayer(this._id);
+	function endStream(): void {
+		this._stream.endLayer(this._id);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
@@ -407,7 +413,7 @@ log clientRect;
 	function setAlpha(alpha: number): void {
 		if(this._alpha != alpha) {
 			this._alpha = alpha;
-			if(!Eye.USE_STREAM) {
+			if(!this._stream) {
 				this._ctx.globalAlpha = alpha;
 			}
 		}
@@ -419,7 +425,7 @@ log clientRect;
 		}
 		if(this._compositeOperation != compositeOperation) {
 			this._compositeOperation = compositeOperation;
-			if(!Eye.USE_STREAM) {
+			if(!this._stream) {
 				this._ctx.globalCompositeOperation = compositeOperation;
 			}
 		}

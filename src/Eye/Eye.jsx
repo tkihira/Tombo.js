@@ -25,10 +25,10 @@ class Eye {
 	var _width: number;
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
+	var _stream: Stream;
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
-	static var USE_STREAM = true;
 	static var _shapeCounter = 0;
 	
 	/**
@@ -40,7 +40,8 @@ class Eye {
 	/**
 	 * create instance with new canvas (width, height)
 	 */
-	function constructor(width: number, height: number) {
+	function constructor(width: number, height: number, stream: Stream = null) {
+		this._stream = stream;
 		this._initialize(width, height);
 	}
 	/**
@@ -51,7 +52,7 @@ class Eye {
 	}
 	
 	function _initialize(width: number, height: number): void {
-		if(Eye.USE_STREAM) {
+		if(this._stream) {
 			this._width = width;
 			this._height = height;
 			this._layerList = []: Layer[];
@@ -168,12 +169,12 @@ class Eye {
 	/**
 	 * render layers
 	 */
-	function render(stream: Stream = null): void {
+	function render(): void {
 		// todo: render only if any layer is dirty
 
-		if(stream) {
+		if(this._stream) {
 			// send Eye.renderBegin message to stream.
-			stream.sendLayerCount(this._layerList.length);
+			this._stream.sendLayerCount(this._layerList.length);
 		} else {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
@@ -187,10 +188,10 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			if(stream) {
-				layer.appendToStream(stream);
-				layer._render(stream);
-				layer.endStream(stream);
+			if(this._stream) {
+				layer.appendToStream();
+				layer._render();
+				layer.endStream();
 			} else {
 				// todo: check dirty flag
 				layer._render();
