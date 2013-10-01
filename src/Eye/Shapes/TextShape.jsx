@@ -98,6 +98,10 @@ class TextShape implements Shape {
 			Tombo.warn("It is not allowed to enable both the autoSize option and the wordWrap one.");
 			this._option.autoSize = false;
 		}
+		if(this._option.border) {
+			var width = this.option.borderWidth;
+			this.bounds = new Rect(-width, -width, this.bounds.width + width, this.bounds.height + width);
+		}
 		if(this._option.autoSize) {
 			this._measureTextSize();
 		}
