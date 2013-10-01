@@ -34,6 +34,12 @@ class RectShape implements Shape {
 		this._color = data[3].split(":")[1] as number;
 	}
 
+	function constructor(id: number, bounds: Rect, color: number) {
+		this._id = id;
+		this.bounds = bounds;
+		this._color = color;
+	}
+
 	override function update(data: Array.<string>): void {
 		this._color = data[3].split(":")[1] as number;
 	}
@@ -52,12 +58,7 @@ class RectShape implements Shape {
 		}
 	}
 
-	override function toJsonObject(color: number): Array.<variant> {
-		var json = []: Array.<variant>;
-		json.push("id:" + this._id as string);
-		json.push("shape:RectShape");
-		json.push("bounds:" + this.bounds.join());
-		json.push("color:" + this._color as string);
-		return json;
+	override function getType(): string {
+		return "RectShape";
 	}
 }

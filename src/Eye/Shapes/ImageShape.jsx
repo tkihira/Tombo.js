@@ -49,6 +49,7 @@ class ImageShape implements Shape {
 	}
 
 	function constructor(data: Array.<string>, imgMap: Map.<HTMLCanvasElement>) {
+		log 'ImageShape ctor 1: ';
 		this._id = data[0].split(":")[1] as number;
 		//var img = (imgMap[data[2].split(":")[1]] as __noconvert__ variant) as __noconvert__ HTMLImageElement;
 		//this._img = img;
@@ -56,6 +57,15 @@ class ImageShape implements Shape {
 		var b = data[3].split(":")[1].split(",");
 		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
 		this._isFixedScale = (data[4] == "true");
+	}
+
+	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean,  imgMap: Map.<HTMLCanvasElement>) {
+		log 'ImageShape ctor 2: ';
+		this._id = id;
+		this._cimg = imgMap[imageId] as HTMLCanvasElement;
+		var b = bounds;
+		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
+		this._isFixedScale = isFixedScale;
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
@@ -78,14 +88,7 @@ class ImageShape implements Shape {
 		// do nothing because there is no memebr to be updated
 	}
 
-
-	override function toJsonObject(color: number): Array.<variant> {
-		var json = []: Array.<variant>;
-		json.push("id:" + this._id as string);
-		json.push("shape:ImageShape");
-		json.push("img:" + this._imgName);
-		json.push("bounds:" + this.bounds.join());
-		json.push("isFixedScale:" + this._isFixedScale as string);
-		return json;
+	override function getType(): string {
+		return "ImageShape";
 	}
 }
