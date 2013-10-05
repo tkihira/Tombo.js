@@ -462,9 +462,15 @@ class DisplayNode {
 
 	function _beginPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
-			this._layer.setCompositeOperation(this._compositeOperation);
-			this._layer.setAlpha(this._getCompositeAlpha());
-			this._layer.setTransform(this._getRenderTransform());
+			if(stream) {
+				stream.sendCompositeOperation(this._layer._id, this._compositeOperation);
+				stream.sendAlpha(this._layer._id, this._getCompositeAlpha());
+				this._layer.setTransform(this._getRenderTransform());
+			} else {
+				this._layer.setCompositeOperation(this._compositeOperation);
+				this._layer.setAlpha(this._getCompositeAlpha());
+				this._layer.setTransform(this._getRenderTransform());
+			}
 			return;
 		}
 		if(stream) {

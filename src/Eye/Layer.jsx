@@ -434,6 +434,11 @@ log clientRect;
 	function setTransform(transform: Transform): void {
 		// TODO(hbono): Is it faster to cache the current transform?
 		var matrix = transform.getMatrix();
-		js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
+		if(this._stream) {
+			// TODO: kihira
+			throw "not implemented";
+		} else {
+			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
+		}
 	}
 }

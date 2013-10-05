@@ -40,7 +40,7 @@ class AnimationImageShape implements Shape {
 		if(!img.width || !img.height) {
 			Tombo.warn("[ImageShape#constructor] image is not initialized");
 		}
-		this.bounds = new Rect(0, 0, destWidth ?: img.width, destHeight ?:img.height);
+		this.bounds = new Rect(0, 0, destWidth ?: img.width / frameCols, destHeight ?:img.height / frameRows);
 		if(destWidth || destHeight) {
 			this._isFixedScale = true;
 		}
@@ -50,15 +50,17 @@ class AnimationImageShape implements Shape {
 		this._partialHeight = img.height / this._rows;
 	}
 
-	function constructor(img: string, frameCols: number, frameRows: number, width: number = -1, height: number = -1, destWidth: number = 0, destHeight: number = 0) {
+	function constructor(img: string, frameCols: number, frameRows: number, width: number, height: number, destWidth: number = 0, destHeight: number = 0) {
 		this._id = Eye._shapeCounter++;
 		this._imgName = img;
-		this.bounds = new Rect(0, 0, destWidth ?: width, destHeight ?: height);
+		this.bounds = new Rect(0, 0, destWidth ?: width / frameCols, destHeight ?: height / frameRows);
 		if(destWidth || destHeight) {
 			this._isFixedScale = true;
 		}
 		this._cols = frameCols;
 		this._rows = frameRows;
+		this._partialWidth = width / this._cols;
+		this._partialHeight = height / this._rows;
 	}
 
 	function constructor(data: Array.<string>, imgMap: Map.<HTMLCanvasElement>) {
