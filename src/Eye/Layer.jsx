@@ -400,6 +400,9 @@ log clientRect;
 		if(maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) {
 			return false;
 		}
+		if(this.forceRedraw) {
+			return true;
+		}
 		var length = this._dirtyRegions.length;
 		for(var i = 0; i < length; ++i) {
 			var region = this._dirtyRegions[i];
@@ -435,8 +438,8 @@ log clientRect;
 		// TODO(hbono): Is it faster to cache the current transform?
 		var matrix = transform.getMatrix();
 		if(this._stream) {
-			// TODO: kihira
-			throw "not implemented";
+			//this._stream.sendSetTransform(this._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+			this._stream.sendSetTransform(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
 		} else {
 			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 		}

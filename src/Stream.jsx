@@ -8,6 +8,7 @@ interface Stream {
 
 	function sendSave(layerId: number): void;
 	function sendMatrix(layerId: number, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
+	function sendSetTransform(layerId: number, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
 	function sendCompositeOperation(layerId: number, operation: string): void;
 	function sendAlpha(layerId: number, alpha: number): void;
 	function sendRestore(layerId: number): void;

@@ -55,7 +55,7 @@ class DisplayNode {
 
 	var _oldOperation = "";
 	var _renderTransform: Transform;
-	static const USE_RENDER_TRANSFORM = false;
+	static const USE_RENDER_TRANSFORM = true;
 
 	/**
 	 * create new node with shape, position, scale and rotation
@@ -600,7 +600,7 @@ class DisplayNode {
 			// is obviously true.
 			if(this._dirty) {
 				this._calcRenderRect();
-			} else if(!this._layer.forceRedraw && !this._layer.hasIntersection(this._renderRect)) {
+			} else if(!this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
 			this._dirty = false;
