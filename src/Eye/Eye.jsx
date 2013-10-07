@@ -25,7 +25,6 @@ class Eye {
 	var _width: number;
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
-	var _stream: Stream;
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
@@ -40,8 +39,7 @@ class Eye {
 	/**
 	 * create instance with new canvas (width, height)
 	 */
-	function constructor(width: number, height: number, stream: Stream = null) {
-		this._stream = stream;
+	function constructor(width: number, height: number) {
 		this._initialize(width, height);
 	}
 	/**
@@ -52,7 +50,7 @@ class Eye {
 	}
 	
 	function _initialize(width: number, height: number): void {
-		if(this._stream) {
+		if (Eye.useStreaming()) {
 			this._width = width;
 			this._height = height;
 			this._layerList = []: Layer[];
@@ -169,12 +167,12 @@ class Eye {
 	/**
 	 * render layers
 	 */
-	function render(): void {
+	function render(stream: Stream = null): void {
 		// todo: render only if any layer is dirty
 
-		if(this._stream) {
+		if(stream) {
 			// send Eye.renderBegin message to stream.
-			this._stream.sendLayerCount(this._layerList.length);
+			stream.sendLayerCount(this._layerList.length);
 		} else {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
@@ -188,10 +186,10 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			if(this._stream) {
-				layer.appendToStream();
-				layer._render();
-				layer.endStream();
+			if(stream) {
+				layer.appendToStream(stream);
+				layer._render(stream);
+				layer.endStream(stream);
 			} else {
 				// todo: check dirty flag
 				layer._render();
@@ -209,5 +207,10 @@ class Eye {
 				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 			}
 		}
+	}
+
+	// assume server side Tombo does not have dom
+	static function useStreaming(): boolean {
+		return dom.document == null;
 	}
 }
