@@ -40,9 +40,7 @@ class Eye {
 	/**
 	 * create instance with new canvas (width, height)
 	 */
-	function constructor(width: number, height: number, useStreaming: boolean) {
-		if (useStreaming)
-			this._streams = []: Stream[];
+	function constructor(width: number, height: number) {
 		this._initialize(width, height);
 	}
 	/**
@@ -53,7 +51,8 @@ class Eye {
 	}
 	
 	function _initialize(width: number, height: number): void {
-		if(this._streams) {
+		if (Eye.useStreaming()) {
+			this._streams = []: Stream[];
 			this._width = width;
 			this._height = height;
 			this._layerList = []: Layer[];
@@ -173,7 +172,7 @@ class Eye {
 	function render(): void {
 		// todo: render only if any layer is dirty
 
-		if(this._streams) {
+		if(Eye.useStreaming()) {
 			this._streams.forEach((stream) -> {
 				// send Eye.renderBegin message to stream.
 				stream.sendLayerCount(this._layerList.length);
@@ -191,7 +190,7 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			if(this._streams) {
+			if(Eye.useStreaming()) {
 				this._streams.forEach((stream) -> {
 					layer.appendToStream(stream);
 					layer._render(stream);
@@ -224,5 +223,10 @@ class Eye {
 		for (var i=0; i<this._streams.length; i++)
 			if (this._streams[i] == stream)
 				this._streams.splice(i, 1);
+	}
+
+	// assume server side Tombo does not have dom
+	static function useStreaming(): boolean {
+		return dom.document == null;
 	}
 }

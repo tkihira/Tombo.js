@@ -60,7 +60,6 @@ class Layer {
 
 	var _alpha: number;
 	var _compositeOperation: string;
-	var _useStreaming = false;
 
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
@@ -72,10 +71,6 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	function constructor(width: number, height: number, layout: LayoutInformation, useStreaming: boolean) {
-		this._useStreaming = useStreaming;
-		this._initialize(width, height, layout, -1);
-	}
 	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1) {
 		this._initialize(width, height, layout, id);
 	}
@@ -109,7 +104,7 @@ class Layer {
 		var scale = this.layout.scale;
 		var width = scale * this.width;
 		var height = scale * this.height;
-		if(!this._useStreaming) {
+		if(!Eye.useStreaming()) {
 			if(!this._canvas) {
 				this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
 			}
@@ -118,7 +113,7 @@ class Layer {
 		}
 		this.layout.clientWidth = width;
 		this.layout.clientHeight = height;
-		if(!this._useStreaming) {
+		if(!Eye.useStreaming()) {
 			this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
 			this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
 		}
@@ -415,7 +410,7 @@ log clientRect;
 	function setAlpha(alpha: number): void {
 		if(this._alpha != alpha) {
 			this._alpha = alpha;
-			if(!this._useStreaming) {
+			if(!Eye.useStreaming()) {
 				this._ctx.globalAlpha = alpha;
 			}
 		}
@@ -427,7 +422,7 @@ log clientRect;
 		}
 		if(this._compositeOperation != compositeOperation) {
 			this._compositeOperation = compositeOperation;
-			if(!this._useStreaming) {
+			if(!Eye.useStreaming()) {
 				this._ctx.globalCompositeOperation = compositeOperation;
 			}
 		}
