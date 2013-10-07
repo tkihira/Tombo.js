@@ -60,9 +60,8 @@ class Layer {
 
 	var _alpha: number;
 	var _compositeOperation: string;
+	var _useStreaming = false;
 
-	var _stream: Stream;
-	
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
@@ -73,8 +72,8 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	function constructor(width: number, height: number, layout: LayoutInformation, stream: Stream) {
-		this._stream = stream;
+	function constructor(width: number, height: number, layout: LayoutInformation, useStreaming: boolean) {
+		this._useStreaming = useStreaming;
 		this._initialize(width, height, layout, -1);
 	}
 	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1) {
@@ -110,7 +109,7 @@ class Layer {
 		var scale = this.layout.scale;
 		var width = scale * this.width;
 		var height = scale * this.height;
-		if(!this._stream) {
+		if(!this._useStreaming) {
 			if(!this._canvas) {
 				this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
 			}
@@ -119,7 +118,7 @@ class Layer {
 		}
 		this.layout.clientWidth = width;
 		this.layout.clientHeight = height;
-		if(!this._stream) {
+		if(!this._useStreaming) {
 			this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
 			this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
 		}
@@ -257,8 +256,8 @@ log clientRect;
 		return null;
 	}
 	
-	function _render(): void {
-		if(!this._stream && !this._canvas) {
+	function _render(stream: Stream = null): void {
+		if(!stream && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
 		}
@@ -273,7 +272,7 @@ log clientRect;
 			// the context if it does not have any nodes. (It is better to avoid
 			// unnecessary calls for Canvas APIs.)
 			if (!this.root.hasChildren()) {
-				if(!this._stream) {
+				if(!stream) {
 					context.clearRect(0, 0, this.width, this.height);
 				}
 				this._dirtyRegions = [] : Array.<Array.<number>>;
@@ -282,7 +281,7 @@ log clientRect;
 				}
 				return;
 			}
-			if(!this._stream) {
+			if(!stream) {
 				context.save();
 				context.beginPath();
 			}
@@ -293,12 +292,12 @@ log clientRect;
 				var y  = region[1];
 				var width = region[2] - x;
 				var height = region[3] - y;
-				if(!this._stream) {
+				if(!stream) {
 					context.clearRect(x, y, width, height);
 					context.rect(x, y, width, height);
 				}
 			}
-			if(!this._stream) {
+			if(!stream) {
 				context.clip();
 			}
 			if (this._dirtyOrderDrawBins) {
@@ -313,10 +312,10 @@ log clientRect;
 					this._dirtyDrawBins[binIndex] = false;
 				}
 				for(var j = 0; j < bin.length; j++) {
-					bin[j]._render(this._ctx, this._stream);
+					bin[j]._render(this._ctx, stream);
 				}
 			}
-			if(!this._stream) {
+			if(!stream) {
 				context.restore();
 			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
@@ -339,7 +338,7 @@ log clientRect;
 				this._dirtyDrawBins[binIndex] = false;
 			}
 			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(this._ctx, this._stream);
+				bin[j]._render(this._ctx, stream);
 			}
 		}
 		
@@ -350,12 +349,12 @@ log clientRect;
 		}
 	}
 
-	function appendToStream(): void {
-		this._stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
+	function appendToStream(stream: Stream): void {
+		stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
 	}
 
-	function endStream(): void {
-		this._stream.endLayer(this._id);
+	function endStream(stream: Stream): void {
+		stream.endLayer(this._id);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
@@ -416,7 +415,7 @@ log clientRect;
 	function setAlpha(alpha: number): void {
 		if(this._alpha != alpha) {
 			this._alpha = alpha;
-			if(!this._stream) {
+			if(!this._useStreaming) {
 				this._ctx.globalAlpha = alpha;
 			}
 		}
@@ -428,18 +427,18 @@ log clientRect;
 		}
 		if(this._compositeOperation != compositeOperation) {
 			this._compositeOperation = compositeOperation;
-			if(!this._stream) {
+			if(!this._useStreaming) {
 				this._ctx.globalCompositeOperation = compositeOperation;
 			}
 		}
 	}
 
-	function setTransform(transform: Transform): void {
+	function setTransform(transform: Transform, stream: Stream = null): void {
 		// TODO(hbono): Is it faster to cache the current transform?
 		var matrix = transform.getMatrix();
-		if(this._stream) {
+		if(stream) {
 			//this._stream.sendSetTransform(this._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
-			this._stream.sendSetTransform(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
+			stream.sendSetTransform(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
 		} else {
 			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 		}

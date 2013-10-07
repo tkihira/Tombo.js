@@ -25,7 +25,7 @@ class Eye {
 	var _width: number;
 	var _height: number;
 	var _ctx: CanvasRenderingContext2D;
-	var _stream: Stream;
+	var _streams: Array.<Stream>;
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
@@ -40,8 +40,9 @@ class Eye {
 	/**
 	 * create instance with new canvas (width, height)
 	 */
-	function constructor(width: number, height: number, stream: Stream = null) {
-		this._stream = stream;
+	function constructor(width: number, height: number, useStreaming: boolean) {
+		if (useStreaming)
+			this._streams = []: Stream[];
 		this._initialize(width, height);
 	}
 	/**
@@ -52,7 +53,7 @@ class Eye {
 	}
 	
 	function _initialize(width: number, height: number): void {
-		if(this._stream) {
+		if(this._streams) {
 			this._width = width;
 			this._height = height;
 			this._layerList = []: Layer[];
@@ -172,9 +173,11 @@ class Eye {
 	function render(): void {
 		// todo: render only if any layer is dirty
 
-		if(this._stream) {
-			// send Eye.renderBegin message to stream.
-			this._stream.sendLayerCount(this._layerList.length);
+		if(this._streams) {
+			this._streams.forEach((stream) -> {
+				// send Eye.renderBegin message to stream.
+				stream.sendLayerCount(this._layerList.length);
+			});
 		} else {
 			// todo: check background-color
 			this._ctx.clearRect(0, 0, this._width, this._height - 1);
@@ -188,10 +191,12 @@ class Eye {
 		
 		for(var i = 0; i < this._layerList.length; i++) {
 			var layer = this._layerList[i];
-			if(this._stream) {
-				layer.appendToStream();
-				layer._render();
-				layer.endStream();
+			if(this._streams) {
+				this._streams.forEach((stream) -> {
+					layer.appendToStream(stream);
+					layer._render(stream);
+					layer.endStream(stream);
+				});
 			} else {
 				// todo: check dirty flag
 				layer._render();
@@ -209,5 +214,15 @@ class Eye {
 				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
 			}
 		}
+	}
+
+	function addStream(stream: Stream): void {
+		this._streams.push(stream);
+	}
+
+	function removeStream(stream: Stream): void {
+		for (var i=0; i<this._streams.length; i++)
+			if (this._streams[i] == stream)
+				this._streams.splice(i, 1);
 	}
 }
