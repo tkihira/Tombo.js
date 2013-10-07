@@ -227,7 +227,7 @@ class TextShape implements Shape {
 		}
 		var ctx = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
-		ctx.clearRect(0, 0, textWidth, textHeight);
+		ctx.clearRect(0, 0, this._textCanvas.width, this._textCanvas.height);
 		ctx.fillStyle = Color.stringify(this._option.textColor);
 		if(this._option.border) {
 			ctx.strokeStyle = Color.stringify(this._option.borderColor);
