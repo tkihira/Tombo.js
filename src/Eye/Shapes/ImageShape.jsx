@@ -60,7 +60,6 @@ class ImageShape implements Shape {
 	}
 
 	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean,  imgMap: Map.<HTMLCanvasElement>) {
-		log 'ImageShape ctor 2: ';
 		this._id = id;
 		this._cimg = imgMap[imageId] as HTMLCanvasElement;
 		var b = bounds;
