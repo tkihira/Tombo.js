@@ -465,7 +465,7 @@ class DisplayNode {
 			if(stream) {
 				stream.sendCompositeOperation(this._layer._id, this._compositeOperation);
 				stream.sendAlpha(this._layer._id, this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform());
+				this._layer.setTransform(this._getRenderTransform(), stream);
 			} else {
 				this._layer.setCompositeOperation(this._compositeOperation);
 				this._layer.setAlpha(this._getCompositeAlpha());
