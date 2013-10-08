@@ -29,7 +29,7 @@ class Eye {
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
 	static var _shapeCounter = 0;
-	
+
 	/**
 	 * create instance with prepared canvas
 	 */
@@ -53,20 +53,19 @@ class Eye {
 		if (Eye.useStreaming()) {
 			this._width = width;
 			this._height = height;
-			this._layerList = []: Layer[];
 		} else {
 			var canvas = dom.createElement("canvas") as HTMLCanvasElement;
 			canvas.width = width;
 			canvas.height = height;
 			this._initialize(canvas);
 		}
+		this._layerList = []: Layer[];
 	}
 	function _initialize(canvas: HTMLCanvasElement): void {
 		if(this._canvas) {
 			Tombo.error("[Eye#initialize] Tombo Eye is already initialized");
 		}
 		this._setCanvas(canvas);
-		this._layerList = []: Layer[];
 	}
 	
 	function _setCanvas(canvas: HTMLCanvasElement): void {
@@ -167,16 +166,10 @@ class Eye {
 	/**
 	 * render layers
 	 */
-	function render(stream: Stream = null): void {
+	function render(): void {
 		// todo: render only if any layer is dirty
-
-		if(stream) {
-			// send Eye.renderBegin message to stream.
-			stream.sendLayerCount(this._layerList.length);
-		} else {
-			// todo: check background-color
-			this._ctx.clearRect(0, 0, this._width, this._height - 1);
-		}
+		// todo: check background-color
+		this._ctx.clearRect(0, 0, this._width, this._height - 1);
 		
 		// for debug
 		if(Eye.DEBUG) {
@@ -184,29 +177,39 @@ class Eye {
 			this._ctx.fillRect(0, 0, this._width, this._height);
 		}
 		
-		for(var i = 0; i < this._layerList.length; i++) {
-			var layer = this._layerList[i];
-			if(stream) {
-				layer.appendToStream(stream);
-				layer._render(stream);
-				layer.endStream(stream);
-			} else {
-				// todo: check dirty flag
-				layer._render();
-				
-				// check layout and set proper transform
-				var width = layer.layout.clientWidth;
-				var height = layer.layout.clientHeight;
-				if(!width || !height) {
-					Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
-				}
-				
-				// draw
-				var transform = Eye._calculateLayoutTransform(this._width, this._height, layer);
-				this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
-				this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
+		this._layerList.forEach((layer) -> {
+			// todo: check dirty flag
+			layer._render();
+			
+			// check layout and set proper transform
+			var width = layer.layout.clientWidth;
+			var height = layer.layout.clientHeight;
+			if(!width || !height) {
+				Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
 			}
+			
+			// draw
+			var transform = Eye._calculateLayoutTransform(this._width, this._height, layer);
+			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
+			this._ctx.drawImage(layer._canvas, transform.left, transform.top);
+		});
+	}
+
+	function render(stream: Stream): void {
+		// send Eye.renderBegin message to stream.
+		stream.sendLayerCount(this._layerList.length);
+
+		// for debug
+		if(Eye.DEBUG) {
+			this._ctx.fillStyle = "#505050";
+			this._ctx.fillRect(0, 0, this._width, this._height);
 		}
+
+		this._layerList.forEach((layer) -> {
+			layer.appendToStream(stream);
+			layer._render(stream);
+			layer.endStream(stream);
+		});
 	}
 
 	// assume server side Tombo does not have dom
