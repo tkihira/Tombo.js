@@ -197,7 +197,7 @@ class Eye {
 
 	function render(stream: Stream): void {
 		// send Eye.renderBegin message to stream.
-		stream.sendLayerCount(this._layerList.length);
+		stream.beginEyeRender();
 
 		// for debug
 		if(Eye.DEBUG) {
@@ -206,10 +206,9 @@ class Eye {
 		}
 
 		this._layerList.forEach((layer) -> {
-			layer.appendToStream(stream);
 			layer._render(stream);
-			layer.endStream(stream);
 		});
+		stream.endEyeRender();
 	}
 
 	// assume server side Tombo does not have dom

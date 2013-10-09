@@ -2,7 +2,11 @@ import "Eye/Shape.jsx";
 
 /** Send out serialized Tombo data to stream. */
 interface Stream {
-	function sendLayerCount(layerCount: number): void;
+	// Eye
+	function beginEyeRender(): void;
+	function endEyeRender(): void;
+
+	// Layer
 	function sendLayerInfo(id: number, width: number, height: number, alpha: number, compositeOperation: string, layoutMode: int, layoutScale: number): void;
 	function endLayer(id: number): void;
 
