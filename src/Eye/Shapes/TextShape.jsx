@@ -15,7 +15,7 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = false;
-	var _id: number;
+	var _id: int;
 	
 	/** Whether to cache rendered text. */
 	static const USE_CACHE = true;
@@ -80,7 +80,8 @@ class TextShape implements Shape {
 			json.push("fontHeight:" + this.fontHeight as string);
 		}
 
-		function constructor() { }
+		function constructor() {}
+
 		function constructor(data: Array.<string>) {
 			data.forEach(function(param) {
 				var command = param.split(":");
@@ -202,7 +203,7 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 
-	override function update(data: Array.<string>): void {
+	override function update(data: Array.<string>): boolean {
 		//this._id = data[0].split(":")[1] as number;
 		var b = data[2].split(":")[1].split(",");
 		var rect = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
@@ -220,6 +221,8 @@ class TextShape implements Shape {
 		if (! option.isEqual(this._option)) {
 			this.setOption(option);
 		}
+
+		return this._textDirty;
 	}
 
 	/**

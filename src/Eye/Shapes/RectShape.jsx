@@ -16,7 +16,7 @@ class RectShape implements Shape {
 	var isMutable = false;
 	var isImage = false;
 	var _color = 0;
-	var _id: number;
+	var _id: int;
 	
 	/**
 	 * create Shape with width, height and color
@@ -40,8 +40,11 @@ class RectShape implements Shape {
 		this._color = color;
 	}
 
-	override function update(data: Array.<string>): void {
-		this._color = data[3].split(":")[1] as number;
+	override function update(data: Array.<string>): boolean {
+		var nextColor = data[3].split(":")[1] as number;
+		var ret = (this._color != nextColor);
+		this._color = nextColor;
+		return ret;
 	}
 
 	function setColor(color: number): void {
