@@ -1,7 +1,7 @@
 import "js/web.jsx";
 import "js.jsx";
 
-import "Stream.jsx";
+import "../Stream.jsx";
 import "Shape.jsx";
 import "Layer.jsx";
 import "Eye.jsx";
@@ -463,13 +463,11 @@ class DisplayNode {
 	function _beginPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			if(stream) {
-				stream.sendCompositeOperation(this._layer._id, this._compositeOperation);
-				stream.sendAlpha(this._layer._id, this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform(), stream);
+				this._layer.setTransform(this._getRenderTransform(), this._id, stream);
 			} else {
 				this._layer.setCompositeOperation(this._compositeOperation);
 				this._layer.setAlpha(this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform());
+				this._layer.setTransform(this._getRenderTransform(), this._id);
 			}
 			return;
 		}
@@ -525,6 +523,10 @@ class DisplayNode {
 			}
 			node = node.parent;
 		}
+
+		if (stream)
+			stream.sendDisplayNode(this);
+
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
@@ -614,7 +616,7 @@ class DisplayNode {
 			} else {
 				if(stream) {
 					// serialize the Shape, send it to stream
-					stream.sendShape(this._layer._id, this.shape);
+					stream.sendShape(this._layer._id, this._id, this.shape);
 				} else {
 					this.shape.draw(ctx, color);
 				}

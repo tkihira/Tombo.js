@@ -157,7 +157,6 @@ class Eye {
 		// todo: check background-color
 		this._renderingContext.clearRect(0, 0, this._width, this._height - 1);
 		
-		// for debug
 		if(Eye.DEBUG) {
 			this._renderingContext.fillStyle = "#505050";
 			this._renderingContext.fillRect(0, 0, this._width, this._height);
@@ -165,7 +164,6 @@ class Eye {
 		
 		this._layerList.forEach((layer) -> {
 			// todo: check dirty flag
-			layer._render(stream);
 			this._renderingContext.draw(layer);
 		});
 		this._renderingContext.flush();

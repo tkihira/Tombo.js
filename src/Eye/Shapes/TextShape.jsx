@@ -15,7 +15,7 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = false;
-	var _id: number;
+	var _id: int;
 	
 	/** Whether to cache rendered text. */
 	static const USE_CACHE = true;
@@ -78,6 +78,41 @@ class TextShape implements Shape {
 			json.push("align:" + this.align as string);
 			json.push("valign:" + this.valign as string);
 			json.push("fontHeight:" + this.fontHeight as string);
+		}
+
+		function constructor() {}
+
+		// copy constructor
+		function constructor(other: TextShape.Option) {
+			this.wordWrap = other.wordWrap;
+			this.multiline = other.multiline;
+			this.border = other.border;
+			this.textColor = other.textColor;
+			this.borderColor = other.borderColor;
+			this.borderWidth = other.borderWidth;
+			this.maxLength = other.maxLength;
+			this.font = other.font;
+			this.leftMargin = other.leftMargin;
+			this.rightMargin = other.rightMargin;
+			this.align = other.align;
+			this.valign = other.valign;
+			this.fontHeight = other.fontHeight;
+		}
+
+		function isSame(other: TextShape.Option): boolean {
+			return this.wordWrap == other.wordWrap &&
+				this.multiline == other.multiline &&
+				this.border == other.border &&
+				this.textColor == other.textColor &&
+				this.borderColor == other.borderColor &&
+				this.borderWidth == other.borderWidth &&
+				this.maxLength == other.maxLength &&
+				this.font == other.font &&
+				this.leftMargin == other.leftMargin &&
+				this.rightMargin == other.rightMargin &&
+				this.align == other.align &&
+				this.valign == other.valign &&
+				this.fontHeight == other.fontHeight;
 		}
 	}
 	
@@ -163,12 +198,24 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 
-	override function update(data: Array.<string>): void {
+	override function update(data: Array.<string>): boolean {
+		var ret = false;
 		//this._id = data[0].split(":")[1] as number;
 		var b = data[2].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
-		this._text = data[3].split(":").slice(1).join(":");
-		
+		var nextBounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
+		if (! this.bounds.isSame(nextBounds))
+			ret = true;
+		this.bounds = nextBounds;
+
+		var nextText = data[3].split(":").slice(1).join(":");
+		if (this._text != nextText) {
+			this._textDirty = true;
+			ret = true;
+		}
+		this._text = nextText;
+
+		var curOption = new TextShape.Option(this._option);
+
 		for(var i = 0; i < data.length; i++) {
 			var command = data[i].split(":");
 			switch(command[0]) {
@@ -187,12 +234,9 @@ class TextShape implements Shape {
 				case "fontHeight": this._option.fontHeight = command[1] as number; break;
 			}
 		}
-		this._textCanvas = null;
-		this._textWidth = 0;
-		this._textHeight = 0;
-		this._textDirty = true;
-	}
 
+		return ret || !curOption.isSame(this._option);
+	}
 
 	/**
 	 * set option
