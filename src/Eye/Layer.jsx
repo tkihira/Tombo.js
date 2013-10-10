@@ -252,6 +252,8 @@ log clientRect;
 	}
 	
 	function _render(stream: Stream = null): void {
+		this.beginStream(stream);
+
 		if(!stream && !this._canvas) {
 			Tombo.warn("[Layer#render] Layer's canvas is not created");
 			this._modifyCanvas();
@@ -260,6 +262,7 @@ log clientRect;
 			// Erase the region covered by the dirty rectangles and redraw
 			// objects that have intersections with the rectangles.
 			if(this._dirtyRegions.length == 0) {
+				this.endStream(stream);
 				return;
 			}
 			var context = this._ctx;
@@ -274,6 +277,7 @@ log clientRect;
 				if(this.forceRedraw) {
 					this._dirtyRegions = [[0, 0, this.width, this.height]];
 				}
+				this.endStream(stream);
 				return;
 			}
 			if(!stream) {
@@ -317,6 +321,7 @@ log clientRect;
 			if(this.forceRedraw) {
 				this._dirtyRegions = [[0, 0, this.width, this.height]];
 			}
+			this.endStream(stream);
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
@@ -342,14 +347,17 @@ log clientRect;
 		if(this.forceRedraw) {
 			this._dirtyRegions = [[0, 0, this.width, this.height]];
 		}
+		this.endStream(stream);
 	}
 
-	function appendToStream(stream: Stream): void {
-		stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
+	function beginStream(stream: Stream): void {
+		if (stream)
+			stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
 	}
 
 	function endStream(stream: Stream): void {
-		stream.endLayer(this._id);
+		if (stream)
+			stream.endLayer(this._id);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
