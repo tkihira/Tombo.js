@@ -647,4 +647,15 @@ class DisplayNode {
 		}
 		ctx.restore();
 	}
+
+	/**
+	  * returns the absolute posittion of this node.
+	  * @param width  of Eye
+	  * @param height of Eye
+	  */
+	function absoluteBound(width: number, height: number): Rect {
+		var transform = Eye._calculateLayoutTransform(width, height, this._layer);
+		return new Rect(transform.left + this._transform.left, transform.top + this._transform.top, this.shape.bounds.width, this.shape.bounds.height);
+
+	}
 }
