@@ -7,9 +7,10 @@
 import "js/web.jsx";
 
 import "Stream.jsx";
-import "Layer.jsx";
-import "LayoutInformation.jsx";
-import "DisplayNode.jsx";
+import "Eye/Layer.jsx";
+import "Eye/LayoutInformation.jsx";
+import "Eye/DisplayNode.jsx";
+import "Eye/RenderingContext.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -21,10 +22,9 @@ import "../BasicTypes.jsx";
  * @author Takuo KIHIRA <t-kihira@broadtail.jp>
  */
 class Eye {
-	var _canvas: HTMLCanvasElement;
+	var _renderingContext: RenderingContext;
 	var _width: number;
 	var _height: number;
-	var _ctx: CanvasRenderingContext2D;
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
@@ -34,47 +34,28 @@ class Eye {
 	 * create instance with prepared canvas
 	 */
 	function constructor(canvas: HTMLCanvasElement) {
-		this._initialize(canvas);
+		this(new CanvasRenderingContext(canvas));
 	}
 	/**
 	 * create instance with new canvas (width, height)
 	 */
 	function constructor(width: number, height: number) {
-		this._initialize(width, height);
+		this(Eye.useStreaming() ?
+			new StreamRenderingContext(width, height) :
+			new CanvasRenderingContext(width, height));
 	}
 	/**
 	 * create instance with new canvas (640, 960)
 	 */
 	function constructor() {
-		this._initialize(640, 960);
+		this(640, 960);
 	}
-	
-	function _initialize(width: number, height: number): void {
-		if (Eye.useStreaming()) {
-			this._width = width;
-			this._height = height;
-		} else {
-			var canvas = dom.createElement("canvas") as HTMLCanvasElement;
-			canvas.width = width;
-			canvas.height = height;
-			this._initialize(canvas);
-		}
+
+	function constructor(rctx: RenderingContext) {
+		this._renderingContext = rctx;
+		this._width  = rctx.width;
+		this._height = rctx.height;
 		this._layerList = []: Layer[];
-	}
-	function _initialize(canvas: HTMLCanvasElement): void {
-		if(this._canvas) {
-			Tombo.error("[Eye#initialize] Tombo Eye is already initialized");
-		}
-		this._setCanvas(canvas);
-	}
-	
-	function _setCanvas(canvas: HTMLCanvasElement): void {
-		this._canvas = canvas;
-		this._width = canvas.width;
-		this._height = canvas.height;
-		this._ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-		
-		// todo: recalculate all layer's layout
 	}
 	
 	/**
@@ -166,49 +147,28 @@ class Eye {
 	/**
 	 * render layers
 	 */
-	function render(): void {
+	function render(stream: Stream = null): void {
+		if (stream) {
+			var streamRenderingContext = this._renderingContext as StreamRenderingContext;
+			streamRenderingContext.setStream(stream);
+		}
+
 		// todo: render only if any layer is dirty
 		// todo: check background-color
-		this._ctx.clearRect(0, 0, this._width, this._height - 1);
+		this._renderingContext.clearRect(0, 0, this._width, this._height - 1);
 		
 		// for debug
 		if(Eye.DEBUG) {
-			this._ctx.fillStyle = "#505050";
-			this._ctx.fillRect(0, 0, this._width, this._height);
+			this._renderingContext.fillStyle = "#505050";
+			this._renderingContext.fillRect(0, 0, this._width, this._height);
 		}
 		
 		this._layerList.forEach((layer) -> {
 			// todo: check dirty flag
-			layer._render();
-			
-			// check layout and set proper transform
-			var width = layer.layout.clientWidth;
-			var height = layer.layout.clientHeight;
-			if(!width || !height) {
-				Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
-			}
-			
-			// draw
-			var transform = Eye._calculateLayoutTransform(this._width, this._height, layer);
-			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
-			this._ctx.drawImage(layer._canvas, transform.left, transform.top);
-		});
-	}
-
-	function render(stream: Stream): void {
-		// send Eye.renderBegin message to stream.
-		stream.beginEyeRender();
-
-		// for debug
-		if(Eye.DEBUG) {
-			this._ctx.fillStyle = "#505050";
-			this._ctx.fillRect(0, 0, this._width, this._height);
-		}
-
-		this._layerList.forEach((layer) -> {
 			layer._render(stream);
+			this._renderingContext.draw(layer);
 		});
-		stream.endEyeRender();
+		this._renderingContext.flush();
 	}
 
 	// assume server side Tombo does not have dom
