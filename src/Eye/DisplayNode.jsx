@@ -535,7 +535,7 @@ class DisplayNode {
 				var width = this.shape.bounds.width;
 				var height = this.shape.bounds.height;
 				
-				var canvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
+				canvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 				canvas.width = width;
 				canvas.height = height;
 				var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
