@@ -654,8 +654,8 @@ class DisplayNode {
 	  * @param height of Eye
 	  */
 	function absoluteBound(width: number, height: number): Rect {
-		var transform = Eye._calculateLayoutTransform(width, height, this._layer);
-		return new Rect(transform.left + this._transform.left, transform.top + this._transform.top, this.shape.bounds.width, this.shape.bounds.height);
+		var layerTransform = Eye._calculateLayoutTransform(width, height, this._layer);
+		return new Rect(layerTransform.left + this._renderRect.left, layerTransform.top + this._renderRect.top, this.shape.bounds.width, this.shape.bounds.height);
 
 	}
 }
