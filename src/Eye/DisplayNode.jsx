@@ -598,11 +598,13 @@ class DisplayNode {
 			// with the dirty rectangles and this code skips checking whether a
 			// dirty object has an intersection with the dirty rectangles, which
 			// is obviously true.
-			if(this._dirty) {
-				this._calcRenderRect();
-			} else if(!this._layer.hasIntersection(this._renderRect)) {
+			if(!this._layer.hasIntersection(this._renderRect)) {
 				return;
 			}
+			if(this._dirty) {
+				this._calcRenderRect();
+			}
+
 			this._dirty = false;
 			this._beginPaint(ctx, stream);
 			if(canvas) {
