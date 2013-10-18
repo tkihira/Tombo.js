@@ -19,8 +19,8 @@ class AnimationImageShape implements Shape {
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
-	var _id: number;
 	var _frame = 0;
+	var _id: int;
 	
 	var _cols: number;
 	var _rows: number;
@@ -92,8 +92,11 @@ class AnimationImageShape implements Shape {
 		this._partialHeight = this._cimg.height / this._rows;
 	}
 
-	override function update(data: Array.<string>): void {
-		this._frame = data[7].split(":")[1] as number;
+	override function update(data: Array.<string>): boolean {
+		var nextFrame = data[7].split(":")[1] as number;
+		var ret = (this._frame != nextFrame);
+		this._frame = nextFrame;
+		return ret;
 	}
 
 	function update(nextFrame: number): void {
