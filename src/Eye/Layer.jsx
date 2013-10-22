@@ -398,7 +398,7 @@ class Layer {
 		var minY = rectangle.top;
 		var maxX = minX + rectangle.width;
 		var maxY = minY + rectangle.height;
-		if(maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) {
+		if(maxX < 0 || maxY < 0 || minX > this.width || minY > this.height) {
 			return false;
 		}
 		if(this.forceRedraw) {
