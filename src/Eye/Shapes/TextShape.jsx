@@ -79,6 +79,45 @@ class TextShape implements Shape {
 			json.push("valign:" + this.valign as string);
 			json.push("fontHeight:" + this.fontHeight as string);
 		}
+
+		function constructor() { }
+		function constructor(data: Array.<string>) {
+			data.forEach(function(param) {
+				var command = param.split(":");
+				switch(command[0]) {
+					case "wordWrap": this.wordWrap = (command[1] == "true"); break;
+					case "multiline": this.multiline = (command[1] == "true"); break;
+					case "border": this.border = (command[1] == "true"); break;
+					case "textColor": this.textColor = command[1] as number; break;
+					case "borderColor": this.borderColor = command[1] as number; break;
+					case "borderWidth": this.borderWidth = command[1] as number; break;
+					case "maxLength": this.maxLength = command[1] as number; break;
+					case "font": this.font = command[1]; break;
+					case "leftMargin": this.leftMargin = command[1] as number; break;
+					case "rightMargin": this.rightMargin = command[1] as number; break;
+					case "align": this.align = command[1] as number; break;
+					case "valign": this.valign = command[1] as number; break;
+					case "fontHeight": this.fontHeight = command[1] as number; break;
+				}
+			});
+		}
+
+		function isEqual(other: TextShape.Option): boolean {
+			if (this.wordWrap != other.wordWrap) return false;
+			if (this.multiline != other.multiline) return false;
+			if (this.border != other.border) return false;
+			if (this.textColor != other.textColor) return false;
+			if (this.borderColor != other.borderColor) return false;
+			if (this.borderWidth != other.borderWidth) return false;
+			if (this.maxLength != other.maxLength) return false;
+			if (this.font != other.font) return false;
+			if (this.leftMargin != other.leftMargin) return false;
+			if (this.rightMargin != other.rightMargin) return false;
+			if (this.align != other.align) return false;
+			if (this.valign != other.valign) return false;
+			if (this.fontHeight != other.fontHeight) return false;
+			return true;
+		}
 	}
 	
 	var _text: string;
@@ -166,33 +205,22 @@ class TextShape implements Shape {
 	override function update(data: Array.<string>): void {
 		//this._id = data[0].split(":")[1] as number;
 		var b = data[2].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
-		this._text = data[3].split(":").slice(1).join(":");
-		
-		for(var i = 0; i < data.length; i++) {
-			var command = data[i].split(":");
-			switch(command[0]) {
-				case "wordWrap": this._option.wordWrap = (command[1] == "true"); break;
-				case "multiline": this._option.multiline = (command[1] == "true"); break;
-				case "border": this._option.border = (command[1] == "true"); break;
-				case "textColor": this._option.textColor = command[1] as number; break;
-				case "borderColor": this._option.borderColor = command[1] as number; break;
-				case "borderWidth": this._option.borderWidth = command[1] as number; break;
-				case "maxLength": this._option.maxLength = command[1] as number; break;
-				case "font": this._option.font = command[1]; break;
-				case "leftMargin": this._option.leftMargin = command[1] as number; break;
-				case "rightMargin": this._option.rightMargin = command[1] as number; break;
-				case "align": this._option.align = command[1] as number; break;
-				case "valign": this._option.valign = command[1] as number; break;
-				case "fontHeight": this._option.fontHeight = command[1] as number; break;
-			}
+		var rect = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
+		if (rect.left != this.bounds.left ||
+			rect.top != this.bounds.top ||
+			rect.width != this.bounds.width ||
+			rect.height != this.bounds.height) {
+			this._textDirty = true;
+			this.bounds = rect;
 		}
-		this._textCanvas = null;
-		this._textWidth = 0;
-		this._textHeight = 0;
-		this._textDirty = true;
-	}
 
+		this.setText(data[3].split(":").slice(1).join(":"));
+
+		var option = new TextShape.Option(data);
+		if (! option.isEqual(this._option)) {
+			this.setOption(option);
+		}
+	}
 
 	/**
 	 * set option
