@@ -234,7 +234,6 @@ class Layer {
 			var node = this._touchableNodeList[i];
 			var clientRect = node.getClientRect();
 			//log node.clientRect.left, node.clientRect.top, node.clientRect.width, node.clientRect.height, x, y;
-log clientRect;
 			if(clientRect && transform.transformRect(clientRect).isInside(x, y)) {
 				var ret = node;
 				while(node) {
