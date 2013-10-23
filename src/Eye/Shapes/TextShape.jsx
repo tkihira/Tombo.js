@@ -36,34 +36,34 @@ class TextShape implements Shape {
 	/** Option class for TextShape */
 	class Option {
 		/** word wrap: default false */
-		var wordWrap = false;
+		var wordWrap = false as boolean;
 		/** multiline: default false */
-		var multiline = false;
+		var multiline = false as boolean;
 		/** border: default false */
-		var border = false;
+		var border = false as boolean;
 		/** textColor: default rgb(255,255,255) */
-		var textColor = Color.createRGB(255, 255, 255);
+		var textColor = Color.createRGB(255, 255, 255) as int;
 		/** borderColor: default rgb(0,0,0) */
-		var borderColor = Color.createRGB(0, 0, 0);
+		var borderColor = Color.createRGB(0, 0, 0) as int;
 		/** borderWidth: default 1 */
-		var borderWidth = 1;
+		var borderWidth = 1 as int;
 		/** maxLength: 0 if disable */
-		var maxLength = 0;
+		var maxLength = 0 as int;
 		/** font: font name*/
-		var font = "";
+		var font = "" as string;
 		//** fontClass: font class name*/
 		//var fontClass = "";
 		//var autoSize = false;
 		/** leftMargin: default 0 */
-		var leftMargin = 0;
+		var leftMargin = 0 as int;
 		/** rightMargin: default 0 */
-		var rightMargin = 0;
+		var rightMargin = 0 as int;
 		/** align: default TextShape.LEFT */
-		var align = TextShape.LEFT;
+		var align = TextShape.LEFT as int;
 		/** valign: default TextShape.TOP */
-		var valign = TextShape.TOP;
+		var valign = TextShape.TOP as int;
 		/** fontHeight: default 30 */
-		var fontHeight = 30;
+		var fontHeight = 30 as int;
 		function serialize(json: Array.<variant>): void {
 			json.push("wordWrap:" + this.wordWrap as string);
 			json.push("multiline:" + this.multiline as string);
@@ -81,41 +81,36 @@ class TextShape implements Shape {
 		}
 
 		function constructor() { }
-		function constructor(data: Array.<string>) {
-			data.forEach(function(param) {
-				var command = param.split(":");
-				switch(command[0]) {
-					case "wordWrap": this.wordWrap = (command[1] == "true"); break;
-					case "multiline": this.multiline = (command[1] == "true"); break;
-					case "border": this.border = (command[1] == "true"); break;
-					case "textColor": this.textColor = command[1] as number; break;
-					case "borderColor": this.borderColor = command[1] as number; break;
-					case "borderWidth": this.borderWidth = command[1] as number; break;
-					case "maxLength": this.maxLength = command[1] as number; break;
-					case "font": this.font = command[1]; break;
-					case "leftMargin": this.leftMargin = command[1] as number; break;
-					case "rightMargin": this.rightMargin = command[1] as number; break;
-					case "align": this.align = command[1] as number; break;
-					case "valign": this.valign = command[1] as number; break;
-					case "fontHeight": this.fontHeight = command[1] as number; break;
-				}
-			});
+
+		function constructor(ww: boolean, mul: boolean, brd: boolean, tc: int, bc: int, bw: int, ml: int, ft: string, lm: int, rm: int, al: int, val: int, fh: int) {
+			this.wordWrap = ww;
+			this.multiline = mul;
+			this.border = brd;
+			this.textColor = tc;
+			this.borderColor = bc;
+			this.borderWidth = bw;
+			this.maxLength = ml;
+			this.font = ft;
+			this.leftMargin = lm;
+			this.rightMargin = rm;
+			this.align = al; this.valign = val;
+			this.fontHeight = fh;
 		}
 
-		function isEqual(other: TextShape.Option): boolean {
-			if (this.wordWrap != other.wordWrap) return false;
-			if (this.multiline != other.multiline) return false;
-			if (this.border != other.border) return false;
-			if (this.textColor != other.textColor) return false;
-			if (this.borderColor != other.borderColor) return false;
-			if (this.borderWidth != other.borderWidth) return false;
-			if (this.maxLength != other.maxLength) return false;
-			if (this.font != other.font) return false;
-			if (this.leftMargin != other.leftMargin) return false;
-			if (this.rightMargin != other.rightMargin) return false;
-			if (this.align != other.align) return false;
-			if (this.valign != other.valign) return false;
-			if (this.fontHeight != other.fontHeight) return false;
+		function isEqual(ww: boolean, mul: boolean, brd: boolean, tc: int, bc: int, bw: int, ml: int, ft: string, lm: int, rm: int, al: int, val: int, fh: int): boolean {
+			if (this.wordWrap != ww) return false;
+			if (this.multiline != mul) return false;
+			if (this.border != brd) return false;
+			if (this.textColor != tc) return false;
+			if (this.borderColor != bc) return false;
+			if (this.borderWidth != bw) return false;
+			if (this.maxLength != ml) return false;
+			if (this.font != ft) return false;
+			if (this.leftMargin != lm) return false;
+			if (this.rightMargin != rm) return false;
+			if (this.align != al) return false;
+			if (this.valign != val) return false;
+			if (this.fontHeight != fh) return false;
 			return true;
 		}
 	}
@@ -202,24 +197,35 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 
+	function constructor(id: number, bounds: Rect, text: string, option: TextShape.Option) {
+		this._id = id;
+		this.bounds = bounds;
+		this._text = text;
+		this._option = option;
+		this._textCanvas = null;
+		this._textWidth = 0;
+		this._textHeight = 0;
+		this._textDirty = true;
+	}
+
 	override function update(data: Array.<string>): void {
-		//this._id = data[0].split(":")[1] as number;
-		var b = data[2].split(":")[1].split(",");
-		var rect = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
-		if (rect.left != this.bounds.left ||
-			rect.top != this.bounds.top ||
-			rect.width != this.bounds.width ||
-			rect.height != this.bounds.height) {
+		assert false; // do nothing for this interface
+	}
+
+	function update(x: number, y: number, w: number, h: number, text: string,
+		ww: boolean, mul: boolean, brd: boolean, tc: int, bc: int, bw: int, ml: int, ft: string, lm: int, rm: int, al: int, val: int, fh: int): void {
+		if (x != this.bounds.left ||
+			y != this.bounds.top ||
+			w != this.bounds.width ||
+			h != this.bounds.height) {
 			this._textDirty = true;
-			this.bounds = rect;
+			this.bounds = new Rect(x, y, w, h);
 		}
 
-		this.setText(data[3].split(":").slice(1).join(":"));
+		this.setText(text);
 
-		var option = new TextShape.Option(data);
-		if (! option.isEqual(this._option)) {
-			this.setOption(option);
-		}
+		if (! this._option.isEqual(ww, mul, brd, tc, bc, bw, ml, ft, lm, rm, al, val, fh))
+			this.setOption(new TextShape.Option(ww, mul, brd, tc, bc, bw, ml, ft, lm, rm, al, val, fh));
 	}
 
 	/**
