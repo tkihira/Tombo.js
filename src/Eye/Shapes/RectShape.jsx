@@ -51,6 +51,7 @@ class RectShape implements Shape {
 	function setColor(color: number): void {
 		if(this._color != color) {
 			this._color = color;
+			this._lastUpdatedFrame = Eye.getFrame();
 			// TODO: set dirty flag
 		}
 	}

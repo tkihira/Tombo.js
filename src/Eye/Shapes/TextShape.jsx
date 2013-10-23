@@ -232,6 +232,7 @@ class TextShape implements Shape {
 	function setOption(option: TextShape.Option): void {
 		this._option = option;
 		this._textDirty = true;
+		this._lastUpdatedFrame = Eye.getFrame();
 	}
 	
 	/**
@@ -241,6 +242,7 @@ class TextShape implements Shape {
 		if(this._text != text) {
 			this._text = text;
 			this._textDirty = true;
+			this._lastUpdatedFrame = Eye.getFrame();
 		}
 	}
 	
@@ -377,6 +379,7 @@ class TextShape implements Shape {
 				this._option.textColor = color;
 			}
 			this._textDirty = true;
+			this._lastUpdatedFrame = Eye.getFrame();
 		}
 		if(TextShape.USE_CACHE) {
 			if(this._textDirty) {
