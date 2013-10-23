@@ -29,6 +29,7 @@ class Eye {
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
 	static var _shapeCounter = 0;
+	static var _frameCount = 0;
 
 	/**
 	 * create instance with prepared canvas
@@ -148,6 +149,8 @@ class Eye {
 	 * render layers
 	 */
 	function render(stream: Stream = null): void {
+		Eye._frameCount++;
+
 		if (stream) {
 			var streamRenderingContext = this._renderingContext as StreamRenderingContext;
 			streamRenderingContext.setStream(stream);
@@ -172,5 +175,9 @@ class Eye {
 	// assume server side Tombo does not have dom
 	static function useStreaming(): boolean {
 		return dom.document == null;
+	}
+
+	static function getFrame(): int {
+		return Eye._frameCount;
 	}
 }

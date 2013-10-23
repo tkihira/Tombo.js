@@ -55,6 +55,8 @@ class DisplayNode {
 
 	var _oldOperation = "";
 	var _renderTransform: Transform;
+	var _lastChangedFrame = 0 as int;
+
 	static const USE_RENDER_TRANSFORM = true;
 
 	/**
@@ -463,11 +465,11 @@ class DisplayNode {
 	function _beginPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			if(stream) {
-				this._layer.setTransform(this._getRenderTransform(), this._id, stream);
+				this._layer.setTransform(this._getRenderTransform(), this._id, this._lastChangedFrame, stream);
 			} else {
 				this._layer.setCompositeOperation(this._compositeOperation);
 				this._layer.setAlpha(this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform(), this._id);
+				this._layer.setTransform(this._getRenderTransform(), this._id, this._lastChangedFrame);
 			}
 			return;
 		}
@@ -604,6 +606,7 @@ class DisplayNode {
 				return;
 			}
 			if(this._dirty) {
+				this._lastChangedFrame = Eye.getFrame();
 				this._calcRenderRect();
 			}
 

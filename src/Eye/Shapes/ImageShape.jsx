@@ -15,6 +15,7 @@ class ImageShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
 	var isImage = true;
+	var _lastUpdatedFrame = 0 as int;
 	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;

@@ -15,6 +15,7 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = false;
+	var _lastUpdatedFrame = 0 as int;
 	var _id: int;
 	
 	/** Whether to cache rendered text. */

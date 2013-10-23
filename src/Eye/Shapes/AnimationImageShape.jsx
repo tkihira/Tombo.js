@@ -15,6 +15,7 @@ class AnimationImageShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = true;
+	var _lastUpdatedFrame = 0 as int;
 	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;
@@ -100,10 +101,12 @@ class AnimationImageShape implements Shape {
 	}
 
 	function update(nextFrame: number): void {
-		this._frame = nextFrame;
+		this.setFrame(nextFrame);
 	}
 
 	function setFrame(frame: number): void {
+		if (this._frame != frame)
+			this._lastUpdatedFrame = Eye.getFrame();
 		this._frame = frame;
 	}
 	function getFrame(): number{
