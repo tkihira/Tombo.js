@@ -1,9 +1,11 @@
 import "js/web.jsx";
 import "js.jsx";
 
+import "Eye.jsx";
 import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
+import "Renderer.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -18,6 +20,7 @@ import "../BasicTypes.jsx";
 class Layer {
 	var _canvas: HTMLCanvasElement;
 	var _ctx: CanvasRenderingContext2D;
+	var _renderer: RenderLayer;
 	
 	/**
 	 * READONLY: the width of layer stage size
@@ -81,6 +84,17 @@ class Layer {
 	}
 	
 	function _modifyCanvas(): void {
+		if(Eye.USE_WEBGL) {
+			if(!this._renderer) {
+				var scale = this.layout.scale;
+				var width = scale * this.width;
+				var height = scale * this.height;
+				this._renderer = Renderer.createRenderer(width, height, scale);
+				this.layout.clientWidth = width;
+				this.layout.clientHeight = height;
+			}
+			return;
+		}
 		var scale = this.layout.scale;
 		var width = scale * this.width;
 		var height = scale * this.height;
@@ -289,6 +303,39 @@ class Layer {
 		
 		//this.root._render(this._ctx);
 		this._dirtyRegions = [] : Array.<Array.<number>>;
+	}
+
+	function paint(timestamp: number, compositeOperation: string, left: number, top: number): void {
+		this._modifyCanvas();
+		this._renderer.beginPaint();
+		var length = this._dirtyRegions.length;
+		for(var i = 0; i < length; ++i) {
+			var region = this._dirtyRegions[i];
+			var x = region[0];
+			var y  = region[1];
+			var width = region[2] - x;
+			var height = region[3] - y;
+			this._renderer.clearRect(x, y, width, height);
+			this._renderer.clipRect(x, y, width, height);
+		}
+		if (this._dirtyOrderDrawBins) {
+			this._orderDrawBins.sort((a, b) -> { return a - b; });
+			this._dirtyOrderDrawBins = false;
+		}
+		for(var i = 0; i < this._orderDrawBins.length; i++) {
+			var binIndex = this._orderDrawBins[i] as string;
+			var bin = this._drawBins[binIndex];
+			if(this._dirtyDrawBins[binIndex]) {
+				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
+				this._dirtyDrawBins[binIndex] = false;
+			}
+			for(var j = 0; j < bin.length; j++) {
+				bin[j].paint(this._renderer, timestamp);
+			}
+		}
+		this._renderer.endPaint();
+		this._dirtyRegions = [] : Array.<Array.<number>>;
+		Renderer.paintLayer(this._renderer, compositeOperation, left, top);
 	}
 
 	function addDirtyRectangle(rectangle: Rect) : void {

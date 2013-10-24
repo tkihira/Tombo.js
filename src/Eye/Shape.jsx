@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "Renderer.jsx";
 import "../BasicTypes.jsx";
 
 /**
@@ -18,4 +19,7 @@ interface Shape {
 	
 	/** draw shape on the context */
 	function draw(ctx: CanvasRenderingContext2D, color: number): void;
+
+	/** draw shape on the context */
+	function paint(renderer: RenderLayer, color: number, timestamp: number): void;
 }

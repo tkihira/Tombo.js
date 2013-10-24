@@ -9,6 +9,7 @@ import "js/web.jsx";
 import "Layer.jsx";
 import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
+import "Renderer.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -27,6 +28,7 @@ class Eye {
 	
 	var _layerList: Array.<Layer>;
 	static var DEBUG = false;
+	static var USE_WEBGL = false;
 	
 	/**
 	 * create instance with prepared canvas
@@ -62,6 +64,12 @@ class Eye {
 	}
 	
 	function _setCanvas(canvas: HTMLCanvasElement): void {
+		if(Eye.USE_WEBGL) {
+			Renderer.createInstance(canvas);
+			this._width = canvas.width;
+			this._height = canvas.height;
+			return;
+		}
 		this._canvas = canvas;
 		this._width = canvas.width;
 		this._height = canvas.height;
@@ -159,6 +167,10 @@ class Eye {
 	 * render layers
 	 */
 	function render(): void {
+		if(Eye.USE_WEBGL) {
+			this.paint(0);
+			return;
+		}
 		// todo: render only if any layer is dirty
 		
 		// todo: check background-color
@@ -186,6 +198,14 @@ class Eye {
 			var transform = this._calculateLayoutTransform(layer);
 			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
 			this._ctx.drawImage(this._layerList[i]._canvas, transform.left, transform.top);
+		}
+	}
+
+	function paint(timestamp: number): void {
+		for (var i = 0; i < this._layerList.length; ++i) {
+			var layer = this._layerList[i];
+			var transform = this._calculateLayoutTransform(layer);
+			layer.paint(timestamp, layer.layout.compositeOperation, transform.left, transform.top);
 		}
 	}
 }

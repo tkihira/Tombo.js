@@ -1,5 +1,6 @@
 // mixin for drawing partial image
 import "js/web.jsx";
+import "../Renderer.jsx";
 import "../../BasicTypes.jsx";
 
 mixin PartialImage {
@@ -20,5 +21,9 @@ mixin PartialImage {
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
 		ctx.drawImage(this._img, this.left, this.top, this.width, this.height, 0, 0, this.bounds.width, this.bounds.height);
+	}
+
+	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
+		renderer.drawPartialImage(this._img, this.left, this.top, this.width, this.height, 0, 0, this.bounds.width, this.bounds.height, color);
 	}
 }

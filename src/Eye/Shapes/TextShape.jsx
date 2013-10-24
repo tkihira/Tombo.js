@@ -1,4 +1,5 @@
 import "js/web.jsx";
+import "../Renderer.jsx";
 import "../Shape.jsx";
 import "../../Tombo.jsx";
 import "../../BasicTypes.jsx";
@@ -227,7 +228,7 @@ class TextShape implements Shape {
 		}
 		var ctx = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
-		ctx.clearRect(0, 0, textWidth, textHeight);
+		ctx.clearRect(0, 0, this._textCanvas.width, this._textCanvas.height);
 		ctx.fillStyle = Color.stringify(this._option.textColor);
 		if(this._option.border) {
 			ctx.strokeStyle = Color.stringify(this._option.borderColor);
@@ -360,5 +361,23 @@ class TextShape implements Shape {
 		}
 		
 		ctx.restore();
+	}
+
+	override function paint(renderer: RenderLayer, color: number, timestamp: number): void {
+		if(this._option.textColor != color) {
+			this._option.textColor = color;
+			this._textDirty = true;
+		}
+		if(this._textDirty) {
+			this._drawText();
+		}
+		var x0 = this.bounds.left + this._option.leftMargin;
+		var y0 = this.bounds.top;
+		if(this._option.valign == TextShape.BOTTOM) {
+			y0 += this.bounds.height - this._textHeight;
+		} else if(this._option.valign == TextShape.MIDDLE) {
+			y0 += (this.bounds.height - this._textHeight) >> 1;
+		}
+		renderer.drawCanvas(this._textCanvas, x0, y0, this._textWidth, this._textHeight, color);
 	}
 }
