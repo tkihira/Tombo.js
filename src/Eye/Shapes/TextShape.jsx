@@ -139,8 +139,8 @@ class TextShape implements Shape {
 		} else {
 			textWidth = context.measureText(this._text).width;
 		}
-		this.bounds.width = this._option.leftMargin + textWidth + this._option.rightMargin;
-		this.bounds.height = this._option.topMargin + textHeight + this._option.bottomMargin;
+		this.bounds.width = this._option.leftMargin + textWidth + this._option.rightMargin + this._option.borderWidth;
+		this.bounds.height = this._option.topMargin + textHeight + this._option.bottomMargin + this._option.borderWidth;
 	}
 	static function _splitString(targetString: string, maxLineWidth: number): string[] {
 		targetString = targetString.replace(/\r\n/, "\n").replace(/\r/, "\n");
