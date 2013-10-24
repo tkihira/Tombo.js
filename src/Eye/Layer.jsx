@@ -119,6 +119,13 @@ class Layer {
 		}
 	}
 	function _setLayoutScale(scale: number): void {
+		log (typeof (scale as variant));
+		log scale, 0.5, scale == 0.5;
+		if(scale == 0.5) {
+			scale = 0.5;
+			log "scale == 0.5";
+		}
+		scale = 0.5;
 		this.layout.scale = scale;
 		this._modifyCanvas();
 		// todo: set proper dirty flag
@@ -350,8 +357,9 @@ class Layer {
 	}
 
 	function beginStream(stream: Stream): void {
-		if (stream)
+		if (stream) {
 			stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
+		}
 	}
 
 	function endStream(stream: Stream): void {
@@ -440,7 +448,9 @@ class Layer {
 		var matrix = transform.getMatrix();
 		if(stream) {
 			//this._stream.sendSetTransform(this._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
-			stream.sendSetTransform(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
+			stream.sendSetTransform(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, (matrix[4] * this.layout.scale) as int, (matrix[5] * this.layout.scale) as int);
+			//log this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale;
+			//stream.sendMatrix(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
 		} else {
 			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 		}

@@ -94,6 +94,8 @@ class Eye {
 			// calculate scale
 			var scale = Math.min(this._width / layer.width, this._height / layer.height);
 			layer._setLayoutScale(scale);
+		} else {
+			layer._setLayoutScale(1);
 		}
 		this._layerList.push(layer);
 		layer._isChild = true;
