@@ -526,9 +526,6 @@ class DisplayNode {
 			node = node.parent;
 		}
 
-		if (stream)
-			stream.sendDisplayNode(this);
-
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
@@ -609,6 +606,9 @@ class DisplayNode {
 				this._lastChangedFrame = Eye.getFrame();
 				this._calcRenderRect();
 			}
+
+			if (stream)
+				stream.sendDisplayNode(this);
 
 			this._dirty = false;
 			this._beginPaint(ctx, stream);
