@@ -15,11 +15,12 @@ class ImageShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
 	var isImage = true;
+	var _lastUpdatedFrame = 0 as int;
 	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
-	var _id: number;
+	var _id: int;
 	
 	/**
 	 * create Shape with Image Element
@@ -83,8 +84,9 @@ class ImageShape implements Shape {
 		}
 	}
 
-	override function update(data: Array.<string>): void {
+	override function update(data: Array.<string>): boolean {
 		// do nothing because there is no memebr to be updated
+		return false;
 	}
 
 	override function getType(): string {

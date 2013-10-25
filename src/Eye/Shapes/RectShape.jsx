@@ -15,8 +15,9 @@ class RectShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
 	var isImage = false;
+	var _lastUpdatedFrame = 0 as int;
 	var _color = 0;
-	var _id: number;
+	var _id: int;
 	
 	/**
 	 * create Shape with width, height and color
@@ -40,15 +41,20 @@ class RectShape implements Shape {
 		this._color = color;
 	}
 
-	override function update(data: Array.<string>): void {
-		this._color = data[3].split(":")[1] as number;
+	override function update(data: Array.<string>): boolean {
+		var nextColor = data[3].split(":")[1] as number;
+		return this.setColor(nextColor);
 	}
 
-	function setColor(color: number): void {
+	// return true if updated
+	function setColor(color: number): boolean {
+		var ret = false;
 		if(this._color != color) {
 			this._color = color;
-			// TODO: set dirty flag
+			this._lastUpdatedFrame = Eye.getFrame();
+			ret = true;
 		}
+		return ret;
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
