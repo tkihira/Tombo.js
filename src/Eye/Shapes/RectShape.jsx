@@ -43,17 +43,18 @@ class RectShape implements Shape {
 
 	override function update(data: Array.<string>): boolean {
 		var nextColor = data[3].split(":")[1] as number;
-		var ret = (this._color != nextColor);
-		this._color = nextColor;
-		return ret;
+		return this.setColor(nextColor);
 	}
 
-	function setColor(color: number): void {
+	// return true if updated
+	function setColor(color: number): boolean {
+		var ret = false;
 		if(this._color != color) {
 			this._color = color;
 			this._lastUpdatedFrame = Eye.getFrame();
-			// TODO: set dirty flag
+			ret = true;
 		}
+		return ret;
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {

@@ -1,7 +1,7 @@
 import "js/web.jsx";
 import "js.jsx";
 
-import "../Stream.jsx";
+import "Stream.jsx";
 import "Shape.jsx";
 import "Layer.jsx";
 import "Eye.jsx";
@@ -525,7 +525,6 @@ class DisplayNode {
 			}
 			node = node.parent;
 		}
-
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
 		if(this.shape.isImage && color != Color.createRGB(255, 255, 255)) {
@@ -607,8 +606,9 @@ class DisplayNode {
 				this._calcRenderRect();
 			}
 
-			if (stream)
+			if (stream) {
 				stream.sendDisplayNode(this);
+			}
 
 			this._dirty = false;
 			this._beginPaint(ctx, stream);

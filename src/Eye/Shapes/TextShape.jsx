@@ -15,8 +15,8 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = false;
-	var _lastUpdatedFrame = 0 as int;
 	var _id: int;
+	var _lastUpdatedFrame = 0 as int;
 	
 	/** Whether to cache rendered text. */
 	static const USE_CACHE = true;
@@ -81,8 +81,7 @@ class TextShape implements Shape {
 			json.push("fontHeight:" + this.fontHeight as string);
 		}
 
-		function constructor() {}
-
+		function constructor() { }
 		function constructor(data: Array.<string>) {
 			data.forEach(function(param) {
 				var command = param.split(":");

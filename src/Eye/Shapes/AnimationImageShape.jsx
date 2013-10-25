@@ -20,8 +20,8 @@ class AnimationImageShape implements Shape {
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
-	var _frame = 0;
 	var _id: int;
+	var _frame = 0;
 	
 	var _cols: number;
 	var _rows: number;

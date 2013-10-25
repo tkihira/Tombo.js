@@ -15,7 +15,6 @@ interface Stream {
 	function sendDisplayNode(node:DisplayNode): void;
 	function sendSetTransform(layerId: number, nodeId: number, lastUpdatedFrame: int, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
 
-
 	function sendSave(layerId: number): void;
 	function sendMatrix(layerId: number, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
 	function sendCompositeOperation(layerId: number, operation: string): void;
