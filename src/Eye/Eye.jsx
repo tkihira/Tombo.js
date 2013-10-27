@@ -62,7 +62,7 @@ class Eye {
 	 * get a node from canvas position (x, y)
 	 */
 	function findTouchedNode(x: number, y: number): DisplayNode {
-		for(var i = 0; i < this._layerList.length; i++) {
+		for(var i = this._layerList.length - 1; i >= 0; i--) {
 			var layer = this._layerList[i];
 			// todo: check dirty flag
 			

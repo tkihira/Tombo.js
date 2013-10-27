@@ -229,6 +229,7 @@ class Layer {
 //		if(x < 0 || x >= this.width || y < 0 || y >= this.height) {
 //			// return null;
 //		}
+		var nodes = []: DisplayNode[];
 		// todo: implement the proper check
 		for(var i = 0; i < this._touchableNodeList.length; i++) {
 			var node = this._touchableNodeList[i];
@@ -243,8 +244,18 @@ class Layer {
 					node = node.parent;
 				}
 				if(!node) {
-					return ret;
+					nodes.push(ret);
 				}
+			}
+		}
+		if(nodes.length) {
+			if(nodes.length == 1) {
+				return nodes[0];
+			} else {
+				nodes.sort((a, b) -> {
+					return (b._drawBin - a._drawBin)?: ((b._drawOrder - a._drawOrder) ?: (b._id - a._id));
+				});
+				return nodes[0];
 			}
 		}
 		return null;
