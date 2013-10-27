@@ -76,17 +76,19 @@ class CanvasRenderingContext extends RenderingContext {
 	}
 
 	override function draw(layer: Layer): void {
-			// check layout and set proper transform
-			var width = layer.layout.clientWidth;
-			var height = layer.layout.clientHeight;
-			if(!width || !height) {
-				Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
-			}
+		layer._render();
 
-			// draw
-			var transform = Eye._calculateLayoutTransform(this.width, this.height, layer);
-			this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
-			this._ctx.drawImage(layer._canvas, transform.left, transform.top);
+		// check layout and set proper transform
+		var width = layer.layout.clientWidth;
+		var height = layer.layout.clientHeight;
+		if(!width || !height) {
+			Tombo.error("[Eye#render] layoutInformation.clientWidth/Height is not initialized");
+		}
+
+		// draw
+		var transform = Eye._calculateLayoutTransform(this.width, this.height, layer);
+		this._ctx.globalCompositeOperation = layer.layout.compositeOperation;
+		this._ctx.drawImage(layer._canvas, transform.left, transform.top);
 	}
 
 	override function flush(): void {
@@ -121,7 +123,7 @@ class StreamRenderingContext extends RenderingContext {
 	}
 
 	override function draw(layer: Layer): void {
-		// TODO
+		layer._render(this._stream);
 	}
 
 	override function flush(): void {

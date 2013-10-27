@@ -17,6 +17,14 @@ class Rect {
 		}
 		return true;
 	}
+	function isSame(other: Rect): boolean {
+		if (! other) return false;
+		return (this.left == other.left &&
+			this.top == other.top &&
+			this.width == other.width &&
+			this.height == other.height);
+	}
+
 	function join(): string {
 		return [this.left, this.top, this.width, this.height].join();
 	}

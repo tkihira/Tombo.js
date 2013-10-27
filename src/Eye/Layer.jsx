@@ -446,12 +446,12 @@ class Layer {
 		}
 	}
 
-	function setTransform(transform: Transform, stream: Stream = null): void {
+	function setTransform(transform: Transform, nodeId: number, lastUpdatedFrame: int, stream: Stream = null): void {
 		// TODO(hbono): Is it faster to cache the current transform?
 		var matrix = transform.getMatrix();
 		if(stream) {
-			//this._stream.sendSetTransform(this._id, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
-			stream.sendSetTransform(this._id, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
+			//stream.sendSetTransform(this._id, nodeId, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+			stream.sendSetTransform(this._id, nodeId, lastUpdatedFrame, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
 		} else {
 			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 		}

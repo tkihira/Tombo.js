@@ -55,6 +55,8 @@ class DisplayNode {
 
 	var _oldOperation = "";
 	var _renderTransform: Transform;
+	var _lastChangedFrame = 0 as int;
+
 	static const USE_RENDER_TRANSFORM = true;
 
 	/**
@@ -463,13 +465,11 @@ class DisplayNode {
 	function _beginPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			if(stream) {
-				stream.sendCompositeOperation(this._layer._id, this._compositeOperation);
-				stream.sendAlpha(this._layer._id, this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform(), stream);
+				this._layer.setTransform(this._getRenderTransform(), this._id, this._lastChangedFrame, stream);
 			} else {
 				this._layer.setCompositeOperation(this._compositeOperation);
 				this._layer.setAlpha(this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform());
+				this._layer.setTransform(this._getRenderTransform(), this._id, this._lastChangedFrame);
 			}
 			return;
 		}
@@ -602,7 +602,12 @@ class DisplayNode {
 				return;
 			}
 			if(this._dirty) {
+				this._lastChangedFrame = Eye.getFrame();
 				this._calcRenderRect();
+			}
+
+			if (stream) {
+				stream.sendDisplayNode(this);
 			}
 
 			this._dirty = false;
@@ -614,7 +619,7 @@ class DisplayNode {
 			} else {
 				if(stream) {
 					// serialize the Shape, send it to stream
-					stream.sendShape(this._layer._id, this.shape);
+					stream.sendShape(this._layer._id, this._id, this.shape);
 				} else {
 					this.shape.draw(ctx, color);
 				}
