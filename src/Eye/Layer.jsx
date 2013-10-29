@@ -405,10 +405,23 @@ class Layer {
 		// true-negative cases (i.e. it does not filter out rectangles that do
 		// not have intersections with the dirty ones) it is sufficient for
 		// this use case.
-		var minX = rectangle.left;
-		var minY = rectangle.top;
-		var maxX = minX + rectangle.width;
-		var maxY = minY + rectangle.height;
+		var minX, minY, maxX, maxY;
+
+		if (rectangle.width < 0) { // flipped horizontally
+			minX = rectangle.left + rectangle.width;
+			maxX = rectangle.left;
+		} else {
+			minX = rectangle.left;
+			maxX = rectangle.left + rectangle.width;
+		}
+
+		if (rectangle.height < 0) { // flipped vertically
+			minY = rectangle.top + rectangle.height;
+			maxY = rectangle.top;
+		} else {
+			minY = rectangle.top;
+			maxY = minY + rectangle.height;
+		}
 		if(maxX < 0 || maxY < 0 || minX > this.width || minY > this.height) {
 			return false;
 		}
