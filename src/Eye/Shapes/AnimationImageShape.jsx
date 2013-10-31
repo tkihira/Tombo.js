@@ -81,6 +81,7 @@ class AnimationImageShape implements Shape {
 
 	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLCanvasElement>) {
 		this._id = id;
+		this._imgName = imageId;
 		this._cimg = imgMap[imageId] as HTMLCanvasElement;
 		var b = bounds;
 		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
