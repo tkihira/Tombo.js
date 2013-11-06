@@ -313,25 +313,58 @@ class Layer {
 				this._orderDrawBins.sort((a, b) -> { return a - b; });
 				this._dirtyOrderDrawBins = false;
 			}
+
+			var bins = []: Array.<Array.<DisplayNode>>;
+
 			for(var i = 0; i < this._orderDrawBins.length; i++) {
 				var binIndex = this._orderDrawBins[i] as string;
-				var bin = this._drawBins[binIndex];
+				var bin = this._drawBins[binIndex].filter(function(x) {
+					return x.shape && !x._invisible() && this.hasIntersection(x._renderRect);
+				});
 				if(this._dirtyDrawBins[binIndex]) {
 					bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
 					this._dirtyDrawBins[binIndex] = false;
 				}
-				for(var j = 0; j < bin.length; j++) {
-					bin[j]._render(this._ctx, stream);
-				}
+
+				bins.push(bin);
 			}
-			if(!stream) {
+
+			if (stream) {
+				var ids = []: Array.<int>;
+
+				bins.forEach(function(bin) {
+					ids = ids.concat(bin.map(function(x): int {
+						return x._id;
+					}));
+				});
+
+				stream.sendDisplayNodeIds(ids);
+
+				bins.forEach(function(bin) {
+					for(var j = 0; j < bin.length; j++) {
+						bin[j]._render(this._ctx, stream);
+					}
+				});
+
+				bins.forEach(function(bin) {
+					for(var j = 0; j < bin.length; j++) {
+						bin[j]._sendTransformAndShape(this._ctx, stream);
+					}
+				});
+
+				this.endStream(stream);
+			} else {
+				bins.forEach(function(bin) {
+					for(var j = 0; j < bin.length; j++) {
+						bin[j]._render(this._ctx, stream);
+					}
+				});
 				context.restore();
 			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			if(this.forceRedraw) {
 				this._dirtyRegions = [[0, 0, this.width, this.height]];
 			}
-			this.endStream(stream);
 			return;
 		}
 		this._ctx.clearRect(0, 0, this.width, this.height);
@@ -459,12 +492,12 @@ class Layer {
 		}
 	}
 
-	function setTransform(transform: Transform, nodeId: number, lastUpdatedFrame: int, stream: Stream = null): void {
+	function setTransform(transform: Transform, lastUpdatedFrame: int, stream: Stream = null): void {
 		// TODO(hbono): Is it faster to cache the current transform?
 		var matrix = transform.getMatrix();
 		if(stream) {
 			//stream.sendSetTransform(this._id, nodeId, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
-			stream.sendSetTransform(this._id, nodeId, lastUpdatedFrame, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
+			stream.sendSetTransform(this._id, lastUpdatedFrame, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
 		} else {
 			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 		}

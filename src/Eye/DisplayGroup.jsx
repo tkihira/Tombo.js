@@ -181,4 +181,6 @@ class DisplayGroup extends DisplayNode {
 		
 		ctx.restore();*/
 	}
+	override function _sendTransformAndShape(ctx: CanvasRenderingContext2D, stream: Stream = null): void {
+	}
 }
