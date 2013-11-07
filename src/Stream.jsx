@@ -12,8 +12,9 @@ interface Stream {
 	function endLayer(id: int): void;
 
 	// DisplayNode
+	function sendDisplayNodeIds(ids: Array.<int>): void;
 	function sendDisplayNode(node:DisplayNode): void;
-	function sendSetTransform(layerId: int, nodeId: int, lastUpdatedFrame: int, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
+	function sendSetTransform(layerId: int, lastUpdatedFrame: int, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;
 
 	function sendSave(layerId: int): void;
 	function sendMatrix(layerId: int, sx : number, r0: number, r1: number, sy: number, tx: number, ty: number): void;

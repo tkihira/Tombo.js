@@ -465,11 +465,11 @@ class DisplayNode {
 	function _beginPaint(context: CanvasRenderingContext2D, stream: Stream = null): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			if(stream) {
-				this._layer.setTransform(this._getRenderTransform(), this._id, this._lastChangedFrame, stream);
+				this._layer.setTransform(this._getRenderTransform(), this._lastChangedFrame, stream);
 			} else {
 				this._layer.setCompositeOperation(this._compositeOperation);
 				this._layer.setAlpha(this._getCompositeAlpha());
-				this._layer.setTransform(this._getRenderTransform(), this._id, this._lastChangedFrame);
+				this._layer.setTransform(this._getRenderTransform(), this._lastChangedFrame);
 			}
 			return;
 		}
@@ -517,13 +517,20 @@ class DisplayNode {
 		}
 	}
 
-	function _render(ctx: CanvasRenderingContext2D, stream: Stream = null): void {
+	function _invisible(): boolean {
 		var node = this;
 		while(node) {
 			if(!node._visible) {
-				return;
+				return true;
 			}
 			node = node.parent;
+		}
+		return false;
+	}
+
+	function _render(ctx: CanvasRenderingContext2D, stream: Stream = null): void {
+		if (this._invisible()) {
+			return;
 		}
 		var canvas = null: HTMLCanvasElement;
 		var color = this._getCompositeColor();
@@ -608,6 +615,7 @@ class DisplayNode {
 
 			if (stream) {
 				stream.sendDisplayNode(this);
+				return;
 			}
 
 			this._dirty = false;
@@ -653,6 +661,16 @@ class DisplayNode {
 			ctx.globalCompositeOperation = oldOperation;
 		}
 		ctx.restore();
+	}
+
+	function _sendTransformAndShape(ctx: CanvasRenderingContext2D, stream: Stream = null): void {
+		if (! stream || this._invisible() || !this._layer.hasIntersection(this._renderRect)) {
+			return;
+		}
+		this._dirty = false;
+		this._beginPaint(ctx, stream);
+		stream.sendShape(this._layer._id, this._id, this.shape);
+		this._endPaint(ctx, stream);
 	}
 
 	/**
