@@ -278,11 +278,23 @@ class Color {
 		return ((r & 0xFF) << 24) | ((g & 0xFF) << 16) | ((b & 0xFF) << 8) | (a & 0xFF);
 	}
 	static function stringify(color: int): string {
-		var r = (color >> 24) & 0xFF;
-		var g = (color >> 16) & 0xFF;
-		var b = (color >> 8) & 0xFF;
-		var a = (color & 0xFF) as number;
+		var r = Color.getR(color);
+		var g = Color.getG(color);
+		var b = Color.getB(color);
+		var a = Color.getA(color) as number;
 		return "rgba(" + (r as string) + "," + (g as string) + "," + (b as string) + "," + ((a / 255) as string) + ")";
+	}
+	static function getR(color: int): int {
+		return (color >> 24) & 0xFF;
+	}
+	static function getG(color: int): int {
+		return (color >> 16) & 0xFF;
+	}
+	static function getB(color: int): int {
+		return (color >> 8) & 0xFF;
+	}
+	static function getA(color: int): int {
+		return (color & 0xFF);
 	}
 	static const WHITE = Color.createRGB(255, 255, 255);
 }

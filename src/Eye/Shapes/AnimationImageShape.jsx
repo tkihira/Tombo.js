@@ -29,6 +29,9 @@ class AnimationImageShape implements Shape {
 	var _partialWidth: number;
 	var _partialHeight: number;
 	
+	var _filteredImage = null as HTMLCanvasElement;
+	var _filteringColor = 0 as int;
+	
 	/**
 	 * create Shape with Image Element
 	 * @param img the image element which is drawed
@@ -118,17 +121,48 @@ class AnimationImageShape implements Shape {
 		var x = (this._frame % this._cols) * this._partialWidth;
 		var y = ((this._frame / this._cols) as int) * this._partialHeight;
 		
+		var isFiltering = (Color.getA(color) != 0 && color != Color.WHITE);
+		if(isFiltering) {
+			if(color != this._filteringColor) {
+				this._filteringColor = color;
+				var width = (this._img)? this._img.width: this._cimg.width;
+				var height = (this._img)? this._img.height: this._cimg.height;
+				// filtering with color
+				var canvas = dom.document.createElement("canvas") as HTMLCanvasElement;
+				canvas.width = width;
+				canvas.height = height;
+				var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+				if(this._img) {
+					cctx.drawImage(this._img, 0, 0);
+				} else {
+					cctx.drawImage(this._cimg, 0, 0);
+				}
+				cctx.globalCompositeOperation = "source-atop";
+				cctx.fillStyle = Color.stringify(color);
+				cctx.fillRect(0, 0, width, height);
+				this._filteredImage = canvas;
+			}
+		}
+		
 		if(this._isFixedScale) {
-			if(this._img) {
-				ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+			if(isFiltering) {
+				ctx.drawImage(this._filteredImage, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
 			} else {
-				ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+				if(this._img) {
+					ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+				} else {
+					ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+				}
 			}
 		} else {
-			if(this._img) {
-				ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+			if(isFiltering) {
+				ctx.drawImage(this._filteredImage, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
 			} else {
-				ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+				if(this._img) {
+					ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+				} else {
+					ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+				}
 			}
 		}
 	}
