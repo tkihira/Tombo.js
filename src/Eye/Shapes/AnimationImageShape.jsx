@@ -29,6 +29,7 @@ class AnimationImageShape implements Shape {
 	var _partialWidth: number;
 	var _partialHeight: number;
 	
+	var _color = 0 as int;
 	var _filteredImage = null as HTMLCanvasElement;
 	var _filteringColor = 0 as int;
 	
@@ -82,7 +83,7 @@ class AnimationImageShape implements Shape {
 		this._partialHeight = this._cimg.height / this._rows;
 	}
 
-	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLCanvasElement>) {
+	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLCanvasElement>, color: number) {
 		this._id = id;
 		this._imgName = imageId;
 		this._cimg = imgMap[imageId] as HTMLCanvasElement;
@@ -92,6 +93,7 @@ class AnimationImageShape implements Shape {
 		this._cols = cols;
 		this._rows = rows;
 		this._frame = frame;
+		this._color = color;
 
 		this._partialWidth = this._cimg.width / this._cols;
 		this._partialHeight = this._cimg.height / this._rows;
@@ -102,6 +104,10 @@ class AnimationImageShape implements Shape {
 		var ret = (this._frame != nextFrame);
 		this._frame = nextFrame;
 		return ret;
+	}
+
+	function setColor(color: int): void {
+		this._color = color;
 	}
 
 	function update(nextFrame: number): void {
@@ -121,10 +127,10 @@ class AnimationImageShape implements Shape {
 		var x = (this._frame % this._cols) * this._partialWidth;
 		var y = ((this._frame / this._cols) as int) * this._partialHeight;
 		
-		var isFiltering = (Color.getA(color) != 0 && color != Color.WHITE);
+		var isFiltering = (Color.getA(this._color) != 0);
 		if(isFiltering) {
-			if(color != this._filteringColor) {
-				this._filteringColor = color;
+			if(this._color != this._filteringColor) {
+				this._filteringColor = this._color;
 				var width = (this._img)? this._img.width: this._cimg.width;
 				var height = (this._img)? this._img.height: this._cimg.height;
 				// filtering with color
@@ -138,7 +144,7 @@ class AnimationImageShape implements Shape {
 					cctx.drawImage(this._cimg, 0, 0);
 				}
 				cctx.globalCompositeOperation = "source-atop";
-				cctx.fillStyle = Color.stringify(color);
+				cctx.fillStyle = Color.stringify(this._color);
 				cctx.fillRect(0, 0, width, height);
 				this._filteredImage = canvas;
 			}
