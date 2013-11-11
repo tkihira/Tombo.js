@@ -292,26 +292,40 @@ class Layer {
 	}
 
 	function addDirtyRectangle(rectangle: Rect) : void {
+		// Adjust the input rectangle to ensure both its width and height are
+		// non-negative. (This function assumes it.)
+		var left = rectangle.left;
+		var top = rectangle.top;
+		var width = rectangle.width;
+		var height = rectangle.height;
+		if(width < 0) {
+			width = -width;
+			left -= width;
+		}
+		if(height < 0) {
+			height = -height;
+			top -= height;
+		}
 		// Add a couple of points (a top-left corner and a bottom-right corner)
 		// of the specified rectangle to the list of dirty regions for easier
 		// calculation of separation lines. (The following code aligns the given
 		// coordinates to 16-pixel boundaries to avoid adding small rectangles.)
-		var minX = rectangle.left & ~15;
-		var minY = rectangle.top & ~15;
-		var maxX = (rectangle.left+ rectangle.width + 15) & ~15;
-		var maxY = (rectangle.top + rectangle.height + 15) & ~15;
+		var minX = left & ~15;
+		var minY = top & ~15;
+		var maxX = (left + width + 15) & ~15;
+		var maxY = (top + height + 15) & ~15;
 		minX = Math.max(minX, 0);
 		minY = Math.max(minY, 0);
 		maxX = Math.min(maxX, this.width);
 		maxY = Math.min(maxY, this.height);
-		if (this._dirtyRegions.length > 0) {
+		if(this._dirtyRegions.length > 0) {
 			var region = this._dirtyRegions[0];
 			minX = Math.min(region[0], minX);
 			minY = Math.min(region[1], minY);
 			maxX = Math.max(region[2], maxX);
 			maxY = Math.max(region[3], maxY);
 		}
-		if (minX < maxX && minY < maxY) {
+		if(minX < maxX && minY < maxY) {
 			this._dirtyRegions = [[minX, minY, maxX, maxY]];
 		}
 	}
