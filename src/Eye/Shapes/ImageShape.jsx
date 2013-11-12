@@ -86,7 +86,7 @@ class ImageShape implements Shape {
 			} else {
 				if(!this._cimg) {
 					log "Fail to draw: " + this._imgName;
-					retrun;
+					return;
 				}
 				ctx.drawImage(this._cimg, 0, 0);
 			}
