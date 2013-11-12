@@ -157,6 +157,10 @@ class AnimationImageShape implements Shape {
 				if(this._img) {
 					ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
 				} else {
+					if(!this._cimg) {
+						log "Fail to draw: " + this._imgName;
+						return;
+					}
 					ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
 				}
 			}
@@ -167,6 +171,10 @@ class AnimationImageShape implements Shape {
 				if(this._img) {
 					ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
 				} else {
+					if(!this._cimg) {
+						log "Fail to draw: " + this._imgName;
+						return;
+					}
 					ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
 				}
 			}

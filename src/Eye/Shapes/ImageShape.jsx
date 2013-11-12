@@ -74,12 +74,20 @@ class ImageShape implements Shape {
 			if(this._img) {
 				ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
 			} else {
+				if(!this._cimg) {
+					log "Fail to draw: " + this._imgName;
+					return;
+				}
 				ctx.drawImage(this._cimg, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
 			}
 		} else {
 			if(this._img) {
 				ctx.drawImage(this._img, 0, 0);
 			} else {
+				if(!this._cimg) {
+					log "Fail to draw: " + this._imgName;
+					retrun;
+				}
 				ctx.drawImage(this._cimg, 0, 0);
 			}
 		}
