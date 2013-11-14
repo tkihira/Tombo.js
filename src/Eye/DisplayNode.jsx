@@ -214,6 +214,9 @@ class DisplayNode {
 		this._addDirtyRectangle();
 	}
 	function _setDirtyRect(value: boolean): void {
+		if (Eye.useStreaming()) {
+			return;
+		}
 		this._dirtyRect = value;
 		if(value) {
 			this._compositeTransform = null;
@@ -448,12 +451,14 @@ class DisplayNode {
 	}
 
 	function _addDirtyRectangle(): void {
-		if(this._layer) {
-			if(this._renderRect) {
+		if (! Eye.useStreaming()) {
+			if(this._layer) {
+				if(this._renderRect) {
+					this._layer.addDirtyRectangle(this._renderRect);
+				}
+				this._calcRenderRect();
 				this._layer.addDirtyRectangle(this._renderRect);
 			}
-			this._calcRenderRect();
-			this._layer.addDirtyRectangle(this._renderRect);
 		}
 		this._dirty = true;
 	}
@@ -610,7 +615,9 @@ class DisplayNode {
 			}
 			if(this._dirty) {
 				this._lastChangedFrame = Eye.getFrame();
-				this._calcRenderRect();
+				if (! Eye.useStreaming()) {
+					this._calcRenderRect();
+				}
 			}
 
 			if (stream) {
