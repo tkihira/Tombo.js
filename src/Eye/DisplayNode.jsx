@@ -214,9 +214,6 @@ class DisplayNode {
 		this._addDirtyRectangle();
 	}
 	function _setDirtyRect(value: boolean): void {
-		if (Eye.useStreaming()) {
-			return;
-		}
 		this._dirtyRect = value;
 		if(value) {
 			this._compositeTransform = null;
@@ -371,10 +368,6 @@ class DisplayNode {
 	}
 
 	function getCompositeTransform(): Transform {
-		if(Layer.USE_NEW_RENDERER) {
-			this._compositeTransform = this._calcCompositeTransform();
-			return this._compositeTransform;
-		}
 		if(!this._compositeTransform) {
 			this._compositeTransform = this._calcCompositeTransform();
 		}
