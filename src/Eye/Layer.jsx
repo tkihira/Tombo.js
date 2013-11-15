@@ -319,7 +319,13 @@ class Layer {
 			for(var i = 0; i < this._orderDrawBins.length; i++) {
 				var binIndex = this._orderDrawBins[i] as string;
 				var bin = this._drawBins[binIndex].filter(function(x) {
-					return x.shape && !x._invisible() && this.hasIntersection(x._renderRect);
+					if (!x.shape || x._invisible()) {
+						return false;
+					}
+
+					// update DisplayNode._renderRect here.
+					x._calcRenderRect();
+					return this.hasIntersection(x._renderRect);
 				});
 				if(this._dirtyDrawBins[binIndex]) {
 					bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
