@@ -15,8 +15,9 @@ class TextShape implements Shape {
 	var bounds: Rect;
 	var isMutable = true;
 	var isImage = false;
+	var dirty = true;
+	var lastUpdatedFrame = 0 as int;
 	var _id: int;
-	var _lastUpdatedFrame = 0 as int;
 	
 	/** Whether to cache rendered text. */
 	static const USE_CACHE = true;
@@ -222,6 +223,7 @@ class TextShape implements Shape {
 			h != this.bounds.height) {
 			this._textDirty = true;
 			this.bounds = new Rect(x, y, w, h);
+			this.dirty = true;
 		}
 
 		this.setText(text);
@@ -237,7 +239,7 @@ class TextShape implements Shape {
 	function setOption(option: TextShape.Option): void {
 		this._option = option;
 		this._textDirty = true;
-		this._lastUpdatedFrame = Eye.getFrame();
+		this.dirty = true;
 	}
 	
 	/**
@@ -247,7 +249,7 @@ class TextShape implements Shape {
 		if(this._text != text) {
 			this._text = text;
 			this._textDirty = true;
-			this._lastUpdatedFrame = Eye.getFrame();
+			this.dirty = true;
 		}
 	}
 	
@@ -384,7 +386,7 @@ class TextShape implements Shape {
 				this._option.textColor = color;
 			}
 			this._textDirty = true;
-			this._lastUpdatedFrame = Eye.getFrame();
+			this.dirty = true;
 		}
 		if(TextShape.USE_CACHE) {
 			if(this._textDirty) {

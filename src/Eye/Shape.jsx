@@ -17,8 +17,10 @@ interface Shape {
 	var isMutable: boolean;
 	/** true if this shape is an image. */
 	var isImage: boolean;
-
-	var _lastUpdatedFrame: int;
+	/** true if this shape has been updated this time */
+	var dirty: boolean;
+	/** for renderer-side dirty-rect optimization */
+	var lastUpdatedFrame: int;
 	
 	/** draw shape on the context */
 	function draw(ctx: CanvasRenderingContext2D, color: number): void;

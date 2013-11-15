@@ -15,7 +15,9 @@ class RectShape implements Shape {
 	var bounds: Rect;
 	var isMutable = false;
 	var isImage = false;
-	var _lastUpdatedFrame = 0 as int;
+	var dirty = true;
+	var lastUpdatedFrame = 0 as int;
+
 	var _color = 0;
 	var _id: int;
 	
@@ -51,7 +53,7 @@ class RectShape implements Shape {
 		var ret = false;
 		if(this._color != color) {
 			this._color = color;
-			this._lastUpdatedFrame = Eye.getFrame();
+			this.dirty = true;
 			ret = true;
 		}
 		return ret;

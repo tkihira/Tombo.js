@@ -607,7 +607,6 @@ class DisplayNode {
 				return;
 			}
 			if(this._dirty) {
-				this._lastChangedFrame = Eye.getFrame();
 				if (! Eye.useStreaming()) {
 					this._calcRenderRect();
 				}
@@ -670,6 +669,7 @@ class DisplayNode {
 		this._dirty = false;
 		this._beginPaint(ctx, stream);
 		stream.sendShape(this._layer._id, this._id, this.shape);
+		this.shape.dirty = false;
 		this._endPaint(ctx, stream);
 	}
 
