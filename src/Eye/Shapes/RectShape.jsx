@@ -30,33 +30,19 @@ class RectShape implements Shape {
 		this.bounds = new Rect(0, 0, width, height);
 	}
 
-	function constructor(data: Array.<string>) {
-		this._id = data[0].split(":")[1] as number;
-		var b = data[2].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
-		this._color = data[3].split(":")[1] as number;
-	}
-
+	// for streaming
 	function constructor(id: number, bounds: Rect, color: number) {
 		this._id = id;
 		this.bounds = bounds;
 		this._color = color;
 	}
 
-	override function update(data: Array.<string>): boolean {
-		var nextColor = data[3].split(":")[1] as number;
-		return this.setColor(nextColor);
-	}
-
 	// return true if updated
-	function setColor(color: number): boolean {
-		var ret = false;
+	function setColor(color: number): void {
 		if(this._color != color) {
 			this._color = color;
 			this.dirty = true;
-			ret = true;
 		}
-		return ret;
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {

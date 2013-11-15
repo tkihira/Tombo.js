@@ -51,17 +51,7 @@ class ImageShape implements Shape {
 		}
 	}
 
-	function constructor(data: Array.<string>, imgMap: Map.<HTMLCanvasElement>) {
-		log 'ImageShape ctor 1: ';
-		this._id = data[0].split(":")[1] as number;
-		//var img = (imgMap[data[2].split(":")[1]] as __noconvert__ variant) as __noconvert__ HTMLImageElement;
-		//this._img = img;
-		this._cimg = imgMap[data[2].split(":")[1]] as HTMLCanvasElement;
-		var b = data[3].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
-		this._isFixedScale = (data[4] == "true");
-	}
-
+	// for streaming
 	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean,  imgMap: Map.<HTMLCanvasElement>) {
 		this._id = id;
 		this._imgName = imageId;
@@ -93,11 +83,6 @@ class ImageShape implements Shape {
 				ctx.drawImage(this._cimg, 0, 0);
 			}
 		}
-	}
-
-	override function update(data: Array.<string>): boolean {
-		// do nothing because there is no memebr to be updated
-		return false;
 	}
 
 	override function getType(): string {

@@ -25,9 +25,6 @@ interface Shape {
 	/** draw shape on the context */
 	function draw(ctx: CanvasRenderingContext2D, color: number): void;
 
-	/** update with JSON. return true if updated, false if nothing changed */
-	function update(data: Array.<string>): boolean;
-
 	/** since JSX does not have reflection */
 	function getType(): string;
 }

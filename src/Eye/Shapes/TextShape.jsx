@@ -66,21 +66,6 @@ class TextShape implements Shape {
 		var valign = TextShape.TOP as int;
 		/** fontHeight: default 30 */
 		var fontHeight = 30 as int;
-		function serialize(json: Array.<variant>): void {
-			json.push("wordWrap:" + this.wordWrap as string);
-			json.push("multiline:" + this.multiline as string);
-			json.push("border:" + this.border as string);
-			json.push("textColor:" + this.textColor as string);
-			json.push("borderColor:" + this.borderColor as string);
-			json.push("borderWidth:" + this.borderWidth as string);
-			json.push("maxLength:" + this.maxLength as string);
-			json.push("font:" + this.font as string);
-			json.push("leftMargin:" + this.leftMargin as string);
-			json.push("rightMargin:" + this.rightMargin as string);
-			json.push("align:" + this.align as string);
-			json.push("valign:" + this.valign as string);
-			json.push("fontHeight:" + this.fontHeight as string);
-		}
 
 		function constructor() { }
 
@@ -137,68 +122,7 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 	
-	function constructor(data: Array.<string>) {
-		this._id = data[0].split(":")[1] as number;
-		var b = data[2].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, b[2] as number, b[3] as number);
-		this._text = data[3].split(":").slice(1).join(":");
-		
-		for(var i = 0; i < data.length; i++) {
-			var command = data[i].split(":");
-			switch(command[0]) {
-				case "wordWrap": this._option.wordWrap = (command[1] == "true"); break;
-				case "multiline": this._option.multiline = (command[1] == "true"); break;
-				case "border": this._option.border = (command[1] == "true"); break;
-				case "textColor": this._option.textColor = command[1] as number; break;
-				case "borderColor": this._option.borderColor = command[1] as number; break;
-				case "borderWidth": this._option.borderWidth = command[1] as number; break;
-				case "maxLength": this._option.maxLength = command[1] as number; break;
-				case "font": this._option.font = command[1]; break;
-				case "leftMargin": this._option.leftMargin = command[1] as number; break;
-				case "rightMargin": this._option.rightMargin = command[1] as number; break;
-				case "align": this._option.align = command[1] as number; break;
-				case "valign": this._option.valign = command[1] as number; break;
-				case "fontHeight": this._option.fontHeight = command[1] as number; break;
-			}
-		}
-		this._textCanvas = null;
-		this._textWidth = 0;
-		this._textHeight = 0;
-		this._textDirty = true;
-	}
-	
-	function constructor(id: number, bounds: Rect, text: string, option: string) {
-		this._id = id;
-		this.bounds = bounds;
-		this._text = text;
-
-		var data = JSON.parse(option) as Array.<string>;
-
-		for(var i = 0; i < data.length; i++) {
-			var command = data[i].split(":");
-			switch(command[0]) {
-				case "wordWrap": this._option.wordWrap = (command[1] == "true"); break;
-				case "multiline": this._option.multiline = (command[1] == "true"); break;
-				case "border": this._option.border = (command[1] == "true"); break;
-				case "textColor": this._option.textColor = command[1] as number; break;
-				case "borderColor": this._option.borderColor = command[1] as number; break;
-				case "borderWidth": this._option.borderWidth = command[1] as number; break;
-				case "maxLength": this._option.maxLength = command[1] as number; break;
-				case "font": this._option.font = command[1]; break;
-				case "leftMargin": this._option.leftMargin = command[1] as number; break;
-				case "rightMargin": this._option.rightMargin = command[1] as number; break;
-				case "align": this._option.align = command[1] as number; break;
-				case "valign": this._option.valign = command[1] as number; break;
-				case "fontHeight": this._option.fontHeight = command[1] as number; break;
-			}
-		}
-
-		this._textCanvas = null;
-		this._textWidth = 0;
-		this._textHeight = 0;
-		this._textDirty = true;
-	}
-
+	// for streaming
 	function constructor(id: number, bounds: Rect, text: string, option: TextShape.Option) {
 		this._id = id;
 		this.bounds = bounds;
@@ -210,13 +134,8 @@ class TextShape implements Shape {
 		this._textDirty = true;
 	}
 
-	override function update(data: Array.<string>): boolean {
-		assert false; // do nothing for this interface
-		return false;
-	}
-
 	function update(x: number, y: number, w: number, h: number, text: string,
-		ww: boolean, mul: boolean, brd: boolean, tc: int, bc: int, bw: int, ml: int, ft: string, lm: int, rm: int, al: int, val: int, fh: int): boolean {
+		ww: boolean, mul: boolean, brd: boolean, tc: int, bc: int, bw: int, ml: int, ft: string, lm: int, rm: int, al: int, val: int, fh: int): void {
 		if (x != this.bounds.left ||
 			y != this.bounds.top ||
 			w != this.bounds.width ||
@@ -230,7 +149,6 @@ class TextShape implements Shape {
 
 		if (! this._option.isEqual(ww, mul, brd, tc, bc, bw, ml, ft, lm, rm, al, val, fh))
 			this.setOption(new TextShape.Option(ww, mul, brd, tc, bc, bw, ml, ft, lm, rm, al, val, fh));
-		return this._textDirty;
 	}
 
 	/**

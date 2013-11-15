@@ -70,21 +70,7 @@ class AnimationImageShape implements Shape {
 		this._partialHeight = height / this._rows;
 	}
 
-	function constructor(data: Array.<string>, imgMap: Map.<HTMLCanvasElement>) {
-		this._id = data[0].split(":")[1] as number;
-		//var img = (imgMap[data[2].split(":")[1]] as __noconvert__ variant) as __noconvert__ HTMLImageElement;
-		//this._img = img;
-		this._cimg = imgMap[data[2].split(":")[1]] as HTMLCanvasElement;
-		var b = data[3].split(":")[1].split(",");
-		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
-		this._isFixedScale = (data[4] == "true");
-		this._cols = data[5].split(":")[1] as number;
-		this._rows = data[6].split(":")[1] as number;
-		this._frame = data[7].split(":")[1] as number;
-		this._partialWidth = this._cimg.width / this._cols;
-		this._partialHeight = this._cimg.height / this._rows;
-	}
-
+	// for streaming
 	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLCanvasElement>, color: number) {
 		this._id = id;
 		this._imgName = imageId;
@@ -101,19 +87,8 @@ class AnimationImageShape implements Shape {
 		this._partialHeight = this._cimg.height / this._rows;
 	}
 
-	override function update(data: Array.<string>): boolean {
-		var nextFrame = data[7].split(":")[1] as number;
-		var ret = (this._frame != nextFrame);
-		this._frame = nextFrame;
-		return ret;
-	}
-
 	function setColor(color: int): void {
 		this._color = color;
-	}
-
-	function update(nextFrame: number): void {
-		this.setFrame(nextFrame);
 	}
 
 	function setFrame(frame: number): void {
