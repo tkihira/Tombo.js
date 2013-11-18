@@ -318,7 +318,14 @@ class Layer {
 
 			for(var i = 0; i < this._orderDrawBins.length; i++) {
 				var binIndex = this._orderDrawBins[i] as string;
-				var bin = this._drawBins[binIndex].filter(function(x) {
+				var bin = this._drawBins[binIndex];
+
+				if(this._dirtyDrawBins[binIndex]) {
+					bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
+					this._dirtyDrawBins[binIndex] = false;
+				}
+
+				bins.push(bin.filter(function(x) {
 					if (!x.shape || x._invisible()) {
 						return false;
 					}
@@ -326,13 +333,7 @@ class Layer {
 					// update DisplayNode._renderRect here.
 					x._calcRenderRect();
 					return this.hasIntersection(x._renderRect);
-				});
-				if(this._dirtyDrawBins[binIndex]) {
-					bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
-					this._dirtyDrawBins[binIndex] = false;
-				}
-
-				bins.push(bin);
+				}));
 			}
 
 			if (stream) {
