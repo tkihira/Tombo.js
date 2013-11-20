@@ -20,9 +20,9 @@ import "../BasicTypes.jsx";
  */
 class DisplayNode {
 	
-	var _clientRect: Rect;
+	var _clientRect: Rect; // cached if possible
 	var _renderRect: Rect;
-	var _compositeTransform: Transform;
+	var _compositeTransform: Transform; // cached if possible
 	var _compositeColor = -1; // -1 if not initialized
 	var _compositeAlpha = -1; // -1 if not initialized
 	
@@ -39,7 +39,7 @@ class DisplayNode {
 	
 	var _layer = null: Layer;
 	var _isTouchable = false;
-	var _transform: Transform;
+	var _transform: Transform; // transform of itself
 	
 	var _dirtyRect = true;
 	var _dirty = true;
@@ -54,7 +54,7 @@ class DisplayNode {
 	var _compositeOperation = "";
 
 	var _oldOperation = "";
-	var _renderTransform: Transform;
+	var _renderTransform: Transform; // cache
 	var _lastChangedFrame = 0 as int;
 
 	static const USE_RENDER_TRANSFORM = true;
@@ -438,6 +438,7 @@ class DisplayNode {
 		}
 		return this._renderTransform;
 	}
+	// invalidate the cached _renderTransform
 	function _calcRenderRect(): void {
 		this._renderTransform = null;
 		this._renderRect = this._getRenderTransform().transformRect(this.shape.bounds);

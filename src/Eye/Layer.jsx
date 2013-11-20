@@ -6,6 +6,7 @@ import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
 import "Eye.jsx";
 import "Stream.jsx";
+import "RenderingContext.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
@@ -261,54 +262,28 @@ class Layer {
 		return null;
 	}
 	
-	function _render(stream: Stream = null): void {
-		this.beginStream(stream);
-
-		if(!stream && !this._canvas) {
-			Tombo.warn("[Layer#render] Layer's canvas is not created");
-			this._modifyCanvas();
-		}
+	function _render(context: RenderingContext): void {
 		if(Layer.USE_NEW_RENDERER) {
 			// Erase the region covered by the dirty rectangles and redraw
 			// objects that have intersections with the rectangles.
 			if(this._dirtyRegions.length == 0) {
-				this.endStream(stream);
 				return;
 			}
-			var context = this._ctx;
+
 			// Clean up this layer and return now without saving or restoring
 			// the context if it does not have any nodes. (It is better to avoid
 			// unnecessary calls for Canvas APIs.)
 			if (!this.root.hasChildren()) {
-				if(!stream) {
-					context.clearRect(0, 0, this.width, this.height);
-				}
+				context.clearRect(0, 0, this.width, this.height);
 				this._dirtyRegions = [] : Array.<Array.<number>>;
 				if(this.forceRedraw) {
 					this._dirtyRegions = [[0, 0, this.width, this.height]];
 				}
-				this.endStream(stream);
 				return;
 			}
-			if(!stream) {
-				context.save();
-				context.beginPath();
-			}
-			var length = this._dirtyRegions.length;
-			for(var i = 0; i < length; ++i) {
-				var region = this._dirtyRegions[i];
-				var x = region[0];
-				var y  = region[1];
-				var width = region[2] - x;
-				var height = region[3] - y;
-				if(!stream) {
-					context.clearRect(x, y, width, height);
-					context.rect(x, y, width, height);
-				}
-			}
-			if(!stream) {
-				context.clip();
-			}
+
+			context.clipDirtyRegions(this);
+
 			if (this._dirtyOrderDrawBins) {
 				this._orderDrawBins.sort((a, b) -> { return a - b; });
 				this._dirtyOrderDrawBins = false;
@@ -336,44 +311,15 @@ class Layer {
 				}));
 			}
 
-			if (stream) {
-				var ids = []: Array.<int>;
+			context.renderBins(this, bins);
 
-				bins.forEach(function(bin) {
-					ids = ids.concat(bin.map(function(x): int {
-						return x._id;
-					}));
-				});
-
-				stream.sendDisplayNodeIds(ids);
-
-				bins.forEach(function(bin) {
-					for(var j = 0; j < bin.length; j++) {
-						bin[j]._render(this._ctx, stream);
-					}
-				});
-
-				bins.forEach(function(bin) {
-					for(var j = 0; j < bin.length; j++) {
-						bin[j]._sendTransformAndShape(this._ctx, stream);
-					}
-				});
-
-				this.endStream(stream);
-			} else {
-				bins.forEach(function(bin) {
-					for(var j = 0; j < bin.length; j++) {
-						bin[j]._render(this._ctx, stream);
-					}
-				});
-				context.restore();
-			}
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			if(this.forceRedraw) {
 				this._dirtyRegions = [[0, 0, this.width, this.height]];
 			}
 			return;
 		}
+
 		this._ctx.clearRect(0, 0, this.width, this.height);
 		
 		if (this._dirtyOrderDrawBins) {
@@ -388,7 +334,7 @@ class Layer {
 				this._dirtyDrawBins[binIndex] = false;
 			}
 			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(this._ctx, stream);
+				bin[j]._render(this._ctx, null);
 			}
 		}
 		
@@ -397,17 +343,6 @@ class Layer {
 		if(this.forceRedraw) {
 			this._dirtyRegions = [[0, 0, this.width, this.height]];
 		}
-		this.endStream(stream);
-	}
-
-	function beginStream(stream: Stream): void {
-		if (stream)
-			stream.sendLayerInfo(this._id, this.width, this.height, this._alpha, this._compositeOperation, this.layout.layoutMode, this.layout.scale);
-	}
-
-	function endStream(stream: Stream): void {
-		if (stream)
-			stream.endLayer(this._id);
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
