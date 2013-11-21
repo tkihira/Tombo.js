@@ -18,7 +18,6 @@ class AnimationImageShape implements Shape {
 	var dirty = true;
 	var lastUpdatedFrame = 0 as int;
 
-	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
@@ -71,20 +70,20 @@ class AnimationImageShape implements Shape {
 	}
 
 	// for streaming
-	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLCanvasElement>, color: number) {
+	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean, cols: number, rows: number, frame: number, imgMap: Map.<HTMLImageElement>, color: number) {
 		this._id = id;
 		this._imgName = imageId;
-		this._cimg = imgMap[imageId] as HTMLCanvasElement;
+		this._img = imgMap[imageId];
 		var b = bounds;
-		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
+		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._img.width: b[2] as number, (b[3] == "-1")? this._img.height: b[3] as number);
 		this._isFixedScale = isFixedScale;
 		this._cols = cols;
 		this._rows = rows;
 		this._frame = frame;
 		this._color = color;
 
-		this._partialWidth = this._cimg.width / this._cols;
-		this._partialHeight = this._cimg.height / this._rows;
+		this._partialWidth = this._img.width / this._cols;
+		this._partialHeight = this._img.height / this._rows;
 	}
 
 	function setColor(color: int): void {
@@ -109,18 +108,14 @@ class AnimationImageShape implements Shape {
 		if(isFiltering) {
 			if(this._color != this._filteringColor) {
 				this._filteringColor = this._color;
-				var width = (this._img)? this._img.width: this._cimg.width;
-				var height = (this._img)? this._img.height: this._cimg.height;
+				var width = this._img.width;
+				var height = this._img.height;
 				// filtering with color
 				var canvas = dom.document.createElement("canvas") as HTMLCanvasElement;
 				canvas.width = width;
 				canvas.height = height;
 				var cctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-				if(this._img) {
-					cctx.drawImage(this._img, 0, 0);
-				} else {
-					cctx.drawImage(this._cimg, 0, 0);
-				}
+				cctx.drawImage(this._img, 0, 0);
 				cctx.globalCompositeOperation = "source-atop";
 				cctx.fillStyle = Color.stringify(this._color);
 				cctx.fillRect(0, 0, width, height);
@@ -132,29 +127,21 @@ class AnimationImageShape implements Shape {
 			if(isFiltering) {
 				ctx.drawImage(this._filteredImage, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
 			} else {
-				if(this._img) {
-					ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
-				} else {
-					if(!this._cimg) {
-						log "Fail to draw: " + this._imgName;
-						return;
-					}
-					ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
+				if(!this._img) {
+					log "Fail to draw: " + this._imgName;
+					return;
 				}
+				ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this.bounds.width, this.bounds.height);
 			}
 		} else {
 			if(isFiltering) {
 				ctx.drawImage(this._filteredImage, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
 			} else {
-				if(this._img) {
-					ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
-				} else {
-					if(!this._cimg) {
-						log "Fail to draw: " + this._imgName;
-						return;
-					}
-					ctx.drawImage(this._cimg, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
+				if(!this._img) {
+					log "Fail to draw: " + this._imgName;
+					return;
 				}
+				ctx.drawImage(this._img, x, y, this._partialWidth, this._partialHeight, 0, 0, this._partialWidth, this._partialHeight);
 			}
 		}
 	}

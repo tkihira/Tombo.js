@@ -18,7 +18,6 @@ class ImageShape implements Shape {
 	var dirty = true;
 	var lastUpdatedFrame = 0 as int;
 
-	var _cimg: HTMLCanvasElement;
 	var _img: HTMLImageElement;
 	var _imgName: string;
 	var _isFixedScale = false;
@@ -52,36 +51,24 @@ class ImageShape implements Shape {
 	}
 
 	// for streaming
-	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean,  imgMap: Map.<HTMLCanvasElement>) {
+	function constructor(id: number, imageId: string, bounds: Array.<variant>, isFixedScale: boolean,  imgMap: Map.<HTMLImageElement>) {
 		this._id = id;
 		this._imgName = imageId;
-		this._cimg = imgMap[imageId] as HTMLCanvasElement;
+		this._img = imgMap[imageId];
 		var b = bounds;
-		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._cimg.width: b[2] as number, (b[3] == "-1")? this._cimg.height: b[3] as number);
+		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._img.width: b[2] as number, (b[3] == "-1")? this._img.height: b[3] as number);
 		this._isFixedScale = isFixedScale;
 	}
 
 	override function draw(ctx: CanvasRenderingContext2D, color: number): void {
+		if(!this._img) {
+			log "Fail to draw: " + this._imgName;
+			return;
+		}
 		if(this._isFixedScale) {
-			if(this._img) {
-				ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
-			} else {
-				if(!this._cimg) {
-					log "Fail to draw: " + this._imgName;
-					return;
-				}
-				ctx.drawImage(this._cimg, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
-			}
+			ctx.drawImage(this._img, 0, 0, this._img.width, this._img.height, 0, 0, this.bounds.width, this.bounds.height);
 		} else {
-			if(this._img) {
-				ctx.drawImage(this._img, 0, 0);
-			} else {
-				if(!this._cimg) {
-					log "Fail to draw: " + this._imgName;
-					return;
-				}
-				ctx.drawImage(this._cimg, 0, 0);
-			}
+			ctx.drawImage(this._img, 0, 0);
 		}
 	}
 
