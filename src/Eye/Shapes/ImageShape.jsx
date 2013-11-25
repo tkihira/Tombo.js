@@ -55,6 +55,9 @@ class ImageShape implements Shape {
 		this._id = id;
 		this._imgName = imageId;
 		this._img = imgMap[imageId];
+		if (! this._img) {
+			Tombo.error('ImageShape.constructor: no such image ' + this._imgName + ' has been loaded yet');
+		}
 		var b = bounds;
 		this.bounds = new Rect(b[0] as number, b[1] as number, (b[2] == "-1")? this._img.width: b[2] as number, (b[3] == "-1")? this._img.height: b[3] as number);
 		this._isFixedScale = isFixedScale;
