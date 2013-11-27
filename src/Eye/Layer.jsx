@@ -305,13 +305,31 @@ class Layer {
 						return false;
 					}
 
+					function isGeometryUpdated(node: DisplayNode):boolean {
+						var geometryUpdated = node._geometryUpdated;
+						var y = node.parent;
+						while (y && !geometryUpdated) {
+							geometryUpdated = geometryUpdated || y._geometryUpdated;
+							y = y.parent;
+						}
+						return geometryUpdated;
+					}
+
 					// update DisplayNode._renderRect here.
-					x._calcRenderRect();
+					if (isGeometryUpdated(x) || !x._renderRect) {
+						x._calcRenderRect();
+					}
 					return this.hasIntersection(x._renderRect);
 				}));
 			}
 
 			context.renderBins(this, bins);
+
+			for (var iii in this._drawBins) {
+				this._drawBins[iii].forEach((node) -> {
+					node._geometryUpdated = false;
+				});
+			}
 
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			if(this.forceRedraw) {

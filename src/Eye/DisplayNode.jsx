@@ -43,6 +43,7 @@ class DisplayNode {
 	
 	var _dirtyRect = true;
 	var _dirty = true;
+	var _geometryUpdated = true;
 
 	var _id: number;
 	static var _counter = 0;
@@ -132,6 +133,9 @@ class DisplayNode {
 				this._transform.setPosition(left, top);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
+				this._geometryUpdated = true;
+			} else {
+				this._geometryUpdated = false;
 			}
 			return;
 		}
@@ -147,6 +151,9 @@ class DisplayNode {
 				this._transform.setScale(scaleX, scaleY);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
+				this._geometryUpdated = true;
+			} else {
+				this._geometryUpdated = false;
 			}
 			return;
 		}
@@ -164,6 +171,9 @@ class DisplayNode {
 				this._transform.setRotation(rotation);
 				this._setDirtyRect(true);
 				this._addDirtyRectangle();
+				this._geometryUpdated = true;
+			} else {
+				this._geometryUpdated = false;
 			}
 			return;
 		}
@@ -180,6 +190,7 @@ class DisplayNode {
 		this._transform.setMatrix(matrix);
 		this._setDirtyRect(true);
 		this._addDirtyRectangle();
+		this._geometryUpdated = true;
 	}
 	
 	function _setLayer(layer: Layer): void {
@@ -606,11 +617,6 @@ class DisplayNode {
 			// is obviously true.
 			if(!this._layer.hasIntersection(this._renderRect)) {
 				return;
-			}
-			if(this._dirty) {
-				if (! Eye.useStreaming()) {
-					this._calcRenderRect();
-				}
 			}
 
 			if (stream) {
