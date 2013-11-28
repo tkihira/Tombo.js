@@ -135,7 +135,6 @@ class DisplayNode {
 				this._addDirtyRectangle();
 				this._geometryUpdated = true;
 			} else {
-				this._geometryUpdated = false;
 			}
 			return;
 		}
@@ -153,7 +152,6 @@ class DisplayNode {
 				this._addDirtyRectangle();
 				this._geometryUpdated = true;
 			} else {
-				this._geometryUpdated = false;
 			}
 			return;
 		}
@@ -173,7 +171,6 @@ class DisplayNode {
 				this._addDirtyRectangle();
 				this._geometryUpdated = true;
 			} else {
-				this._geometryUpdated = false;
 			}
 			return;
 		}
