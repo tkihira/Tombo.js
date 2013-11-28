@@ -680,6 +680,17 @@ class DisplayNode {
 		this._endPaint(ctx, stream);
 	}
 
+	function isGeometryUpdated():boolean {
+		var geometryUpdated = this._geometryUpdated;
+		var y = this.parent;
+		while (y && !geometryUpdated) {
+			geometryUpdated = geometryUpdated || y._geometryUpdated;
+			y = y.parent;
+		}
+		return geometryUpdated;
+	}
+
+
 	/**
 	  * returns the absolute posittion of this node.
 	  * @param width  of Eye

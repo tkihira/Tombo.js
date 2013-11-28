@@ -289,7 +289,7 @@ class Layer {
 				this._dirtyOrderDrawBins = false;
 			}
 
-			var bins = []: Array.<Array.<DisplayNode>>;
+			var bins = []: Array.<DisplayNode>;
 
 			for(var i = 0; i < this._orderDrawBins.length; i++) {
 				var binIndex = this._orderDrawBins[i] as string;
@@ -300,27 +300,20 @@ class Layer {
 					this._dirtyDrawBins[binIndex] = false;
 				}
 
-				bins.push(bin.filter(function(x) {
+				bin.forEach((x) -> {
 					if (!x.shape || x._invisible()) {
-						return false;
-					}
-
-					function isGeometryUpdated(node: DisplayNode):boolean {
-						var geometryUpdated = node._geometryUpdated;
-						var y = node.parent;
-						while (y && !geometryUpdated) {
-							geometryUpdated = geometryUpdated || y._geometryUpdated;
-							y = y.parent;
-						}
-						return geometryUpdated;
+						return;
 					}
 
 					// update DisplayNode._renderRect here.
-					if (isGeometryUpdated(x) || !x._renderRect) {
+					if (x.isGeometryUpdated() || !x._renderRect) {
 						x._calcRenderRect();
 					}
-					return this.hasIntersection(x._renderRect);
-				}));
+
+					if (this.hasIntersection(x._renderRect)) {
+						bins.push(x);
+					}
+				});
 			}
 
 			context.renderBins(this, bins);

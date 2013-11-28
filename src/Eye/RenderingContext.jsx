@@ -24,7 +24,7 @@ __export__ abstract class RenderingContext {
 	// Layer
 	abstract function beginLayer(layer: Layer): void;
 	abstract function endLayer(layer: Layer): void;
-	abstract function renderBins(layer: Layer, bins: Array.<Array.<DisplayNode>>): void;
+	abstract function renderBins(layer: Layer, bins: Array.<DisplayNode>): void;
 	abstract function clipDirtyRegions(layer: Layer): void;
 
 	abstract function clearRect(x : number/*unrestricted double*/, y : number/*unrestricted double*/, w : number/*unrestricted double*/, h : number/*unrestricted double*/) : void;
@@ -91,11 +91,9 @@ class CanvasRenderingContext extends RenderingContext {
 		// nothing has to be done here
 	}
 
-	override function renderBins(layer: Layer, bins: Array.<Array.<DisplayNode>>): void {
+	override function renderBins(layer: Layer, bins: Array.<DisplayNode>): void {
 		bins.forEach(function(bin) {
-			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(layer._ctx, null);
-			}
+			bin._render(layer._ctx, null);
 		});
 		layer._ctx.restore();
 	}
@@ -160,31 +158,23 @@ class StreamRenderingContext extends RenderingContext {
 		this._fillStyle = style;
 	}
 
-	function _sendDisplayNodeIds(bins: Array.<Array.<DisplayNode>>): void {
-		var ids = []: Array.<int>;
-
-		bins.forEach(function(bin) {
-			ids = ids.concat(bin.map(function(x): int {
-				return x._id;
-			}));
-		});
+	function _sendDisplayNodeIds(bin: Array.<DisplayNode>): void {
+		var ids = bin.map(function(node) {
+			return node._id as int;
+		}) as Array.<int>;
 
 		this._stream.sendDisplayNodeIds(ids);
 	}
 
-	override function renderBins(layer: Layer, bins: Array.<Array.<DisplayNode>>): void {
-		this._sendDisplayNodeIds(bins);
+	override function renderBins(layer: Layer, bin: Array.<DisplayNode>): void {
+		this._sendDisplayNodeIds(bin);
 
-		bins.forEach(function(bin) {
-			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(layer._ctx, this._stream);
-			}
+		bin.forEach(function(node) {
+			node._render(layer._ctx, this._stream);
 		});
 
-		bins.forEach(function(bin) {
-			for(var j = 0; j < bin.length; j++) {
-				bin[j]._sendTransformAndShape(layer._ctx, this._stream);
-			}
+		bin.forEach(function(node) {
+			node._sendTransformAndShape(layer._ctx, this._stream);
 		});
 	}
 
