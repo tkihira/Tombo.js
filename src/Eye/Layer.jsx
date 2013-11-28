@@ -306,7 +306,7 @@ class Layer {
 					}
 
 					// update DisplayNode._renderRect here.
-					if (x.isGeometryUpdated() || !x._renderRect) {
+					if (x._hierarchyUpdated || x.isGeometryUpdated() || !x._renderRect) {
 						x._calcRenderRect();
 					}
 
@@ -321,6 +321,7 @@ class Layer {
 			for (var iii in this._drawBins) {
 				this._drawBins[iii].forEach((node) -> {
 					node._geometryUpdated = false;
+					node._hierarchyUpdated = false;
 				});
 			}
 

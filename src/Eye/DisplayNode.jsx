@@ -44,6 +44,7 @@ class DisplayNode {
 	var _dirtyRect = true;
 	var _dirty = true;
 	var _geometryUpdated = true;
+	var _hierarchyUpdated = true;
 
 	var _id: number;
 	static var _counter = 0;
@@ -220,6 +221,7 @@ class DisplayNode {
 		this.parent = parent;
 		this._setDirtyRect(true);
 		this._addDirtyRectangle();
+		this._hierarchyUpdated = true;
 	}
 	function _setDirtyRect(value: boolean): void {
 		this._dirtyRect = value;
