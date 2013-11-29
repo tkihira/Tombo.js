@@ -39,7 +39,13 @@ class Layer {
 	 * READONLY: layout information which is belonged to this layer
 	 */
 	var layout: LayoutInformation;
-	
+
+	/**
+	 * for Viewport clipping
+	 */
+	 var left = 0 as number;
+	 var top = 0 as number;
+
 	/**
 	 * READONLY: redraw all nodes
 	 */
@@ -94,7 +100,7 @@ class Layer {
 		}
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		if(this.forceRedraw) {
-			this._dirtyRegions = [[0, 0, this.width, this.height]];
+			this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
 		}
 		this._alpha = 1;
 		this._compositeOperation = "source-over";
@@ -276,7 +282,7 @@ class Layer {
 				context.clearRect(0, 0, this.width, this.height);
 				this._dirtyRegions = [] : Array.<Array.<number>>;
 				if(this.forceRedraw) {
-					this._dirtyRegions = [[0, 0, this.width, this.height]];
+					this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
 				}
 				return;
 			}
@@ -326,7 +332,7 @@ class Layer {
 
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			if(this.forceRedraw) {
-				this._dirtyRegions = [[0, 0, this.width, this.height]];
+				this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
 			}
 			return;
 		}
@@ -352,7 +358,7 @@ class Layer {
 		//this.root._render(this._ctx);
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		if(this.forceRedraw) {
-			this._dirtyRegions = [[0, 0, this.width, this.height]];
+			this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
 		}
 	}
 
@@ -408,7 +414,7 @@ class Layer {
 			minY = rectangle.top;
 			maxY = minY + rectangle.height;
 		}
-		if(maxX < 0 || maxY < 0 || minX > this.width || minY > this.height) {
+		if(maxX < this.left || maxY < this.top || minX > this.left+this.width || minY > this.top+this.height) {
 			return false;
 		}
 		if(this.forceRedraw) {
@@ -443,5 +449,10 @@ class Layer {
 				this._ctx.globalCompositeOperation = compositeOperation;
 			}
 		}
+	}
+
+	function setViewportOffset(left: number, top: number): void {
+		this.left = left;
+		this.top = top;
 	}
 }
