@@ -5,7 +5,6 @@ import "LayoutInformation.jsx";
 import "DisplayNode.jsx";
 import "DisplayGroup.jsx";
 import "Eye.jsx";
-import "Stream.jsx";
 import "RenderingContext.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
@@ -316,7 +315,7 @@ class Layer {
 				});
 			}
 
-			context.renderBins(this, bins);
+			context.renderBins(bins);
 
 			for (var iii in this._drawBins) {
 				this._drawBins[iii].forEach((node) -> {
@@ -346,7 +345,7 @@ class Layer {
 				this._dirtyDrawBins[binIndex] = false;
 			}
 			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(this._ctx, null);
+				bin[j]._render(context);
 			}
 		}
 		
@@ -443,17 +442,6 @@ class Layer {
 			if(!Eye.useStreaming()) {
 				this._ctx.globalCompositeOperation = compositeOperation;
 			}
-		}
-	}
-
-	function setTransform(transform: Transform, lastUpdatedFrame: int, stream: Stream = null): void {
-		// TODO(hbono): Is it faster to cache the current transform?
-		var matrix = transform.getMatrix();
-		if(stream) {
-			//stream.sendSetTransform(this._id, nodeId, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
-			stream.sendSetTransform(this._id, lastUpdatedFrame, matrix[0] * this.layout.scale, matrix[1] * this.layout.scale, matrix[2] * this.layout.scale, matrix[3] * this.layout.scale, matrix[4] * this.layout.scale, matrix[5] * this.layout.scale);
-		} else {
-			js.invoke(this._ctx, "setTransform", matrix as __noconvert__ variant[]);
 		}
 	}
 }
