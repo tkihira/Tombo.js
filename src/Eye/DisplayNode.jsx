@@ -502,8 +502,7 @@ class DisplayNode {
 				return;
 			}
 
-			context.renderDisplayNode1st(this);
-			context.renderDisplayNode2nd(this, canvas, color);
+			context.renderDisplayNode(this, canvas, color);
 			return;
 		}
 

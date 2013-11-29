@@ -35,8 +35,12 @@ __export__ abstract class RenderingContext {
 	// DisplayNode
 	abstract function setDisplayNodeColor(node: DisplayNode, color: int): HTMLCanvasElement;
 	abstract function renderBins(bin: Array.<DisplayNode>): void;
-	abstract function renderDisplayNode1st(node: DisplayNode): void;
-	abstract function renderDisplayNode2nd(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void;
+	function renderDisplayNode(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void {
+		this._renderDisplayNode1st(node);
+		this._renderDisplayNode2nd(node, canvas, color);
+	}
+	abstract function _renderDisplayNode1st(node: DisplayNode): void;
+	abstract function _renderDisplayNode2nd(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void;
 	abstract function setTransform(transform: Transform, layer: Layer, lastUpdatedFrame: int): void;
 	abstract function _beginPaintDisplayNode(node: DisplayNode): void;
 	abstract function _endPaintDisplayNode(node: DisplayNode): void;
@@ -194,7 +198,7 @@ class CanvasRenderingContext extends RenderingContext {
 		return oc;
 	}
 
-	override function renderDisplayNode1st(node: DisplayNode): void {
+	override function _renderDisplayNode1st(node: DisplayNode): void {
 		if(node._dirty) {
 			node._calcRenderRect();
 		}
@@ -241,7 +245,7 @@ class CanvasRenderingContext extends RenderingContext {
 		context.restore();
 	}
 
-	override function renderDisplayNode2nd(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void {
+	override function _renderDisplayNode2nd(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void {
 		node._dirty = false;
 		this._beginPaintDisplayNode(node);
 		this.drawShape(node, canvas, color);
@@ -339,11 +343,11 @@ class StreamRenderingContext extends RenderingContext {
 		return null;
 	}
 
-	override function renderDisplayNode1st(node: DisplayNode): void {
+	override function _renderDisplayNode1st(node: DisplayNode): void {
 		this._stream.sendDisplayNode(node);
 	}
 
-	override function renderDisplayNode2nd(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void {
+	override function _renderDisplayNode2nd(node: DisplayNode, canvas: HTMLCanvasElement, color: int): void {
 	}
 
 	override function setTransform(transform: Transform, layer: Layer, lastUpdatedFrame: int): void {
