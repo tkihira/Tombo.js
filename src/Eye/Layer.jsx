@@ -323,12 +323,10 @@ class Layer {
 
 			context.renderBins(bins);
 
-			for (var iii in this._drawBins) {
-				this._drawBins[iii].forEach((node) -> {
-					node._geometryUpdated = false;
-					node._hierarchyUpdated = false;
-				});
-			}
+			bins.forEach((node) -> {
+				node._geometryUpdated = false;
+				node._hierarchyUpdated = false;
+			});
 
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			if(this.forceRedraw) {
@@ -454,5 +452,14 @@ class Layer {
 	function setViewportOffset(left: number, top: number): void {
 		this.left = left;
 		this.top = top;
+	}
+
+	function _onEndAllClients(): void {
+		for (var iii in this._drawBins) {
+			this._drawBins[iii].forEach((node) -> {
+				node._geometryUpdated = false;
+				node._hierarchyUpdated = false;
+			});
+		}
 	}
 }

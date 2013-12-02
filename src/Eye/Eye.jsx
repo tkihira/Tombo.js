@@ -171,6 +171,15 @@ class Eye {
 		this._renderingContext.endEye();
 	}
 
+	/**
+	 * should be called after rendering all clients at current frame (for Stream)
+	 */
+	function onEndAllClients(): void {
+		this._layerList.forEach((layer) -> {
+			layer._onEndAllClients();
+		});
+	}
+
 	// assume server side Tombo does not have dom
 	static function useStreaming(): boolean {
 		return dom.document == null;
