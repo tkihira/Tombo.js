@@ -240,6 +240,9 @@ class Layer {
 		for(var i = 0; i < this._touchableNodeList.length; i++) {
 			var node = this._touchableNodeList[i];
 			var clientRect = node.getClientRect();
+			if(node._anchorX != 0 || node._anchorY != 0) {
+				transform = Transform.mul(transform, new Transform(-node._anchorX, -node._anchorY));
+			}
 			//log node.clientRect.left, node.clientRect.top, node.clientRect.width, node.clientRect.height, x, y;
 			if(clientRect && transform.transformRect(clientRect).isInside(x, y)) {
 				var ret = node;
