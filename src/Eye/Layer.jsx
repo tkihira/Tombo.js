@@ -207,10 +207,14 @@ class SubLayer {
  * @author Takuo KIHIRA <t-kihira@broadtail.jp>
  */
 class Layer {
-	var _subLayers = [] : Array.<SubLayer>;
+	var _subLayers = []: Array.<Array.<SubLayer>>;
+	var _subX = 1 as int;
+	var _subY = 1 as int;
+
 	var _world: Rect;
 	var _canvas: HTMLCanvasElement;
 	var _ctx: CanvasRenderingContext2D;
+	var _eye: Eye;
 	
 	/**
 	 * READONLY: the width of layer stage size
@@ -256,17 +260,17 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
-	function constructor(width: number, height: number, id: number = -1, world: Rect = null) {
+	function constructor(width: number, height: number, eye: Eye, id: number = -1, world: Rect = null) {
 		var layout = new LayoutInformation();
-		this._initialize(width, height, layout, id, world);
+		this._initialize(width, height, eye, layout, id, world);
 	}
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, world: Rect = null) {
-		this._initialize(width, height, layout, id, world);
+	 function constructor(width: number, height: number, eye: Eye, layout: LayoutInformation, id: number = -1, world: Rect = null) {
+		this._initialize(width, height, eye, layout, id, world);
 	}
-	function _initialize(width: number, height: number, layout: LayoutInformation, id: number, world: Rect): void {
+	function _initialize(width: number, height: number, eye: Eye, layout: LayoutInformation, id: number, world: Rect): void {
 		if(id < 0) {
 			this._id = Layer._counter++;
 		} else {
@@ -278,17 +282,25 @@ class Layer {
 		this.layout = layout;
 		this.width = width;
 		this.height = height;
+		this._eye = eye;
 
 		if (world) {
-			var hw = world.width / 2;
-			var hh = world.height / 2;
-			this._subLayers.push(new SubLayer(new Rect(world.left, world.top, hw, hh)));
-			this._subLayers.push(new SubLayer(new Rect(world.left + hw, world.top, hw, hh)));
-			this._subLayers.push(new SubLayer(new Rect(world.left, world.top + hh, hw, hh)));
-			this._subLayers.push(new SubLayer(new Rect(world.left + hw, world.top + hh, hw, hh)));
+			this._subX = Math.ceil(world.width / eye._width);
+			this._subY = Math.ceil(world.height / eye._height);
+
+			// FIXME: the size of SubLayer at the boundary (subX, subY) might be too large.
+			for (var i=0; i<this._subY; i++) {
+				this._subLayers.push(new Array.<SubLayer>);
+				for (var j=0; j<this._subX; j++) {
+					log 'creating sublayer ' + [j, i].join(' ');
+					this._subLayers[i].push(new SubLayer(new Rect(world.left + eye._width*j, world.top + eye._height*i, eye._width, eye._height)));
+				}
+			}
+
 			this._world = world;
 		} else {
-			this._subLayers.push(new SubLayer(new Rect(0, 0, width, height)));
+			this._subLayers.push(new Array.<SubLayer>);
+			this._subLayers[0].push(new SubLayer(new Rect(0, 0, width, height)));
 		}
 		this.root._setLayer(this);
 		
@@ -425,11 +437,22 @@ class Layer {
 
 			var bins = [] : Array.<DisplayNode>;
 
-			this._subLayers.forEach((sl) -> {
-				if (sl.intersected(this)) {
-					bins = bins.concat(sl._collect(context, this));
+			var xx = Math.floor(this.left / this._eye._width);
+			var yy = Math.floor(this.top / this._eye._height);
+
+			for (var i=-1; i<=1; i++) {
+				if (yy + i < 0 || yy + i >= this._subY) {
+					continue;
 				}
-			});
+				for (var j=-1; j<=1; j++) {
+					if (xx + j < 0 || xx + j >= this._subX) {
+						continue;
+					}
+					if (this._subLayers[yy+i][xx+j].intersected(this)) {
+						bins = bins.concat(this._subLayers[yy+i][xx+j]._collect(context, this));
+					}
+				}
+			}
 
 			context.renderBins(bins);
 
@@ -566,29 +589,27 @@ class Layer {
 	}
 
 	function _onEndAllClients(): void {
-		this._subLayers.forEach((sl) -> {
-			sl._onEndAllClients();
+		this._subLayers.forEach((asl) -> {
+			asl.forEach((sl) -> {
+				sl._onEndAllClients();
+			});
 		});
 	}
 
 	function _subLayerForPosition(left: number, top: number): SubLayer {
-
-		if (left < 0) left = 0;
-		if (top < 0) top = 0;
-		for (var i=0; i<this._subLayers.length; i++) {
-			if (this._subLayers[i].bound.isInside(left, top)) {
-				// log 'found :' + i;
-				return this._subLayers[i];
-			}
+		if (! this._world) {
+			return this._subLayers[0][0];
 		}
-		// log 'not found: left,top: ' + [left, top].join(' ') + ', default to be 0';
-		return this._subLayers[0];
 
+		left = Math.max(left, 0);
+		top = Math.max(top, 0);
+
+		return this._subLayers[Math.floor(top / this._eye._height)][Math.floor(left / this._eye._width)];
 	}
 
 	function _subLayerForNode(node: DisplayNode): SubLayer {
 		if (! this._world) {
-			return this._subLayers[0];
+			return this._subLayers[0][0];
 		}
 
 		var left = node._transform.left;
