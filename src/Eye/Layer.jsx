@@ -164,19 +164,19 @@ class SubLayer {
 		var right  = this.bound.left + this.bound.width;
 		var bottom = this.bound.top + this.bound.height;
 		// log [right, bottom, this.bound.join(), layer.left, layer.top, layer.width, layer.height].join(' ');
-		if (layer.left > right) {
+		if (layer._viewport.left > right) {
 			// log 'not intersected because right';
 			return false;
 		}
-		if (layer.top > bottom ) {
+		if (layer._viewport.top > bottom ) {
 			// log 'not intersected because bottom';
 			return false;
 		}
-		if (layer.left + layer.width < this.bound.left) {
+		if (layer._viewport.left + layer.width < this.bound.left) {
 			// log 'not intersected because left';
 			return false;
 		}
-		if (layer.top + layer.height < this.bound.top) {
+		if (layer._viewport.top + layer.height < this.bound.top) {
 			// log 'not intersected because top';
 			return false;
 		}
@@ -214,7 +214,8 @@ class Layer {
 	 * The whole space where all DisplayNodes exist. It can be larger than a layer size itself.
 	 * It can be null if the size of the Eye is equal to the world.
 	 */
-	var _world: Rect;
+	var _worldWidth: number;
+	var _worldHeight: number;
 
 	var _canvas: HTMLCanvasElement;
 	var _ctx: CanvasRenderingContext2D;
@@ -242,8 +243,7 @@ class Layer {
 	/**
 	 * for Viewport clipping
 	 */
-	 var left = 0 as number;
-	 var top = 0 as number;
+	 var _viewport: Rect;
 
 	/**
 	 * READONLY: redraw all nodes
@@ -264,17 +264,17 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
-	function constructor(width: number, height: number, eye: Eye, id: number = -1, world: Rect = null) {
+	function constructor(width: number, height: number, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
 		var layout = new LayoutInformation();
-		this._initialize(width, height, eye, layout, id, world);
+		this._initialize(width, height, layout, id, worldWidth, worldHeight, eye);
 	}
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	 function constructor(width: number, height: number, eye: Eye, layout: LayoutInformation, id: number = -1, world: Rect = null) {
-		this._initialize(width, height, eye, layout, id, world);
+	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
+		this._initialize(width, height, layout, id, worldWidth, worldHeight, eye);
 	}
-	function _initialize(width: number, height: number, eye: Eye, layout: LayoutInformation, id: number, world: Rect): void {
+	function _initialize(width: number, height: number, layout: LayoutInformation, id: number, worldWidth: number, worldHeight: number, eye: Eye): void {
 		if(id < 0) {
 			this._id = Layer._counter++;
 		} else {
@@ -286,26 +286,26 @@ class Layer {
 		this.layout = layout;
 		this.width = width;
 		this.height = height;
-		this._eye = eye;
 
-		if (world) {
-			this._subX = Math.ceil(world.width / eye._width);
-			this._subY = Math.ceil(world.height / eye._height);
+		if (worldWidth > 0 && worldHeight > 0 && eye) {
+			this._subX = Math.ceil(worldWidth / eye._width);
+			this._subY = Math.ceil(worldHeight / eye._height);
 
 			// FIXME: the size of SubLayer at the boundary (subX, subY) might be too large.
 			for (var i=0; i<this._subY; i++) {
 				this._subLayers.push(new Array.<SubLayer>);
 				for (var j=0; j<this._subX; j++) {
-					log 'creating sublayer ' + [j, i].join(' ');
-					this._subLayers[i].push(new SubLayer(new Rect(world.left + eye._width*j, world.top + eye._height*i, eye._width, eye._height)));
+					this._subLayers[i].push(new SubLayer(new Rect(eye._width*j, eye._height*i, eye._width, eye._height)));
 				}
 			}
-
-			this._world = world;
 		} else {
 			this._subLayers.push(new Array.<SubLayer>);
 			this._subLayers[0].push(new SubLayer(new Rect(0, 0, width, height)));
 		}
+
+		// FIXME: better to use clientRect maybe
+		this._viewport = eye ? new Rect(0, 0, eye._width, eye._height) : new Rect(0, 0, width, height);
+
 		this.root._setLayer(this);
 		
 		if(layout.layoutMode & LayoutInformation.FIXED_SCALE) {
@@ -314,7 +314,7 @@ class Layer {
 		}
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		if(this.forceRedraw) {
-			this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
+			this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this.width, this._viewport.top+this.height]];
 		}
 		this._alpha = 1;
 		this._compositeOperation = "source-over";
@@ -432,7 +432,7 @@ class Layer {
 				context.clearRect(0, 0, this.width, this.height);
 				this._dirtyRegions = [] : Array.<Array.<number>>;
 				if(this.forceRedraw) {
-					this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
+					this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this.width, this._viewport.top+this.height]];
 				}
 				return;
 			}
@@ -441,8 +441,8 @@ class Layer {
 
 			var bins = [] : Array.<DisplayNode>;
 
-			var xx = Math.floor(this.left / this._eye._width);
-			var yy = Math.floor(this.top / this._eye._height);
+			var xx = Math.floor(this._viewport.left / this._viewport.width);
+			var yy = Math.floor(this._viewport.top / this._viewport.height);
 
 			for (var i=-1; i<=1; i++) {
 				if (yy + i < 0 || yy + i >= this._subY) {
@@ -467,7 +467,7 @@ class Layer {
 
 			this._dirtyRegions = [] : Array.<Array.<number>>;
 			if(this.forceRedraw) {
-				this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
+				this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this.width, this._viewport.top+this.height]];
 			}
 			return;
 		}
@@ -550,7 +550,7 @@ class Layer {
 			minY = rectangle.top;
 			maxY = minY + rectangle.height;
 		}
-		if(maxX < this.left || maxY < this.top || minX > this.left+this.width || minY > this.top+this.height) {
+		if(maxX < this._viewport.left || maxY < this._viewport.top || minX > this._viewport.left+this.width || minY > this._viewport.top+this.height) {
 			return false;
 		}
 		if(this.forceRedraw) {
@@ -588,8 +588,8 @@ class Layer {
 	}
 
 	function setViewportOffset(left: number, top: number): void {
-		this.left = left;
-		this.top = top;
+		this._viewport.left = left;
+		this._viewport.top = top;
 	}
 
 	function _onEndAllClients(): void {
@@ -601,18 +601,20 @@ class Layer {
 	}
 
 	function _subLayerForPosition(left: number, top: number): SubLayer {
-		if (! this._world) {
+		if (this._worldWidth < 0) {
 			return this._subLayers[0][0];
 		}
 
 		left = Math.max(left, 0);
 		top = Math.max(top, 0);
 
-		return this._subLayers[Math.floor(top / this._eye._height)][Math.floor(left / this._eye._width)];
+		var x = Math.min(Math.floor(left / this._viewport.width), this._subX-1);
+		var y = Math.min(Math.floor(top / this._viewport.height), this._subY-1);
+		return this._subLayers[y][x];
 	}
 
 	function _subLayerForNode(node: DisplayNode): SubLayer {
-		if (! this._world) {
+		if (this._worldWidth < 0) {
 			return this._subLayers[0][0];
 		}
 

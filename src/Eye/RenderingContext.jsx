@@ -359,8 +359,8 @@ class StreamRenderingContext extends RenderingContext {
 	override function _beginPaintDisplayNode(node: DisplayNode): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			var matrix = node._getRenderTransform().getMatrix();
-			var left = matrix[4] - node._layer.left;
-			var top  = matrix[5] - node._layer.top;
+			var left = matrix[4] - node._layer._viewport.left;
+			var top  = matrix[5] - node._layer._viewport.top;
 			var translated = new Transform([matrix[0], matrix[1], matrix[2], matrix[3], left, top]);
 			this.setTransform(translated, node._layer, node._lastChangedFrame);
 			return;
