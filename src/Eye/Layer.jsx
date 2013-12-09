@@ -210,8 +210,12 @@ class Layer {
 	var _subLayers = []: Array.<Array.<SubLayer>>;
 	var _subX = 1 as int;
 	var _subY = 1 as int;
-
+	/**
+	 * The whole space where all DisplayNodes exist. It can be larger than a layer size itself.
+	 * It can be null if the size of the Eye is equal to the world.
+	 */
 	var _world: Rect;
+
 	var _canvas: HTMLCanvasElement;
 	var _ctx: CanvasRenderingContext2D;
 	var _eye: Eye;
