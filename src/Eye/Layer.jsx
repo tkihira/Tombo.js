@@ -68,6 +68,7 @@ class SubLayer {
 		// nodes too often, this function adds the node to the bin
 		// without marking it as dirty if it can add the node at the
 		//  beginning of the bin or its end.)
+		assert !node._subLayer;
 		node._subLayer = this;
 		var bin = this._getDrawBin(node._drawBin);
 		var length = bin.length;
@@ -100,9 +101,7 @@ class SubLayer {
 
 	function _removeNodeFromBin(node: DisplayNode, index: string): void {
 		var bin = this._drawBins[index];
-		if (!bin) {
-			return;
-		}
+		assert bin;
 		for(var i = 0; i < bin.length; i++) {
 			if(bin[i] == node) {
 				bin.splice(i, 1);
@@ -111,6 +110,7 @@ class SubLayer {
 				return;
 			}
 		}
+		assert false; // should not come here
 	}
 
 	function _collect(context: RenderingContext, layer: Layer): Array.<DisplayNode> {
@@ -354,8 +354,7 @@ class Layer {
 		this._removeNodeFromBin(node, node._drawBin as string);
 	}
 	function _removeNodeFromBin(node: DisplayNode, index: string): void {
-		var sl = this._subLayerForNode(node);
-		sl._removeNodeFromBin(node, index);
+		node._subLayer._removeNodeFromBin(node, index);
 	}
 	function _moveDrawBin(node: DisplayNode, oldBin: int): void {
 		// move node from oldBin to node._drawBin
