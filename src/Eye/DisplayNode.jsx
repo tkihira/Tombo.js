@@ -62,55 +62,45 @@ class DisplayNode {
 
 	static const USE_RENDER_TRANSFORM = true;
 
+	/*
+	 * Base constructor
+	 */
+	function constructor(shape: Shape, transform: Transform) {
+		this.shape = shape;
+		this._transform = transform;
+		this._renderRect = null;
+		this._renderTransform = null;
+		this._id = DisplayNode._counter++;
+	}
 	/**
 	 * create new node with shape, position, scale and rotation
 	 */
 	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number, rotation: number) {
-		this._renderRect = null;
-		this.shape = shape;
-		this._transform = new Transform(left, top, scaleX, scaleY, rotation);
-		this._id = DisplayNode._counter++;
-		this._renderTransform = null;
+		this(shape, new Transform(left, top, scaleX, scaleY, rotation));
 	}
 	/**
 	 * create new node with shape, position and scale
 	 */
 	function constructor(shape: Shape, left: number, top: number, scaleX: number, scaleY: number) {
-		this._renderRect = null;
-		this.shape = shape;
-		this._transform = new Transform(left, top, scaleX, scaleY);
-		this._id = DisplayNode._counter++;
-		this._renderTransform = null;
+		this(shape, new Transform(left, top, scaleX, scaleY));
 	}
 	/**
 	 * create new node with shape and position
 	 */
 	function constructor(shape: Shape, left: number, top: number) {
-		this._renderRect = null;
-		this.shape = shape;
-		this._transform = new Transform(left, top);
-		this._id = DisplayNode._counter++;
-		this._renderTransform = null;
+		this(shape, new Transform(left, top));
 	}
 	/**
 	 * create new node with shape
 	 */
 	function constructor(shape: Shape) {
-		this._renderRect = null;
-		this.shape = shape;
-		this._transform = new Transform(0, 0);
-		this._id = DisplayNode._counter++;
-		this._renderTransform = null;
+		this(shape, new Transform(0, 0));
 	}
 	/**
 	 * create new node with shape and matrix
 	 */
 	function constructor(shape: Shape, matrix: number[]) {
-		this._renderRect = null;
-		this.shape = shape;
-		this._transform = new Transform(matrix);
-		this._id = DisplayNode._counter++;
-		this._renderTransform = null;
+		this(shape, new Transform(matrix));
 	}
 	
 	/**
