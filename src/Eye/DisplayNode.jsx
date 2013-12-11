@@ -109,7 +109,7 @@ class DisplayNode {
 	 * set visible of the node
 	 */
 	function setVisible(enable: boolean): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(enable != this._visible) {
 				this._visible = enable;
 				this._addDirtyRectangle();
@@ -122,7 +122,7 @@ class DisplayNode {
 	 * set position of the node
 	 */
 	function setPosition(left: number, top: number): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(left != this._transform.left || top != this._transform.top) {
 				this._transform.setPosition(left, top);
 				this._setDirtyRect(true);
@@ -143,7 +143,7 @@ class DisplayNode {
 	 * set scale of the node
 	 */
 	function setScale(scaleX: number, scaleY: number): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(scaleX != this._transform.scaleX || scaleY != this._transform.scaleY) {
 				this._transform.setScale(scaleX, scaleY);
 				this._setDirtyRect(true);
@@ -162,7 +162,7 @@ class DisplayNode {
 	 * @param rotation radian, not degree
 	 */
 	function setRotation(rotation: number): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(rotation != this._transform.rotation) {
 				this._transform.setRotation(rotation);
 				this._setDirtyRect(true);
@@ -198,7 +198,7 @@ class DisplayNode {
 			if(this._isTouchable) {
 				this._layer._removeTouchableNode(this);
 			}
-			if(Layer.USE_NEW_RENDERER) {
+			if(RenderingContext.USE_NEW_RENDERER) {
 				this._addDirtyRectangle();
 			}
 		}
@@ -209,7 +209,7 @@ class DisplayNode {
 			if(this._isTouchable) {
 				layer._addTouchableNode(this);
 			}
-			if(Layer.USE_NEW_RENDERER) {
+			if(RenderingContext.USE_NEW_RENDERER) {
 				this._addDirtyRectangle();
 			}
 		}
@@ -240,7 +240,7 @@ class DisplayNode {
 		if(this._layer) {
 			this._layer._moveDrawBin(this, oldBin);
 		}
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			this._addDirtyRectangle();
 		}
 	}
@@ -280,7 +280,7 @@ class DisplayNode {
 	 * set node color
 	 */
 	function setColor(value: number): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(this._color != value) {
 				this._addDirtyRectangle();
 				this._clearCompositeColor();
@@ -305,7 +305,7 @@ class DisplayNode {
 	 * set node alpha value
 	 */
 	function setAlpha(value: number): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(this._alpha != value) {
 				this._addDirtyRectangle();
 				this._clearCompositeAlpha();
@@ -325,7 +325,7 @@ class DisplayNode {
 	 * set scale of the node
 	 */
 	function setAnchor(anchorX: number, anchorY: number): void {
-		if(Layer.USE_NEW_RENDERER) {
+		if(RenderingContext.USE_NEW_RENDERER) {
 			if(this._anchorX != anchorX || this._anchorY != anchorY) {
 				this._anchorX = anchorX;
 				this._anchorY = anchorY;
@@ -342,7 +342,7 @@ class DisplayNode {
 	 */
 	function setSize(width: number, height: number): void {
 		if(this.shape) {
-			if(Layer.USE_NEW_RENDERER) {
+			if(RenderingContext.USE_NEW_RENDERER) {
 				if(width != this.shape.bounds.width || height != this.shape.bounds.height) {
 					this.shape.bounds.width = width;
 					this.shape.bounds.height = height;
@@ -477,54 +477,6 @@ class DisplayNode {
 			node = node.parent;
 		}
 		return false;
-	}
-
-	function _render(context: RenderingContext): void {
-		if (this._invisible()) {
-			return;
-		}
-		var color = this._getCompositeColor();
-		var canvas = context.setDisplayNodeColor(this, color);
-
-		if(Layer.USE_NEW_RENDERER) {
-			// We have to draw this object:
-			// * when this object is marked as dirty, or;
-			// * when this object has an intersection with dirty rectangles.
-			// It may take long time to check if an object has an intersection
-			// with the dirty rectangles and this code skips checking whether a
-			// dirty object has an intersection with the dirty rectangles, which
-			// is obviously true.
-			if(!this._layer.hasIntersection(this._renderRect)) {
-				return;
-			}
-
-			context.renderDisplayNode(this, canvas, color);
-			return;
-		}
-
-		var ctx = this._layer._ctx;
-		ctx.save();
-		var oldOperation = this._compositeOperation? ctx.globalCompositeOperation: "";
-		if(this._compositeOperation) {
-			ctx.globalCompositeOperation = this._compositeOperation;
-		}
-		//log ctx.globalCompositeOperation;
-		
-		
-		var matrix = this.getCompositeTransform().getMatrix();
-		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
-		
-		if(this._anchorX || this._anchorY) {
-			ctx.transform(1, 0, 0, 1, -this._anchorX, -this._anchorY);
-		}
-		
-		ctx.globalAlpha = this._getCompositeAlpha();
-		context.drawShape(this, canvas, color);
-		
-		if(this._compositeOperation) {
-			ctx.globalCompositeOperation = oldOperation;
-		}
-		ctx.restore();
 	}
 
 	function isGeometryUpdated():boolean {

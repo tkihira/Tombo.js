@@ -256,7 +256,6 @@ class Layer {
 	var _touchableNodeList = []: DisplayNode[];
 	
 	var _dirtyRegions : Array.<Array.<number>>;
-	static const USE_NEW_RENDERER = true;
 	
 	var _alpha: number;
 	var _compositeOperation: string;
@@ -265,16 +264,12 @@ class Layer {
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
 	function constructor(width: number, height: number, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
-		var layout = new LayoutInformation();
-		this._initialize(width, height, layout, id, worldWidth, worldHeight, eye);
+		this(width, height, new LayoutInformation(), id, worldWidth, worldHeight, eye);
 	}
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
-		this._initialize(width, height, layout, id, worldWidth, worldHeight, eye);
-	}
-	function _initialize(width: number, height: number, layout: LayoutInformation, id: number, worldWidth: number, worldHeight: number, eye: Eye): void {
+	function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
 		if(id < 0) {
 			this._id = Layer._counter++;
 		} else {
@@ -415,86 +410,35 @@ class Layer {
 		}
 		return null;
 	}
-	
-	function _render(context: RenderingContext): void {
-		if(Layer.USE_NEW_RENDERER) {
-			// Erase the region covered by the dirty rectangles and redraw
-			// objects that have intersections with the rectangles.
-			if(this._dirtyRegions.length == 0) {
-				return;
+
+	function _collectDisplayNodesToRender(context: RenderingContext): Array.<DisplayNode> {
+		var bins = []: Array.<DisplayNode>;
+
+		var xx = Math.floor(this._viewport.left / this._viewport.width);
+		var yy = Math.floor(this._viewport.top / this._viewport.height);
+
+		for (var i=-1; i<=1; i++) {
+			if (yy + i < 0 || yy + i >= this._subY) {
+				continue;
 			}
-
-			// Clean up this layer and return now without saving or restoring
-			// the context if it does not have any nodes. (It is better to avoid
-			// unnecessary calls for Canvas APIs.)
-			if (!this.root.hasChildren()) {
-				context.clearRect(0, 0, this.width, this.height);
-				this._dirtyRegions = [] : Array.<Array.<number>>;
-				if(this.forceRedraw) {
-					this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this.width, this._viewport.top+this.height]];
-				}
-				return;
-			}
-
-			context.clipDirtyRegions(this);
-
-			var bins = [] : Array.<DisplayNode>;
-
-			var xx = Math.floor(this._viewport.left / this._viewport.width);
-			var yy = Math.floor(this._viewport.top / this._viewport.height);
-
-			for (var i=-1; i<=1; i++) {
-				if (yy + i < 0 || yy + i >= this._subY) {
+			for (var j=-1; j<=1; j++) {
+				if (xx + j < 0 || xx + j >= this._subX) {
 					continue;
 				}
-				for (var j=-1; j<=1; j++) {
-					if (xx + j < 0 || xx + j >= this._subX) {
-						continue;
-					}
-					if (this._subLayers[yy+i][xx+j].intersected(this)) {
-						bins = bins.concat(this._subLayers[yy+i][xx+j]._collect(context, this));
-					}
+				if (this._subLayers[yy+i][xx+j].intersected(this)) {
+					bins = bins.concat(this._subLayers[yy+i][xx+j]._collect(context, this));
 				}
 			}
-
-			context.renderBins(bins);
-
-			bins.forEach((node) -> {
-				node._geometryUpdated = false;
-				node._hierarchyUpdated = false;
-			});
-
-			this._dirtyRegions = [] : Array.<Array.<number>>;
-			if(this.forceRedraw) {
-				this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this.width, this._viewport.top+this.height]];
-			}
-			return;
 		}
-/* TODO for !USE_NEW_RENDERER
-		this._ctx.clearRect(0, 0, this.width, this.height);
-		
-		if (this._dirtyOrderDrawBins) {
-			this._orderDrawBins.sort((a, b) -> { return a - b; });
-			this._dirtyOrderDrawBins = false;
-		}
-		for(var i = 0; i < this._orderDrawBins.length; i++) {
-			var binIndex = this._orderDrawBins[i] as string;
-			var bin = this._drawBins[binIndex];
-			if(this._dirtyDrawBins[binIndex]) {
-				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
-				this._dirtyDrawBins[binIndex] = false;
-			}
-			for(var j = 0; j < bin.length; j++) {
-				bin[j]._render(context);
-			}
-		}
-		
-		//this.root._render(this._ctx);
+
+		return bins;
+	}
+
+	function _clearDirtyRegions(): void {
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		if(this.forceRedraw) {
-			this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
+			this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this._viewport.width, this._viewport.top+this._viewport.height]];
 		}
- */
 	}
 
 	function setForceRedraw(forceRedraw: boolean): void {
