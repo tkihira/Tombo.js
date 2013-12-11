@@ -49,9 +49,8 @@ __export__ abstract class RenderingContext {
 
 	function _renderLayerInternal(layer: Layer): void {
 		this._clipDirtyRegions(layer);
-		layer._sortOrderDrawBinsIfDirty();
 
-		var nodes = layer._collectDisplayNodesToRender();
+		var nodes = layer._collectDisplayNodesToRender(this);
 		this._renderDisplayNodes(nodes);
 
 		nodes.forEach((node) -> {
@@ -188,6 +187,7 @@ class CanvasRenderingContext extends RenderingContext {
 			return;
 		}
 
+		/* TODO for !USE_NEW_RENDERER
 		layer._ctx.clearRect(0, 0, layer.width, layer.height);
 		
 		if (layer._dirtyOrderDrawBins) {
@@ -211,7 +211,7 @@ class CanvasRenderingContext extends RenderingContext {
 		if(layer.forceRedraw) {
 			layer._dirtyRegions = [[layer.left, layer.top, layer.left+layer.width, layer.top+layer.height]];
 		}
-
+		*/
 	}
 
 	override function _endLayer(layer: Layer): void {
