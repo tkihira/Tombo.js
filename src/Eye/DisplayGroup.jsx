@@ -166,20 +166,4 @@ class DisplayGroup extends DisplayNode {
 			this._children[i]._addDirtyRectangle();
 		}
 	}
-	override function _render(context: RenderingContext): void {
-		/*
-		if(this.shape) {
-			Tombo.warn("[DisplayGroup#render] not implemented: clipping");
-		}
-		
-		ctx.save();
-		var matrix = this._transform.getMatrix();
-		js.invoke(ctx, "transform", matrix as __noconvert__ variant[]);
-		
-		for(var i = 0; i < this._children.length; i++) {
-			this._children[i]._render(ctx);
-		}
-		
-		ctx.restore();*/
-	}
 }

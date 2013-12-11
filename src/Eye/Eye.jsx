@@ -158,15 +158,13 @@ class Eye {
 		this._renderingContext.beginEye(this);
 		
 		if(Eye.DEBUG) {
-			this._renderingContext.setFillStyle("#505050");
-			this._renderingContext.fillRect(0, 0, this._width, this._height);
+			this._renderingContext._setFillStyle("#505050");
+			this._renderingContext._fillRect(0, 0, this._width, this._height);
 		}
 		
 		this._layerList.forEach((layer) -> {
 			// todo: check dirty flag
-			this._renderingContext.beginLayer(layer);
-			layer._render(this._renderingContext);
-			this._renderingContext.endLayer(layer);
+			this._renderingContext.renderLayer(layer);
 		});
 		this._renderingContext.endEye();
 	}
