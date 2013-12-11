@@ -540,16 +540,4 @@ class DisplayNode {
 		}
 		return geometryUpdated;
 	}
-
-
-	/**
-	  * returns the absolute posittion of this node.
-	  * @param width  of Eye
-	  * @param height of Eye
-	  */
-	function absoluteBound(width: number, height: number): Rect {
-		var layerTransform = Eye._calculateLayoutTransform(width, height, this._layer);
-		return new Rect(layerTransform.left + this._renderRect.left, layerTransform.top + this._renderRect.top, this.shape.bounds.width, this.shape.bounds.height);
-
-	}
 }
