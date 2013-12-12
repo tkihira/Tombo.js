@@ -425,9 +425,10 @@ class Layer {
 				if (xx + j < 0 || xx + j >= this._subX) {
 					continue;
 				}
-				if (this._subLayers[yy+i][xx+j].intersected(this)) {
+				// TODO: we could omit 4 sublayers ([0,0], [0,1], [1,0], [1,1])
+				// if (this._subLayers[yy+i][xx+j].intersected(this)) {
 					bins = bins.concat(this._subLayers[yy+i][xx+j]._collect(context, this));
-				}
+				// }
 			}
 		}
 
