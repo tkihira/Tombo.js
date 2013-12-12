@@ -111,6 +111,9 @@ class DisplayNode {
 			if(enable != this._visible) {
 				this._visible = enable;
 				this._addDirtyRectangle();
+				if (enable) {
+					this._geometryUpdated = true;
+				}
 			}
 			return;
 		}
