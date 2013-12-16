@@ -121,11 +121,6 @@ class SubLayer {
 
 		var bins = []: Array.<DisplayNode>;
 
-		// var early = 0;
-		// var calced = 0;
-		// var skipped = 0;
-		// var total = 0 ;
-
 		for(var i = 0; i < this._orderDrawBins.length; i++) {
 			var binIndex = this._orderDrawBins[i] as string;
 			var bin = this._drawBins[binIndex];
@@ -134,20 +129,15 @@ class SubLayer {
 				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
 				this._dirtyDrawBins[binIndex] = false;
 			}
-			// total += bin.length;
 
 			bin.forEach((x) -> {
 				if (!x.shape || x._invisible()) {
-					// early++;
 					return;
 				}
 
 				// update DisplayNode._renderRect here.
 				if (x._hierarchyUpdated || x.isGeometryUpdated() || !x._renderRect) {
-					// calced++;
 					x._calcRenderRect();
-				// } else {
-					// skipped++;
 				}
 
 				if (layer.hasIntersection(x._renderRect)) {
@@ -156,7 +146,6 @@ class SubLayer {
 			});
 		}
 
-		// log 'SL[' + this._id + '] early, calced, skipped, pushed, total: ' + [early, calced, skipped, bins.length, total].join(' ');
 		return bins;
 	}
 
@@ -357,7 +346,7 @@ class Layer {
 		this._addNodeToBin(node);
 	}
 	function _dirtyDrawBin(node: DisplayNode): void {
-		var sl = this._subLayerForNode(node);
+		var sl = node._subLayer;
 		sl._dirtyDrawBin(node);
 	}
 	function _addTouchableNode(node: DisplayNode): void {
@@ -558,31 +547,39 @@ class Layer {
 	}
 
 	function _subLayerForNode(node: DisplayNode): SubLayer {
+		assert node._subLayer == null;
 		if (this._worldWidth < 0) {
 			return this._subLayers[0][0];
 		}
 
-		var left = node._transform.left;
-		var top = node._transform.top;
+		var left = 0;
+		var top = 0;
+		if (node.shape) {
+			node._calcRenderRect();
+			left = node._renderRect.left;
+			top = node._renderRect.top;
+		} else {
+			node._getRenderTransform();
+			left = node._renderTransform.left;
+			top = node._renderTransform.top;
+		}
 		return this._subLayerForPosition(left, top);
 	}
 
 	function _updateSubLayer(node: DisplayNode): void {
-		var transform = node.getCompositeTransform();
-		// log 'DisplayNode[' + node._id + '] updatingSubLayers from ' + node._subLayer._id + ' transform=' + [transform.left, transform.top].join(' ');
+		var transform = node._getRenderTransform();
 
 		var slp = this._subLayerForPosition(transform.left, transform.top);
 		if (slp != node._subLayer) {
-			// log 'moving node ' + node._id + ' from ' + node._subLayer._id + ' to ' + slp._id;
 			node._subLayer._removeNodeFromBin(node, node._drawBin as string);
 			slp._addNodeToBin(node);
+		}
 
-			if (node.shape == null) {
-				var dg = node as DisplayGroup;
-				dg._children.forEach((child) -> {
-					this._updateSubLayer(child);
-				});
-			}
+		if (node.shape == null) {
+			var dg = node as DisplayGroup;
+			dg._children.forEach((child) -> {
+				this._updateSubLayer(child);
+			});
 		}
 	}
 }

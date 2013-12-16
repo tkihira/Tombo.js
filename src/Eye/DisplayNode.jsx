@@ -461,6 +461,7 @@ class DisplayNode {
 				this._layer.addDirtyRectangle(this._renderRect);
 			}
 		}
+		this._calcRenderRect();
 		this._dirty = true;
 	}
 	
