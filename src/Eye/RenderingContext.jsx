@@ -411,7 +411,11 @@ class StreamRenderingContext extends RenderingContext {
 	}
 
 	override function _beginLayer(layer: Layer): void {
-		this._stream.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+		if (layer.layout.scale != 1) {
+			this._stream.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+		} else {
+			this._stream.sendLayerInfo(layer._id, layer._viewport.width, layer._viewport.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+		}
 	}
 
 	override function _endLayer(layer: Layer): void {

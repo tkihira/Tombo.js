@@ -161,11 +161,11 @@ class SubLayer {
 			// log 'not intersected because bottom';
 			return false;
 		}
-		if (layer._viewport.left + layer.width < this.bound.left) {
+		if (layer._viewport.left + layer._viewport.width < this.bound.left) {
 			// log 'not intersected because left';
 			return false;
 		}
-		if (layer._viewport.top + layer.height < this.bound.top) {
+		if (layer._viewport.top + layer._viewport.height < this.bound.top) {
 			// log 'not intersected because top';
 			return false;
 		}
@@ -199,12 +199,6 @@ class Layer {
 	var _subLayers = []: Array.<Array.<SubLayer>>;
 	var _subX = 1 as int;
 	var _subY = 1 as int;
-	/**
-	 * The whole space where all DisplayNodes exist. It can be larger than a layer size itself.
-	 * It can be null if the size of the Eye is equal to the world.
-	 */
-	var _worldWidth: number;
-	var _worldHeight: number;
 
 	var _canvas: HTMLCanvasElement;
 	var _ctx: CanvasRenderingContext2D;
@@ -252,13 +246,13 @@ class Layer {
 	/**
 	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
 	 */
-	function constructor(width: number, height: number, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
-		this(width, height, new LayoutInformation(), id, worldWidth, worldHeight, eye);
+	function constructor(width: number, height: number, id: number = -1, eye: Eye = null) {
+		this(width, height, new LayoutInformation(), id, eye);
 	}
 	/**
 	 * create new layer with the stage size (width, height) and layout information
 	 */
-	function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, worldWidth: number = -1, worldHeight: number = -1, eye: Eye = null) {
+	function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, eye: Eye = null) {
 		if(id < 0) {
 			this._id = Layer._counter++;
 		} else {
@@ -271,24 +265,26 @@ class Layer {
 		this.width = width;
 		this.height = height;
 
-		if (worldWidth > 0 && worldHeight > 0 && eye) {
-			this._subX = Math.ceil(worldWidth / eye._width);
-			this._subY = Math.ceil(worldHeight / eye._height);
+		this._viewport = eye ? new Rect(0, 0, eye._width, eye._height) : new Rect(0, 0, width, height);
+
+		if (this._viewport.width != width || this._viewport.height != height) {
+			var vw = this._viewport.width;
+			var vh = this._viewport.height;
+
+			this._subX = Math.ceil(width / vw);
+			this._subY = Math.ceil(height / vh);
 
 			// FIXME: the size of SubLayer at the boundary (subX, subY) might be too large.
 			for (var i=0; i<this._subY; i++) {
 				this._subLayers.push(new Array.<SubLayer>);
 				for (var j=0; j<this._subX; j++) {
-					this._subLayers[i].push(new SubLayer(new Rect(eye._width*j, eye._height*i, eye._width, eye._height)));
+					this._subLayers[i].push(new SubLayer(new Rect(vw*j, vh*i, vw, vh)));
 				}
 			}
 		} else {
 			this._subLayers.push(new Array.<SubLayer>);
 			this._subLayers[0].push(new SubLayer(new Rect(0, 0, width, height)));
 		}
-
-		// FIXME: better to use clientRect maybe
-		this._viewport = eye ? new Rect(0, 0, eye._width, eye._height) : new Rect(0, 0, width, height);
 
 		this.root._setLayer(this);
 		
@@ -483,7 +479,7 @@ class Layer {
 			minY = rectangle.top;
 			maxY = minY + rectangle.height;
 		}
-		if(maxX < this._viewport.left || maxY < this._viewport.top || minX > this._viewport.left+this.width || minY > this._viewport.top+this.height) {
+		if(maxX < this._viewport.left || maxY < this._viewport.top || minX > this._viewport.left+this._viewport.width || minY > this._viewport.top+this._viewport.height) {
 			return false;
 		}
 		if(this.forceRedraw) {
@@ -533,8 +529,12 @@ class Layer {
 		});
 	}
 
+	function _useSublayer(): boolean {
+		return this._subX > 1 || this._subY > 1;
+	}
+
 	function _subLayerForPosition(left: number, top: number): SubLayer {
-		if (this._worldWidth < 0) {
+		if (! this._useSublayer()) {
 			return this._subLayers[0][0];
 		}
 
@@ -548,7 +548,7 @@ class Layer {
 
 	function _subLayerForNode(node: DisplayNode): SubLayer {
 		assert node._subLayer == null;
-		if (this._worldWidth < 0) {
+		if (! this._useSublayer()) {
 			return this._subLayers[0][0];
 		}
 
