@@ -397,6 +397,10 @@ class Layer {
 	}
 
 	function _collectDisplayNodesToRender(context: RenderingContext): Array.<DisplayNode> {
+		if (! this._useSublayer()) {
+			return this._subLayers[0][0]._collect(context, this);
+		}
+
 		var bins = []: Array.<DisplayNode>;
 
 		var xx = Math.floor(this._viewport.left / this._viewport.width);
