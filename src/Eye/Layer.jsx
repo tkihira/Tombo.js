@@ -9,124 +9,22 @@ import "RenderingContext.jsx";
 import "../Tombo.jsx";
 import "../BasicTypes.jsx";
 
-/**
- * Layer class
- * 
- * <p>Each layer has one internal on-memory canvas, but you don't need to care the canvas.
- * Layer's stage size is virtual, and the actual canvas's size is determined when the layer is appended.</p>
- *
- * @author Takuo KIHIRA <t-kihira@broadtail.jp>
- */
-class Layer {
-	var _canvas: HTMLCanvasElement;
-	var _ctx: CanvasRenderingContext2D;
-	
-	/**
-	 * READONLY: the width of layer stage size
-	 */
-	var width: number; // final
-	/**
-	 * READONLY: the height of layer stage size
-	 */
-	var height: number; // final
-	
-	/**
-	 * READONLY: the root group. you can add DisplayNodes into this.
-	 */
-	var root: DisplayGroup = new DisplayGroup(0, 0);
-	
-	/**
-	 * READONLY: layout information which is belonged to this layer
-	 */
-	var layout: LayoutInformation;
+class SubLayer {
+	var _id: int;
+	static var s_count = 0 as int;
 
-	/**
-	 * for Viewport clipping
-	 */
-	 var left = 0 as number;
-	 var top = 0 as number;
+	var bound: Rect;
 
-	/**
-	 * READONLY: redraw all nodes
-	 */
-	var forceRedraw = true;
-	
-	static var _counter = 0;
-	var _id: number;
-	var _isChild = false;
-	var _touchableNodeList = []: DisplayNode[];
-	
-	var _dirtyRegions : Array.<Array.<number>>;
-	
 	var _drawBins = {}: Map.<Array.<DisplayNode>>;
 	var _orderDrawBins = []: Array.<int>;
 	var _dirtyDrawBins = {}: Map.<boolean>;
 	var _dirtyOrderDrawBins = false;
 
-	var _alpha: number;
-	var _compositeOperation: string;
+	function constructor(bound: Rect) {
+		this.bound = bound;
+		this._id = SubLayer.s_count++;
+	}
 
-	/**
-	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
-	 */
-	function constructor(width: number, height: number, id: number = -1) {
-		this(width, height, new LayoutInformation(), id);
-	}
-	/**
-	 * create new layer with the stage size (width, height) and layout information
-	 */
-	 function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1) {
-		if(id < 0) {
-			this._id = Layer._counter++;
-		} else {
-			this._id = id;
-			if(id >= Layer._counter) {
-				Layer._counter = id + 1;
-			}
-		}
-		this.layout = layout;
-		this.width = width;
-		this.height = height;
-		this.root._setLayer(this);
-		
-		if(layout.layoutMode & LayoutInformation.FIXED_SCALE) {
-			// create canvas now
-			this._modifyCanvas();
-		}
-		this._dirtyRegions = [] : Array.<Array.<number>>;
-		if(this.forceRedraw) {
-			this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
-		}
-		this._alpha = 1;
-		this._compositeOperation = "source-over";
-	}
-	
-	function _modifyCanvas(): void {
-		var scale = this.layout.scale;
-		var width = scale * this.width;
-		var height = scale * this.height;
-		if(!Eye.useStreaming()) {
-			if(!this._canvas) {
-				this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
-			}
-			this._canvas.width = width;
-			this._canvas.height = height;
-		}
-		this.layout.clientWidth = width;
-		this.layout.clientHeight = height;
-		if(!Eye.useStreaming()) {
-			this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
-			this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
-		}
-	}
-	function _setLayoutScale(scale: number): void {
-		this.layout.scale = scale;
-		this._modifyCanvas();
-		// todo: set proper dirty flag
-	}
-	function _addNode(node: DisplayNode): void {
-		this._addNodeToBin(node);
-	}
 	function _getDrawBin(drawBin: int): Array.<DisplayNode> {
 		var key = drawBin as string;
 		var bin = this._drawBins[key];
@@ -163,12 +61,15 @@ class Layer {
 		this._dirtyOrderDrawBins = true;
 		return bin;
 	}
+
 	function _addNodeToBin(node: DisplayNode): void {
 		// Add this node to a draw bin associated with the node and mark
 		// the bin as dirty if it needs to be sorted. (To avoid sorting
 		// nodes too often, this function adds the node to the bin
 		// without marking it as dirty if it can add the node at the
 		//  beginning of the bin or its end.)
+		assert !node._subLayer;
+		node._subLayer = this;
 		var bin = this._getDrawBin(node._drawBin);
 		var length = bin.length;
 		if(length == 0) {
@@ -191,30 +92,259 @@ class Layer {
 			}
 		}
 		bin.push(node);
-		this._dirtyDrawBin(node._drawBin);
+		this._dirtyDrawBin(node);
+	}
+
+	function _dirtyDrawBin(node: DisplayNode): void {
+		this._dirtyDrawBins[node._drawBin as string] = true;
+	}
+
+	function _removeNodeFromBin(node: DisplayNode, index: string): void {
+		var bin = this._drawBins[index];
+		assert bin;
+		for(var i = 0; i < bin.length; i++) {
+			if(bin[i] == node) {
+				bin.splice(i, 1);
+				node._subLayer = null;
+				// no need to set dirty flag because it's not affected to drawing order by removing an item
+				return;
+			}
+		}
+		assert false; // should not come here
+	}
+
+	function _collect(context: RenderingContext, layer: Layer): Array.<DisplayNode> {
+		if (this._dirtyOrderDrawBins) {
+			this._orderDrawBins.sort((a, b) -> { return a - b; });
+			this._dirtyOrderDrawBins = false;
+		}
+
+		var bins = []: Array.<DisplayNode>;
+
+		for(var i = 0; i < this._orderDrawBins.length; i++) {
+			var binIndex = this._orderDrawBins[i] as string;
+			var bin = this._drawBins[binIndex];
+
+			if(this._dirtyDrawBins[binIndex]) {
+				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
+				this._dirtyDrawBins[binIndex] = false;
+			}
+
+			bin.forEach((x) -> {
+				if (!x.shape || x._invisible()) {
+					return;
+				}
+
+				// update DisplayNode._renderRect here.
+				if (x._hierarchyUpdated || x.isGeometryUpdated() || !x._renderRect) {
+					x._calcRenderRect();
+				}
+
+				if (layer.hasIntersection(x._renderRect)) {
+					bins.push(x);
+				}
+			});
+		}
+
+		return bins;
+	}
+
+	function intersected(layer: Layer): boolean {
+		var right  = this.bound.left + this.bound.width;
+		var bottom = this.bound.top + this.bound.height;
+		// log [right, bottom, this.bound.join(), layer.left, layer.top, layer.width, layer.height].join(' ');
+		if (layer._viewport.left > right) {
+			// log 'not intersected because right';
+			return false;
+		}
+		if (layer._viewport.top > bottom ) {
+			// log 'not intersected because bottom';
+			return false;
+		}
+		if (layer._viewport.left + layer._viewport.width < this.bound.left) {
+			// log 'not intersected because left';
+			return false;
+		}
+		if (layer._viewport.top + layer._viewport.height < this.bound.top) {
+			// log 'not intersected because top';
+			return false;
+		}
+		return true;
+	}
+
+	function setViewportOffset(left: number, top: number): void {
+		this.bound.left = left;
+		this.bound.top = top;
+	}
+
+	function _onEndAllClients(): void {
+		for (var iii in this._drawBins) {
+			this._drawBins[iii].forEach((node) -> {
+				node._geometryUpdated = false;
+				node._hierarchyUpdated = false;
+			});
+		}
+	}
+}
+
+/**
+ * Layer class
+ * 
+ * <p>Each layer has one internal on-memory canvas, but you don't need to care the canvas.
+ * Layer's stage size is virtual, and the actual canvas's size is determined when the layer is appended.</p>
+ *
+ * @author Takuo KIHIRA <t-kihira@broadtail.jp>
+ */
+class Layer {
+	var _subLayers = []: Array.<Array.<SubLayer>>;
+	var _subX = 1 as int;
+	var _subY = 1 as int;
+
+	var _canvas: HTMLCanvasElement;
+	var _ctx: CanvasRenderingContext2D;
+	var _eye: Eye;
+	
+	/**
+	 * READONLY: the width of layer stage size
+	 */
+	var width: number; // final
+	/**
+	 * READONLY: the height of layer stage size
+	 */
+	var height: number; // final
+	
+	/**
+	 * READONLY: the root group. you can add DisplayNodes into this.
+	 */
+	var root: DisplayGroup = new DisplayGroup(0, 0);
+	
+	/**
+	 * READONLY: layout information which is belonged to this layer
+	 */
+	var layout: LayoutInformation;
+
+	/**
+	 * for Viewport clipping
+	 */
+	 var _viewport: Rect;
+
+	/**
+	 * READONLY: redraw all nodes
+	 */
+	var forceRedraw = true;
+	
+	static var _counter = 0;
+	var _id: number;
+	var _isChild = false;
+	var _touchableNodeList = []: DisplayNode[];
+	
+	var _dirtyRegions : Array.<Array.<number>>;
+	
+	var _alpha: number;
+	var _compositeOperation: string;
+
+	/**
+	 * create new layer with the stage size (width, height) and default layout (CENTER and AUTO_SCALE)
+	 */
+	function constructor(width: number, height: number, id: number = -1, eye: Eye = null) {
+		this(width, height, new LayoutInformation(), id, eye);
+	}
+	/**
+	 * create new layer with the stage size (width, height) and layout information
+	 */
+	function constructor(width: number, height: number, layout: LayoutInformation, id: number = -1, eye: Eye = null) {
+		if(id < 0) {
+			this._id = Layer._counter++;
+		} else {
+			this._id = id;
+			if(id >= Layer._counter) {
+				Layer._counter = id + 1;
+			}
+		}
+		this.layout = layout;
+		this.width = width;
+		this.height = height;
+
+		this._viewport = eye ? new Rect(0, 0, eye._width, eye._height) : new Rect(0, 0, width, height);
+
+		if (this._viewport.width != width || this._viewport.height != height) {
+			var vw = this._viewport.width;
+			var vh = this._viewport.height;
+
+			this._subX = Math.ceil(width / vw);
+			this._subY = Math.ceil(height / vh);
+
+			// FIXME: the size of SubLayer at the boundary (subX, subY) might be too large.
+			for (var i=0; i<this._subY; i++) {
+				this._subLayers.push(new Array.<SubLayer>);
+				for (var j=0; j<this._subX; j++) {
+					this._subLayers[i].push(new SubLayer(new Rect(vw*j, vh*i, vw, vh)));
+				}
+			}
+		} else {
+			this._subLayers.push(new Array.<SubLayer>);
+			this._subLayers[0].push(new SubLayer(new Rect(0, 0, width, height)));
+		}
+
+		this.root._setLayer(this);
+		
+		if(layout.layoutMode & LayoutInformation.FIXED_SCALE) {
+			// create canvas now
+			this._modifyCanvas();
+		}
+		this._dirtyRegions = [] : Array.<Array.<number>>;
+		if(this.forceRedraw) {
+			this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this.width, this._viewport.top+this.height]];
+		}
+		this._alpha = 1;
+		this._compositeOperation = "source-over";
+	}
+	
+	function _modifyCanvas(): void {
+		var scale = this.layout.scale;
+		var width = scale * this.width;
+		var height = scale * this.height;
+		if(!Eye.useStreaming()) {
+			if(!this._canvas) {
+				this._canvas = dom.createElement("canvas") as HTMLCanvasElement;
+			}
+			this._canvas.width = width;
+			this._canvas.height = height;
+		}
+		this.layout.clientWidth = width;
+		this.layout.clientHeight = height;
+		if(!Eye.useStreaming()) {
+			this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
+			this._ctx.setTransform(scale, 0, 0, scale, 0, 0);
+		}
+	}
+	function _setLayoutScale(scale: number): void {
+		this.layout.scale = scale;
+		this._modifyCanvas();
+		// todo: set proper dirty flag
+	}
+	function _addNode(node: DisplayNode): void {
+		this._addNodeToBin(node);
+	}
+	function _addNodeToBin(node: DisplayNode): void {
+		var sl = this._subLayerForNode(node);
+		sl._addNodeToBin(node);
 	}
 	function _removeNode(node: DisplayNode): void {
 		this._removeNodeFromBin(node, node._drawBin as string);
 	}
 	function _removeNodeFromBin(node: DisplayNode, index: string): void {
-		var bin = this._drawBins[index];
-		for(var i = 0; i < bin.length; i++) {
-			if(bin[i] == node) {
-				bin.splice(i, 1);
-				// no need to set dirty flag because it's not affected to drawing order by removing an item
-				return;
-			}
-		}
+		node._subLayer._removeNodeFromBin(node, index);
 	}
 	function _moveDrawBin(node: DisplayNode, oldBin: int): void {
 		// move node from oldBin to node._drawBin
 		this._removeNodeFromBin(node, oldBin as string);
 		this._addNodeToBin(node);
 	}
-	function _dirtyDrawBin(index: int): void {
-		this._dirtyDrawBins[index as string] = true;
+	function _dirtyDrawBin(node: DisplayNode): void {
+		var sl = node._subLayer;
+		sl._dirtyDrawBin(node);
 	}
-	
 	function _addTouchableNode(node: DisplayNode): void {
 		this._touchableNodeList.push(node);
 	}
@@ -266,47 +396,38 @@ class Layer {
 		return null;
 	}
 
-	function _sortOrderDrawBinsIfDirty(): void {
-		if (this._dirtyOrderDrawBins) {
-			this._orderDrawBins.sort((a, b) -> { return a - b; });
-			this._dirtyOrderDrawBins = false;
+	function _collectDisplayNodesToRender(context: RenderingContext): Array.<DisplayNode> {
+		if (! this._useSublayer()) {
+			return this._subLayers[0][0]._collect(context, this);
 		}
-	}
 
-	function _collectDisplayNodesToRender(): Array.<DisplayNode> {
 		var bins = []: Array.<DisplayNode>;
 
-		for(var i = 0; i < this._orderDrawBins.length; i++) {
-			var binIndex = this._orderDrawBins[i] as string;
-			var bin = this._drawBins[binIndex];
+		var xx = Math.floor(this._viewport.left / this._viewport.width);
+		var yy = Math.floor(this._viewport.top / this._viewport.height);
 
-			if(this._dirtyDrawBins[binIndex]) {
-				bin.sort((a, b) -> { return (a._drawOrder - b._drawOrder)? (a._drawOrder - b._drawOrder): (a._id - b._id); });
-				this._dirtyDrawBins[binIndex] = false;
+		for (var i=-1; i<=1; i++) {
+			if (yy + i < 0 || yy + i >= this._subY) {
+				continue;
 			}
-
-			bin.forEach((x) -> {
-				if (!x.shape || x._invisible()) {
-					return;
+			for (var j=-1; j<=1; j++) {
+				if (xx + j < 0 || xx + j >= this._subX) {
+					continue;
 				}
-
-				// update DisplayNode._renderRect here.
-				if (x._hierarchyUpdated || x.isGeometryUpdated() || !x._renderRect) {
-					x._calcRenderRect();
-				}
-
-				if (this.hasIntersection(x._renderRect)) {
-					bins.push(x);
-				}
-			});
+				// TODO: we could omit 4 sublayers ([0,0], [0,1], [1,0], [1,1])
+				// if (this._subLayers[yy+i][xx+j].intersected(this)) {
+					bins = bins.concat(this._subLayers[yy+i][xx+j]._collect(context, this));
+				// }
+			}
 		}
+
 		return bins;
 	}
 
 	function _clearDirtyRegions(): void {
 		this._dirtyRegions = [] : Array.<Array.<number>>;
 		if(this.forceRedraw) {
-			this._dirtyRegions = [[this.left, this.top, this.left+this.width, this.top+this.height]];
+			this._dirtyRegions = [[this._viewport.left, this._viewport.top, this._viewport.left+this._viewport.width, this._viewport.top+this._viewport.height]];
 		}
 	}
 
@@ -362,7 +483,7 @@ class Layer {
 			minY = rectangle.top;
 			maxY = minY + rectangle.height;
 		}
-		if(maxX < this.left || maxY < this.top || minX > this.left+this.width || minY > this.top+this.height) {
+		if(maxX < this._viewport.left || maxY < this._viewport.top || minX > this._viewport.left+this._viewport.width || minY > this._viewport.top+this._viewport.height) {
 			return false;
 		}
 		if(this.forceRedraw) {
@@ -400,15 +521,68 @@ class Layer {
 	}
 
 	function setViewportOffset(left: number, top: number): void {
-		this.left = left;
-		this.top = top;
+		this._viewport.left = left;
+		this._viewport.top = top;
 	}
 
 	function _onEndAllClients(): void {
-		for (var iii in this._drawBins) {
-			this._drawBins[iii].forEach((node) -> {
-				node._geometryUpdated = false;
-				node._hierarchyUpdated = false;
+		this._subLayers.forEach((asl) -> {
+			asl.forEach((sl) -> {
+				sl._onEndAllClients();
+			});
+		});
+	}
+
+	function _useSublayer(): boolean {
+		return this._subX > 1 || this._subY > 1;
+	}
+
+	function _subLayerForPosition(left: number, top: number): SubLayer {
+		if (! this._useSublayer()) {
+			return this._subLayers[0][0];
+		}
+
+		left = Math.max(left, 0);
+		top = Math.max(top, 0);
+
+		var x = Math.min(Math.floor(left / this._viewport.width), this._subX-1);
+		var y = Math.min(Math.floor(top / this._viewport.height), this._subY-1);
+		return this._subLayers[y][x];
+	}
+
+	function _subLayerForNode(node: DisplayNode): SubLayer {
+		assert node._subLayer == null;
+		if (! this._useSublayer()) {
+			return this._subLayers[0][0];
+		}
+
+		var left = 0;
+		var top = 0;
+		if (node.shape) {
+			node._calcRenderRect();
+			left = node._renderRect.left;
+			top = node._renderRect.top;
+		} else {
+			node._getRenderTransform();
+			left = node._renderTransform.left;
+			top = node._renderTransform.top;
+		}
+		return this._subLayerForPosition(left, top);
+	}
+
+	function _updateSubLayer(node: DisplayNode): void {
+		var transform = node._getRenderTransform();
+
+		var slp = this._subLayerForPosition(transform.left, transform.top);
+		if (slp != node._subLayer) {
+			node._subLayer._removeNodeFromBin(node, node._drawBin as string);
+			slp._addNodeToBin(node);
+		}
+
+		if (node.shape == null) {
+			var dg = node as DisplayGroup;
+			dg._children.forEach((child) -> {
+				this._updateSubLayer(child);
 			});
 		}
 	}

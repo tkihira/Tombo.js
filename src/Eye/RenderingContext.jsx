@@ -49,9 +49,8 @@ __export__ abstract class RenderingContext {
 
 	function _renderLayerInternal(layer: Layer): void {
 		this._clipDirtyRegions(layer);
-		layer._sortOrderDrawBinsIfDirty();
 
-		var nodes = layer._collectDisplayNodesToRender();
+		var nodes = layer._collectDisplayNodesToRender(this);
 		this._renderDisplayNodes(nodes);
 
 		nodes.forEach((node) -> {
@@ -188,6 +187,7 @@ class CanvasRenderingContext extends RenderingContext {
 			return;
 		}
 
+		/* TODO for !USE_NEW_RENDERER
 		layer._ctx.clearRect(0, 0, layer.width, layer.height);
 		
 		if (layer._dirtyOrderDrawBins) {
@@ -211,7 +211,7 @@ class CanvasRenderingContext extends RenderingContext {
 		if(layer.forceRedraw) {
 			layer._dirtyRegions = [[layer.left, layer.top, layer.left+layer.width, layer.top+layer.height]];
 		}
-
+		*/
 	}
 
 	override function _endLayer(layer: Layer): void {
@@ -411,7 +411,11 @@ class StreamRenderingContext extends RenderingContext {
 	}
 
 	override function _beginLayer(layer: Layer): void {
-		this._stream.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+		if (layer.layout.scale != 1) {
+			this._stream.sendLayerInfo(layer._id, layer.width, layer.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+		} else {
+			this._stream.sendLayerInfo(layer._id, layer._viewport.width, layer._viewport.height, layer._alpha, layer._compositeOperation, layer.layout.layoutMode, layer.layout.scale);
+		}
 	}
 
 	override function _endLayer(layer: Layer): void {
@@ -487,8 +491,8 @@ class StreamRenderingContext extends RenderingContext {
 	override function _beginPaintDisplayNode(node: DisplayNode): void {
 		if(DisplayNode.USE_RENDER_TRANSFORM) {
 			var matrix = node._getRenderTransform().getMatrix();
-			var left = matrix[4] - node._layer.left;
-			var top  = matrix[5] - node._layer.top;
+			var left = matrix[4] - node._layer._viewport.left;
+			var top  = matrix[5] - node._layer._viewport.top;
 			var translated = new Transform([matrix[0], matrix[1], matrix[2], matrix[3], left, top]);
 			this._setTransform(translated, node._layer, node._lastChangedFrame);
 			return;
