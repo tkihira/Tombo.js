@@ -239,28 +239,12 @@ class TextShape implements Shape {
 		var code = c.charCodeAt(0);
 		return (0x20 <= code && code <= 0x7e) || TextShape._hankakuReg.test(c);
 	}
-
-	// http://www.html5rocks.com/en/tutorials/canvas/texteffects/#toc-text-shadow-clipping
-	// http://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-	function _getHeight(font: string, text: string): number {
-		var d = dom.createElement("div") as __noconvert__ HTMLDivElement;
-		d.style.font  = font;
-		d.textContent = text;
-		dom.window.document.body.appendChild(d);
-		var emHeight = d.offsetHeight;
-		dom.window.document.body.removeChild(d);
-		return emHeight;
-	}
-
 	function _drawText(): void {
 		if(!this._textCanvas) {
 			this._textCanvas = dom.createElement("canvas") as __noconvert__ HTMLCanvasElement;
 		}
 		var textWidth = this.bounds.width - this._option.leftMargin - this._option.rightMargin;
 		var fontHeight = this._option.fontHeight;
-		var font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
-		fontHeight = Math.max(this._getHeight(font, this._text), fontHeight);
-
 		var characterPerLine = (this._option.wordWrap && this._option.multiline)? Math.ceil(textWidth / fontHeight * 2): 0;
 		var stringArray = TextShape._splitString(this._text, characterPerLine);
 		var textHeight = fontHeight * stringArray.length;
@@ -271,7 +255,7 @@ class TextShape implements Shape {
 			this._textCanvas.height = textHeight;
 		}
 		var ctx = this._textCanvas.getContext("2d") as CanvasRenderingContext2D;
-		ctx.font = font;
+		ctx.font = (fontHeight as string) + "px " + (this._option.font? this._option.font: "sans-serif");
 		ctx.clearRect(0, 0, textWidth, textHeight);
 		ctx.fillStyle = Color.stringify(this._option.textColor);
 		if(this._option.border) {
