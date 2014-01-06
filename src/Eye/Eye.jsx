@@ -151,6 +151,10 @@ class Eye {
 		if (stream) {
 			var streamRenderingContext = this._renderingContext as StreamRenderingContext;
 			streamRenderingContext.setStream(stream);
+
+			if (stream.shouldSkipCurrentFrame()) {
+				return;
+			}
 		}
 
 		// todo: render only if any layer is dirty

@@ -24,4 +24,7 @@ interface Stream {
 
 	// Shape
 	function sendShape(layerId: int, nodeId: int, shape: Shape): void;
+
+	// General
+	function shouldSkipCurrentFrame(): boolean;
 }
